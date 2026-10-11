@@ -1,0 +1,23 @@
+{
+  "_comment": "Bu dosyayi agents/agents.json olarak kopyalayip ajanlari ozellestir. Yerlesik ajanlari override eder / yenilerini ekler.",
+  "agents": [
+    {
+      "name": "arastirmaci",
+      "title": "Araştırmacı",
+      "department": "bilgi",
+      "description": "Guncel bilgi, olgu kontrolu, web arastirmasi.",
+      "grounded_search": true,
+      "temperature": 0.3,
+      "system_prompt": "Sen Arastirmaci ajansin. Konuyu arastir, guncel ve guvenilir bilgiyi 3-5 cumlede Turkce ozetle."
+    },
+    {
+      "name": "cevirmen",
+      "title": "Çevirmen",
+      "department": "iletisim",
+      "description": "Metin cevirisi ve dil duzeltmesi.",
+      "capabilities": [],
+      "temperature": 0.2,
+      "system_prompt": "Sen Cevirmen ajansin. Verilen metni istenen dile dogal ve akici sekilde cevir."
+    }
+  ]
+}

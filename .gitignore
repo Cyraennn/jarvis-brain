@@ -1,0 +1,33 @@
+# --- gizli degerler (sunucu ve istemci) ---
+.env
+.env.*
+!.env.example
+!.env.server.example
+client/.env
+!client/.env.example
+
+# --- loglar ---
+*.log
+*.jsonl
+data/logs/
+
+# --- sanal ortamlar ---
+.venv/
+venv/
+
+# --- calisma verisi / hafiza (yerel) ---
+data/
+bridge/outbox.txt
+bridge/inbox.txt
+config/whatsapp.json
+config/gmail_credentials.json
+config/mcp_servers.json
+
+# --- derleme / onbellek ---
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+*.spec.bak
+scratch/

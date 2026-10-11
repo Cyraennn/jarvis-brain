@@ -1,0 +1,53 @@
+# JARVIS Brain Engine - Python 3.11+ zorunlu (asyncio.TaskGroup / ExceptionGroup)
+google-genai>=1.16.0
+openai>=1.40    # OpenRouter istemcisi (core/openrouter_client.py)
+anthropic>=0.120  # Claude istemcisi - yazilim ajanlari (core/claude_client.py)
+edge-tts>=7.0   # Stark Ekibi (/ekip) sesli yanitlari - ucretsiz Microsoft noral sesler
+httpx>=0.27     # Telegram + Izmir acik veri (google-genai ile de gelir; acikca istenir)
+
+# Gmail API (tools/gmail_tool.py). Yoksa e-posta araclari IMAP/SMTP ile calisir.
+google-api-python-client>=2.100
+google-auth-oauthlib>=1.2
+
+# Spotify Web API (tools/spotify_tool.py) - oynatma kontrolu Premium ister
+spotipy>=2.24
+
+# Zamanlayici kolu (core/scheduler_handler.py). 4.x API'si farkli -> 3.x serisi.
+apscheduler>=3.10,<4
+psutil>=5.9     # sistem saglik kontrolu (CPU/RAM/disk)
+ddgs>=9.0       # anahtarsiz web/haber aramasi (Google arama kotasi yoksa yedek)
+pyaudio>=0.2.14
+opencv-python>=4.9.0.80
+numpy>=1.26
+mss>=9.0        # ekran yakalama (screen vision)
+pydantic>=2.6
+loguru>=0.7.2
+python-dotenv>=1.0.1
+
+# Uzaktan sunucu modu (net/audio_server.py, run_server.py). google-genai'nin
+# transitive bagimliligi olarak zaten gelebilir ama burada acikca istenir.
+websockets>=16.0
+
+# Masaustu arayuzu (run_ui.py). Sadece sessiz mod (main.py) icin gerekli degil.
+PySide6-Essentials>=6.6
+
+# WhatsApp kolu (core/whatsapp_handler.py). Sadece config/whatsapp.json enabled=true ise gerekli.
+# Kurulumdan sonra: `playwright install chromium`
+# Tarayici ajani (tools/browser_tool.py) da ayni paketi kullanir.
+playwright>=1.40
+
+# MCP istemcisi (tools/mcp_hub.py) - config/mcp_servers.json'daki sunuculara baglanir
+mcp>=1.20
+
+# Opsiyonel: PIN gibi gizlileri Windows Credential Manager'da tutar (yoksa .env kullanilir)
+keyring>=24
+
+# Uyandirma kelimesi "Hey JARVIS" (cevrimdisi, ONNX). JARVIS_WAKE_WORD=true ile acilir.
+vosk>=0.3.45          # cevrimdisi konusma tanima (core/offline_voice.py)
+piper-tts>=1.3        # cevrimdisi seslendirme; yoksa Windows SAPI sesine dusulur
+sherpa-onnx>=1.10     # konusmaci dogrulama (core/speaker_verify.py); yoksa ozellik pasif
+openwakeword>=0.6
+# Kisisel hafiza aramasi (tools/vault_search) ~/.claude/tools/obsidian-search'i kullanir:
+onnxruntime>=1.17
+tokenizers>=0.15
+huggingface_hub>=0.20

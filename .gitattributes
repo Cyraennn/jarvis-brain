@@ -1,0 +1,4 @@
+# Linux'ta calisan dosyalar Windows'ta duzenlense bile LF kalsin (CRLF bash/systemd'yi bozar)
+*.sh        text eol=lf
+*.service   text eol=lf
+*.example   text eol=lf

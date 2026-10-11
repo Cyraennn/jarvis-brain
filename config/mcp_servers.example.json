@@ -1,0 +1,26 @@
+{
+  "_aciklama": "config/mcp_servers.json olarak kopyalayin. Bicim Claude Desktop ile aynidir. ${VAR} degerleri .env'den gelir. confirm: none | write (varsayilan) | all. allow/deny: arac adi listeleri.",
+  "mcpServers": {
+    "dosyalar": {
+      "description": "Masaustu dosyalarini okuma/arama",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:\\Users\\KULLANICI\\OneDrive\\Masaüstü"],
+      "confirm": "write"
+    },
+    "github": {
+      "description": "GitHub depolari, issue ve PR'lar",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {"GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"},
+      "confirm": "write",
+      "disabled": true
+    },
+    "notion": {
+      "description": "Notion sayfa ve veritabanlari",
+      "url": "https://mcp.notion.com/mcp",
+      "headers": {"Authorization": "Bearer ${NOTION_TOKEN}"},
+      "confirm": "all",
+      "disabled": true
+    }
+  }
+}
