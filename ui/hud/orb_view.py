@@ -6,9 +6,9 @@
 cagrilari etkisizdir, ajanlar soldaki AJANLAR kartinda kalir.
 
 Kopru (bkz. `web3d/src/orb/voice.ts`):
-    Qt -> sayfa : window.jarvis.setVoice({state, level, thinking, asleep}) / setCaption / setStatus
+    Qt -> sayfa : window.cyraen.setVoice({state, level, thinking, asleep}) / setCaption / setStatus
                   / setActive / intro
-    sayfa -> Qt : document.title = "jarvis:<ready|landed|mic|error>:<sayac>"
+    sayfa -> Qt : document.title = "cyraen:<ready|landed|mic|error>:<sayac>"
 
 Sayfa hazir olmazsa (derleme yok, WebGL yok, zaman asimi) `failed` yayar; pencere klasik
 komuta grafine doner.
@@ -100,7 +100,7 @@ class OrbView(QWidget):
         if active == self._active:
             return
         self._active = active
-        self._js(f"window.jarvis.setActive({json.dumps(active)})")
+        self._js(f"window.cyraen.setActive({json.dumps(active)})")
 
     def set_agents(self, agents: list) -> None:  # noqa: ARG002 - ajanlar AJANLAR kartinda
         pass
@@ -121,20 +121,20 @@ class OrbView(QWidget):
 
     def set_caption(self, text: str) -> None:
         self._caption = text
-        self._js(f"window.jarvis.setCaption({json.dumps(text)})")
+        self._js(f"window.cyraen.setCaption({json.dumps(text)})")
 
     def set_status(self, text: str) -> None:
         self._status = text
-        self._js(f"window.jarvis.setStatus({json.dumps(text)})")
+        self._js(f"window.cyraen.setStatus({json.dumps(text)})")
 
     def set_theme(self, theme_: dict) -> None:
         """Kisilik temasi: {persona, accent, base, equator, pole} -> CSS degiskenleri + parcacik renkleri."""
         self._theme = dict(theme_)
-        self._js(f"window.jarvis.setTheme && window.jarvis.setTheme({json.dumps(self._theme)})")
+        self._js(f"window.cyraen.setTheme && window.cyraen.setTheme({json.dumps(self._theme)})")
 
     def intro(self) -> None:
         """Orb'u yeniden uzaktan suzulerek getirir."""
-        self._js("window.jarvis.intro()")
+        self._js("window.cyraen.intro()")
 
     @property
     def ready(self) -> bool:
@@ -143,7 +143,7 @@ class OrbView(QWidget):
     # ------------------------------------------------------------- internal
     def _js(self, code: str) -> None:
         if self._ready and not self._dead:
-            self._view.page().runJavaScript(f"window.jarvis && ({code})")
+            self._view.page().runJavaScript(f"window.cyraen && ({code})")
 
     def _push_voice(self) -> None:
         if not self._dirty:
@@ -151,7 +151,7 @@ class OrbView(QWidget):
         self._dirty = False
         payload = {"state": self._state, "level": round(self._level, 4),
                    "thinking": self._thinking, "asleep": self._asleep}
-        self._js(f"window.jarvis.setVoice({json.dumps(payload)})")
+        self._js(f"window.cyraen.setVoice({json.dumps(payload)})")
 
     def _on_title(self, title: str) -> None:
         event = boot3d.event_of(title)
@@ -159,11 +159,11 @@ class OrbView(QWidget):
             self._ready = True
             self._watchdog.stop()
             # sayfa hazir olmadan gelen durum bir seferde aktarilir
-            self._js(f"window.jarvis.setCaption({json.dumps(self._caption)})")
-            self._js(f"window.jarvis.setStatus({json.dumps(self._status)})")
-            self._js(f"window.jarvis.setActive({json.dumps(self._active)})")
+            self._js(f"window.cyraen.setCaption({json.dumps(self._caption)})")
+            self._js(f"window.cyraen.setStatus({json.dumps(self._status)})")
+            self._js(f"window.cyraen.setActive({json.dumps(self._active)})")
             if self._theme:
-                self._js(f"window.jarvis.setTheme && window.jarvis.setTheme({json.dumps(self._theme)})")
+                self._js(f"window.cyraen.setTheme && window.cyraen.setTheme({json.dumps(self._theme)})")
             self._dirty = True
             self._push_timer.start()
         elif event == "landed":

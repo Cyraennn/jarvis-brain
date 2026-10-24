@@ -1,12 +1,12 @@
-"""Calibre koprusu: Calibre kutuphanesindeki e-kitaplari Jarvis'in kitapligina baglar.
+"""Calibre koprusu: Calibre kutuphanesindeki e-kitaplari Cyraen'in kitapligina baglar.
 
 - Calibre'nin `metadata.db` (SQLite) dosyasi SALT OKUNUR acilir; Calibre'ye hicbir sey yazilmaz.
   Calibre aciksa dosya kilitli olabilir: o durumda gecici kopyadan okunur.
-- Kutuphane yolu: env `JARVIS_CALIBRE_LIBRARY` > Calibre ayari (%APPDATA%/calibre/global.py.json
+- Kutuphane yolu: env `CYRAEN_CALIBRE_LIBRARY` > Calibre ayari (%APPDATA%/calibre/global.py.json
   `library_path`) > `~/Calibre Library` > `~/Documents/Calibre Library`.
 - Esitleme: her Calibre kitabi kitapliga eklenir (ayni kitap tekrar eklenmez), `calibre` alanina
   kimlik, formatlar, etiketler, seri ve aciklama yazilir; kapagi yoksa Calibre kapagi kullanilir.
-  Calibre aciklamasi, Jarvis'in kitap defterini yazarken kaynak olarak verilir.
+  Calibre aciklamasi, Cyraen'in kitap defterini yazarken kaynak olarak verilir.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ _LAST_SYNC = 0.0
 def find_library() -> Path | None:
     """Calibre kutuphane klasoru (icinde metadata.db olan); bulunamazsa None."""
     candidates: list[Path] = []
-    env = os.getenv("JARVIS_CALIBRE_LIBRARY", "").strip()
+    env = os.getenv("CYRAEN_CALIBRE_LIBRARY", "").strip()
     if env:
         candidates.append(Path(env).expanduser())
     appdata = os.getenv("APPDATA")
@@ -135,7 +135,7 @@ def sync(store=None, lib: Path | None = None) -> dict[str, Any]:  # noqa: ANN001
     lib = lib or find_library()
     if lib is None:
         return {"error": "Calibre kutuphanesi bulunamadi. Calibre'yi kurup bir kutuphane olusturun "
-                         "ya da .env'ye JARVIS_CALIBRE_LIBRARY=<klasor> yazin."}
+                         "ya da .env'ye CYRAEN_CALIBRE_LIBRARY=<klasor> yazin."}
     with _LOCK:
         try:
             books = read_books(lib)

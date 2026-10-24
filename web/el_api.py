@@ -1,6 +1,6 @@
 """El Kontrolu + Kitaplik HTTP uc noktalari (web/console_server.py buraya yonlendirir).
 
-Hepsi kimlik dogrulamali (?key= ya da X-Jarvis-Key). Gorseller ham govdeyle gelir
+Hepsi kimlik dogrulamali (?key= ya da X-Cyraen-Key). Gorseller ham govdeyle gelir
 (image/jpeg|png, en fazla MAX_IMAGE_BYTES), JSON govdeleri console_server sinirinda.
 
   GET  /api/el/durum             -> {acik: bagli /el sayfasi sayisi, kitap: acik kitap|null}
@@ -14,7 +14,7 @@ Hepsi kimlik dogrulamali (?key= ya da X-Jarvis-Key). Gorseller ham govdeyle geli
   POST /api/kitaplik/kapak?id=   (ham jpeg/png) -> kapak yukler
   POST /api/kitaplik/kaydet      -> {items, silinen, raf?, referans?} kalibrasyon kaydi
   POST /api/kitaplik/kitap       -> {islem: ekle|guncelle|not|alinti|not_sil|sil, ...}
-  POST /api/kitaplik/defter      -> {id, force?} Jarvis doldursun / yeniden yaz
+  POST /api/kitaplik/defter      -> {id, force?} Cyraen doldursun / yeniden yaz
 """
 
 from __future__ import annotations

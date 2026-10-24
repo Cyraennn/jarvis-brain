@@ -1,4 +1,4 @@
-"""JARVIS gomulu varliklarini uretir: applause.wav + jarvis ikonu (png/ico).
+"""CYRAEN gomulu varliklarini uretir: applause.wav + cyraen ikonu (png/ico).
 
 Calistir:  python assets/generate_assets.py
 """
@@ -105,11 +105,11 @@ def make_icon(png_path: Path, ico_path: Path) -> None:
     if not img.save(str(ico_path), "ICO"):
         # Qt ICO yazamazsa PNG'yi .ico adiyla birak (PyInstaller yine kabul eder)
         img.save(str(ico_path.with_suffix(".png")), "PNG")
-        print("ICO yazilamadi; PNG kullanin (jarvis.png).")
+        print("ICO yazilamadi; PNG kullanin (cyraen.png).")
     else:
         print(f"yazildi: {ico_path}  {sizes}")
 
 
 if __name__ == "__main__":
     make_applause(ASSETS / "applause.wav")
-    make_icon(ASSETS / "jarvis.png", ASSETS / "jarvis.ico")
+    make_icon(ASSETS / "cyraen.png", ASSETS / "cyraen.ico")

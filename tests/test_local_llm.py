@@ -26,7 +26,7 @@ def _tool_config(**kw) -> types.GenerateContentConfig:
         callable=okul_status, api_option="GEMINI_API"
     )
     return types.GenerateContentConfig(
-        system_instruction="Sen JARVIS'sin.", tools=[types.Tool(function_declarations=[fd])], **kw
+        system_instruction="Sen CYRAEN'sin.", tools=[types.Tool(function_declarations=[fd])], **kw
     )
 
 
@@ -198,15 +198,15 @@ def test_server_disables_local_by_default(monkeypatch):
     from config.settings import Settings
     from server.config import server_settings
 
-    monkeypatch.delenv("JARVIS_LOCAL_LLM", raising=False)
+    monkeypatch.delenv("CYRAEN_LOCAL_LLM", raising=False)
     cfg = SimpleNamespace(bind="127.0.0.1", token="x" * 24)
     assert server_settings(Settings(gemini_api_key="x"), cfg).local_llm_enabled is False
     assert local_llm._build(server_settings(Settings(gemini_api_key="x"), cfg)) is None
 
 
 # ------------------------------------------------------------------ canli
-@pytest.mark.skipif(os.environ.get("JARVIS_LIVE_TESTS") != "1",
-                    reason="canli test: JARVIS_LIVE_TESTS=1 ve calisan Ollama gerekir")
+@pytest.mark.skipif(os.environ.get("CYRAEN_LIVE_TESTS") != "1",
+                    reason="canli test: CYRAEN_LIVE_TESTS=1 ve calisan Ollama gerekir")
 def test_live_ollama_tool_turn():
     client = LocalLLM(models=["qwen2.5:7b"])
     assert asyncio.run(client.is_up())

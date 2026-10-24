@@ -3,11 +3,11 @@
     python scripts/voice_enroll.py            # profil olustur / yenile
     python scripts/voice_enroll.py --check    # canli: konusurken ses izi skorunu goster
 
-JARVIS KAPALIYKEN calistirin (mikrofonu ayni anda iki surec acamayabilir).
+CYRAEN KAPALIYKEN calistirin (mikrofonu ayni anda iki surec acamayabilir).
 1. Adim: 5 sn ORTAM sesi (konusmayin) -> profille eslesmemesi gereken ses.
 2. Adim: ekrandaki cumleleri normal sesinizle okuyun.
-3. Adim: birkac kez "Hey JARVIS" deyin (uyanis kisa bir ifade uzerinden dogrulanir).
-Profil `data/voice/profile.npz` dosyasina yazilir; JARVIS bir sonraki acilista kullanir.
+3. Adim: birkac kez "Hey CYRAEN" deyin (uyanis kisa bir ifade uzerinden dogrulanir).
+Profil `data/voice/profile.npz` dosyasina yazilir; CYRAEN bir sonraki acilista kullanir.
 Ses kayitlari SAKLANMAZ, yalnizca sayisal ses izi (256 sayi) kaydedilir.
 """
 
@@ -103,7 +103,7 @@ def _check(stream, verifier) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--check", action="store_true", help="kayit yapma, canli skor goster")
-    ap.add_argument("--wake-tries", type=int, default=5, help="'Hey JARVIS' tekrar sayisi")
+    ap.add_argument("--wake-tries", type=int, default=5, help="'Hey CYRAEN' tekrar sayisi")
     args = ap.parse_args()
 
     settings = get_settings()
@@ -134,9 +134,9 @@ def main() -> int:
             if vector is not None:
                 own.append(vector)
 
-        print("\n3) Simdi 'Hey JARVIS' deyin.")
+        print("\n3) Simdi 'Hey CYRAEN' deyin.")
         for i in range(1, args.wake_tries + 1):
-            vector = _clip(stream, verifier, f"   {i}/{args.wake_tries}: Enter'a basip 'Hey JARVIS' deyin...",
+            vector = _clip(stream, verifier, f"   {i}/{args.wake_tries}: Enter'a basip 'Hey CYRAEN' deyin...",
                            2.0, f"hey {i}")
             if vector is not None:
                 own.append(vector)
@@ -165,9 +165,9 @@ def main() -> int:
     print("Ortam          : " + (", ".join(f"{s:.2f}" for s in others) or "-"))
     print(note)
     print(f"Profil yazildi: {settings.speaker_profile_path} (esik {threshold:.2f}, {len(own)} klip)")
-    print("JARVIS'i yeniden baslatin. Dene: python scripts/voice_enroll.py --check")
-    print("Esigi elle degistirmek icin .env: JARVIS_SPEAKER_THRESHOLD=0.xx · kapatmak icin "
-          "JARVIS_SPEAKER_VERIFY=false")
+    print("CYRAEN'i yeniden baslatin. Dene: python scripts/voice_enroll.py --check")
+    print("Esigi elle degistirmek icin .env: CYRAEN_SPEAKER_THRESHOLD=0.xx · kapatmak icin "
+          "CYRAEN_SPEAKER_VERIFY=false")
     return 0
 
 

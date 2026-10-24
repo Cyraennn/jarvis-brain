@@ -1,6 +1,6 @@
 """WhatsApp medya yardimcilari - STT (sesli mesaj -> metin) + Vision (gorsel analiz).
 
-JARVIS'in ayri bir Whisper kurulumu yok; hem ses transkripsiyonu hem gorsel analiz
+CYRAEN'in ayri bir Whisper kurulumu yok; hem ses transkripsiyonu hem gorsel analiz
 `agents.genai_util.generate_with_retry` uzerinden Gemini multimodal modeline
 yaptirilir (model rotasyonu + retry dahil). Boylece ek bagimlilik gerekmez.
 

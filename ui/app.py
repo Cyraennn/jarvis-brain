@@ -47,8 +47,8 @@ def run() -> int:
     # Icerik panelinin web gorunumu (QtWebEngine) bunu QApplication'dan ONCE ister
     QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
-    app.setApplicationName("JARVIS")
-    app.setApplicationDisplayName("JARVIS")
+    app.setApplicationName("CYRAEN")
+    app.setApplicationDisplayName("CYRAEN")
     app.setWindowIcon(_load_app_icon())
     app.setQuitOnLastWindowClosed(False)  # tepsiye kucultunce cikmasin
     load_fonts()                          # assets/fonts (Rajdhani + JetBrains Mono)
@@ -59,14 +59,14 @@ def run() -> int:
     except Exception as exc:  # noqa: BLE001 - genelde eksik API anahtari
         QMessageBox.critical(
             None,
-            "JARVIS - Yapilandirma Hatasi",
+            "CYRAEN - Yapilandirma Hatasi",
             f"Ayarlar yuklenemedi:\n\n{exc}\n\n"
-            "jarvis-brain/.env dosyanizda GEMINI_API_KEY tanimli oldugundan emin olun.",
+            "cyraen-brain/.env dosyanizda GEMINI_API_KEY tanimli oldugundan emin olun.",
         )
         return 1
 
     _configure_file_logging(settings)
-    # son secilen kisiligin temasi (JARVIS mavi / FRIDAY yesil / ULTRON kirmizi)
+    # son secilen kisiligin temasi (CYRAEN mavi / FRIDAY yesil / ULTRON kirmizi)
     theme.apply_palette(personas.load_active(settings).key)
     app.setStyleSheet(theme.QSS)
 

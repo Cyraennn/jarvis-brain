@@ -5,7 +5,7 @@
 (function () {
   "use strict";
   const JEL = (window.JEL = window.JEL || {});
-  const G = window.JarvisShelfGeom;
+  const G = window.CyraenShelfGeom;
   const HANDLE = 10;
 
   class ShelfCalib {
@@ -158,7 +158,7 @@
     _saveReference() {
       if (this.app.demo) return;
       try {
-        const gri = window.JarvisShelfDrift.thumb(this.app.source());
+        const gri = window.CyraenShelfDrift.thumb(this.app.source());
         const ref = { w: 32, h: 24, gri };
         this.app.drift.setReference(ref);
         this.app.api("/api/kitaplik/kaydet", { items: [], silinen: [], referans: ref }).catch(() => {});

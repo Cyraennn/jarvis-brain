@@ -1,4 +1,4 @@
-"""Telegram Bot API araclari - sesli JARVIS, ILETISIM ajanlari ve otomatik yanit kolu.
+"""Telegram Bot API araclari - sesli CYRAEN, ILETISIM ajanlari ve otomatik yanit kolu.
 
 TELEGRAM_BOT_TOKEN + TELEGRAM_DEFAULT_CHAT_ID (.env). Yapilandirilmamissa her arac
 {"error": ...} doner - asla coker.
@@ -172,7 +172,7 @@ def send_telegram_message(text: str, chat_id: str = "", mirror: bool = True) -> 
     if not data.get("ok"):
         return {"error": data.get("error", "gonderilemedi")}
     if mirror:
-        mirror_to_bridge(f"[TELEGRAM] (JARVIS->{_chat_label(chat_id)}): {text[:200]}")
+        mirror_to_bridge(f"[TELEGRAM] (CYRAEN->{_chat_label(chat_id)}): {text[:200]}")
     return {"status": "gonderildi", "chat_id": chat_id,
             "message_id": (data.get("result") or {}).get("message_id")}
 
@@ -196,7 +196,7 @@ def reply_to_telegram_message(
     if not data.get("ok"):
         return {"error": data.get("error", "gonderilemedi")}
     if mirror:
-        mirror_to_bridge(f"[TELEGRAM] (JARVIS->{_chat_label(str(chat_id))}): {text[:200]}")
+        mirror_to_bridge(f"[TELEGRAM] (CYRAEN->{_chat_label(str(chat_id))}): {text[:200]}")
     return {"status": "yanitlandi", "chat_id": str(chat_id),
             "message_id": (data.get("result") or {}).get("message_id")}
 

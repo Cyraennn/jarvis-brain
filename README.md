@@ -1,4 +1,4 @@
-# JARVIS Brain Engine
+# CYRAEN Brain Engine
 
 Gemini Live WebSocket API (`google-genai`, v1alpha) + PyAudio uzerine kurulu, yalnizca
 **canli beyin motoruna** odakli moduler yapi. Cift yonlu ses akisi, anlik webcam karesi,
@@ -14,7 +14,7 @@ Windows'ta PyAudio icin: `pip install pipwin && pipwin install pyaudio` ya da
 
 ## Kurulum
 ```bash
-cd jarvis-brain
+cd cyraen-brain
 python -m venv .venv && .venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 copy .env.example .env                              # ve GEMINI_API_KEY doldur
@@ -45,7 +45,7 @@ Konusmaya baslayin. `Ctrl+C` ile guvenli kapanir.
 ```bash
 build_windows.bat
 ```
-Cikti: `dist/JARVIS/JARVIS.exe`. Ilk calistirmadan once `dist/JARVIS/` icine
+Cikti: `dist/CYRAEN/CYRAEN.exe`. Ilk calistirmadan once `dist/CYRAEN/` icine
 `.env` (GEMINI_API_KEY) koyun. `data/`, `bridge/`, log dosyalari exe'nin yaninda olusur.
 
 ## 3B Zirh Acilisi (`web3d/`)
@@ -58,7 +58,7 @@ Arayuz acilirken mavi bir hologram zirh Arc Reactor'dan baslayarak olusur (govde
 cd web3d
 npm install
 npm run dev      # tarayicida gelistirme: http://127.0.0.1:5183
-npm run build    # cikti: ../assets/web3d (JARVIS bunu oynatir)
+npm run build    # cikti: ../assets/web3d (CYRAEN bunu oynatir)
 ```
 
 - Yigin: React + three + React Three Fiber + drei + postprocessing (Bloom) + GSAP + Tailwind. Zirh ozel
@@ -67,18 +67,18 @@ npm run build    # cikti: ../assets/web3d (JARVIS bunu oynatir)
 - Ana pencerenin ortasinda Zoey OS (zoeyos.com) tarzi parcacik orb'u durur: `web3d/src/orb/`
   (`?view=orb`), Qt tarafi `ui/hud/orb_view.py`. Sesle nefes alir, arac calisirken hizlanir; alttaki
   dalga hapina tiklamak mikrofonu acar/kapatir. Sayfa acilamazsa klasik komuta grafi gelir.
-- `.env`: `JARVIS_BOOT_STYLE=3d` acilista zirhi oynatir (F9 her zaman acar), `classic` eski halka animasyonuna doner; `JARVIS_BOOT_HOLD_S` zirhin
+- `.env`: `CYRAEN_BOOT_STYLE=3d` acilista zirhi oynatir (F9 her zaman acar), `classic` eski halka animasyonuna doner; `CYRAEN_BOOT_HOLD_S` zirhin
   ekranda kalma suresi (0 = sen kapatana kadar).
 - QtWebEngine (PySide6-WebEngine) ya da derlenmis sayfa yoksa kendiliginden klasik acilis oynar.
 
 ## Cok-Ajanli Sistem (Orkestrator)
 
-JARVIS (sesli beyin) bir gorevi `dispatch_to_agent` araciyla uzman ajanlara devreder.
+CYRAEN (sesli beyin) bir gorevi `dispatch_to_agent` araciyla uzman ajanlara devreder.
 Ajanlar Gemini metin modeliyle (varsayilan `gemini-flash-lite-latest`, kota dolunca
 otomatik yedek modele gecer) calisir, kendi araclarini kullanir ve sonucu geri iletir.
 
 ```
-JARVIS sesli beyin ──(dispatch_to_agent)──> bridge/inbox.txt
+CYRAEN sesli beyin ──(dispatch_to_agent)──> bridge/inbox.txt
                                                   │
                                           AgentOrchestrator
                                      (auto ise router uzman secer)
@@ -89,7 +89,7 @@ JARVIS sesli beyin ──(dispatch_to_agent)──> bridge/inbox.txt
                                                   │
                                           bridge/outbox.txt
                                                   │
-                              JARVIS bunu okuyup sesli aktarir
+                              CYRAEN bunu okuyup sesli aktarir
 ```
 
 **Calistirma:** `python run_agents.py` (sesli beyinden bagimsiz; ayni anda calisabilir).
@@ -103,7 +103,7 @@ limit daha genistir; kalici kullanim icin AI Studio `AIza...` anahtari onerilir.
 
 ## Dizin Yapisi
 ```
-jarvis-brain/
+cyraen-brain/
 ├── config/settings.py        # API key, ses modeli, tum konfigurasyon (pydantic)
 ├── core/
 │   ├── brain_engine.py       # Gemini Live baglantisi + 7 paralel asenkron gorev
@@ -145,25 +145,25 @@ Baglanti koparsa exponential-backoff (2s tabanli, 30s tavan, jitter'li) ile sons
 
 ## Obsidian Kasa Baglantisi
 
-`.env` icinde `JARVIS_OBSIDIAN_VAULT=<kasa yolu>` tanimlanirsa (varsayilan:
-`C:\Users\KULLANICI\Documents\JARVIS Hafiza` - JARVIS'e ayrilmis kasa):
-- **Konusmalar**: her tur (Sen / JARVIS) otomatik `Konusmalar/YYYY-MM-DD.md`'ye eklenir
-  (`obsidian_log_conversations`, env `JARVIS_OBSIDIAN_LOG_CONVERSATIONS`),
+`.env` icinde `CYRAEN_OBSIDIAN_VAULT=<kasa yolu>` tanimlanirsa (varsayilan:
+`C:\Users\KULLANICI\Documents\JARVIS Hafiza` - CYRAEN'e ayrilmis kasa):
+- **Konusmalar**: her tur (Sen / CYRAEN) otomatik `Konusmalar/YYYY-MM-DD.md`'ye eklenir
+  (`obsidian_log_conversations`, env `CYRAEN_OBSIDIAN_LOG_CONVERSATIONS`),
 - `remember_note` notlari `Notlar/YYYY-MM-DD.md` gunluk dosyalarina yazar,
 - `recall_notes` bu dosyalari da okuyup birlestirir,
 - GBrain `kb_write` her kaydin markdown aynasini `GBrain/<baslik>.md` olarak birakir.
 
-`JARVIS_OBSIDIAN_SUBDIR` bos ise dogrudan kasa koku; "JARVIS" verilirse paylasilan
-kasada `<vault>/JARVIS/` alt klasoru. Kasa yoksa/tanimsizsa her sey yerel `data/`
+`CYRAEN_OBSIDIAN_SUBDIR` bos ise dogrudan kasa koku; "CYRAEN" verilirse paylasilan
+kasada `<vault>/CYRAEN/` alt klasoru. Kasa yoksa/tanimsizsa her sey yerel `data/`
 altinda calismaya devam eder (sessiz fallback).
-Masaustu kisayolu: `scripts/launch_jarvis.vbs` (konsolsuz baslatici) -> Masaustu\JARVIS.lnk.
+Masaustu kisayolu: `scripts/launch_cyraen.vbs` (konsolsuz baslatici) -> Masaustu\CYRAEN.lnk.
 
 ## Telefondan Kontrol (Web Konsolu + PWA)
 
-`.env`'de `JARVIS_WEB_TOKEN=<gizli>` ZORUNLU (LAN erisimi icin). Ardindan telefon
+`.env`'de `CYRAEN_WEB_TOKEN=<gizli>` ZORUNLU (LAN erisimi icin). Ardindan telefon
 tarayicisinda: `http://<pc-lan-ip>:8770?key=<token>` (acilista loga yazilir).
 
-- **Telefon gorusmesi** butonu: mikrofon surekli dinler, JARVIS yaniti telefonda
+- **Telefon gorusmesi** butonu: mikrofon surekli dinler, CYRAEN yaniti telefonda
   sesli okunur (Web Speech API). Konusurken mikrofon durur (eko engelleme).
 - **Uzak mod**: `POST /api/control {"action":"away_on"}` -> PC mikrofonu + hoparloru
   susar (`BrainEngine.set_output_muted`), gorusme tamamen telefonden. Model yaniti
@@ -193,7 +193,7 @@ USB hata ayiklama acik Android telefonlari `adb` uzerinden yonetir. Tamamen asen
 calismaya devam eder, araclar kullanici dostu bir hata dondurur.
 
 - Gereksinim: Android **Platform-Tools** (`adb`) PATH'te. Degilse `.env`'de
-  `JARVIS_ADB_PATH=C:\...\platform-tools\adb.exe`. Modulu kapatmak: `JARVIS_ADB_ENABLED=false`.
+  `CYRAEN_ADB_PATH=C:\...\platform-tools\adb.exe`. Modulu kapatmak: `CYRAEN_ADB_ENABLED=false`.
 - Telefonda: Ayarlar -> Gelistirici secenekleri -> **USB hata ayiklama** acik + PC'yi yetkilendir.
 - `core/brain_engine.py` acilista `ADBController.probe()` ile durumu loglar
   (`tools/adb_tool.py`, `config.settings`: `adb_enabled` / `adb_path` / `adb_tcp_port` / `adb_tcp_devices`).
@@ -201,7 +201,7 @@ calismaya devam eder, araclar kullanici dostu bir hata dondurur.
   ("tum telefonlarin kilidini ac", "telefonlarda su sarkiyi cal").
 
 **Kablosuz (WiFi) ADB** — kablo olmadan agdaki telefonlar:
-- `.env` -> `JARVIS_ADB_TCP_DEVICES=192.168.1.42,192.168.1.43:5555` (acilista otomatik `adb connect`).
+- `.env` -> `CYRAEN_ADB_TCP_DEVICES=192.168.1.42,192.168.1.43:5555` (acilista otomatik `adb connect`).
 - Araclar: `adb_connect_wifi("192.168.1.42")`, `adb_pair_wifi("ip:port","kod")` (Android 11+
   ilk kez; telefonda *Kablosuz hata ayiklama > Cihazi eslestir*), `adb_enable_wifi(device_id)`
   (USB'den bagli cihazi `tcpip` ile kablosuza gecirir + IP'sini bulup baglanir, sonra kablo cekilir),
@@ -211,12 +211,12 @@ calismaya devam eder, araclar kullanici dostu bir hata dondurur.
 
 ## okul (BÖTE Ders Merkezi) Bağlantısı
 
-Ayrı statik web uygulaması `okul/` (ders çalışma suite'i) verisini JARVIS'e bağlar.
+Ayrı statik web uygulaması `okul/` (ders çalışma suite'i) verisini CYRAEN'e bağlar.
 
-- okul → **Ayarlar → JARVIS bağlantısı**: bu PC'nin adresi + `JARVIS_WEB_TOKEN`.
+- okul → **Ayarlar → CYRAEN bağlantısı**: bu PC'nin adresi + `CYRAEN_WEB_TOKEN`.
 - okul her değişikliğinde tam `localStorage` durumunu `POST /api/okul/push` ile web
   konsoluna gönderir → `data/okul_state.json`. Sekmeye dönünce `GET /api/okul/pull`
-  ile JARVIS'in eklediklerini alır (`data/okul_outbox.json`).
+  ile CYRAEN'in eklediklerini alır (`data/okul_outbox.json`).
 - Araçlar: `okul_status` / `okul_next_exams` / `okul_today_tasks` / `okul_schedule` /
   `okul_gpa` / `okul_search_notes` (okuma), `okul_add_task` / `okul_add_exam` (yazma).
 - Yalnız `run_ui.py` (web konsolu) ile çalışır. `config.settings`: `okul_enabled`,
@@ -245,15 +245,15 @@ python main.py                                            # ilk açılışta QR 
 - **Rol tabanlı yetki:** `admin_numbers` (tüm komutlar), `allowed_contacts`
   (`whitelist_mode`: `list`/`all`/`off` — sadece otomatik yanıt), diğerleri
   yoksayılır. `blacklisted_words` içeren mesajlar atlanır + admin'e bildirilir.
-- **Yönetici komutları** (admin numarasından): `JARVIS durum`,
-  `JARVIS modu [otomatik|manuel|sessiz]`, `JARVIS sessiz`,
-  `JARVIS mikrofon aç/kapat`, `JARVIS hoparlör aç/kapat`, `JARVIS söyle: <metin>`
-  (canlı beyne enjekte), `JARVIS ajan: <görev>` (ajan kuyruğu), `JARVIS hafıza sil`,
-  `JARVIS kapat`.
+- **Yönetici komutları** (admin numarasından): `CYRAEN durum`,
+  `CYRAEN modu [otomatik|manuel|sessiz]`, `CYRAEN sessiz`,
+  `CYRAEN mikrofon aç/kapat`, `CYRAEN hoparlör aç/kapat`, `CYRAEN söyle: <metin>`
+  (canlı beyne enjekte), `CYRAEN ajan: <görev>` (ajan kuyruğu), `CYRAEN hafıza sil`,
+  `CYRAEN kapat`.
 - **Köprü aynası:** gelen/giden her mesaj `bridge/outbox.txt`'e `[WHATSAPP] …`
   olarak yazılır — canlı sesli beyin olan biteni duyar.
 - Ayarlar: `config/whatsapp.json` (gitignore'da; şema için `whatsapp.example.json`).
-  Env override: `JARVIS_WHATSAPP_ENABLED`, `JARVIS_WHATSAPP_HEADLESS`.
+  Env override: `CYRAEN_WHATSAPP_ENABLED`, `CYRAEN_WHATSAPP_HEADLESS`.
 - Yardımcı modül: `core/media_utils.py` (`transcribe_audio`, `describe_image`,
   `MediaVault` auto-cleanup).
 
@@ -272,7 +272,7 @@ koordinatla dogru alana tikla, sonra yaz),
 `clear_field` / `drag_select` / `select_word` / `select_line` / `erase_chars`
 (soylenen yeri sec ve sil),
 `close_application` / `close_active_tab` (NAZIK kapatma, kullanici onayina tabi),
-`exit_application` (JARVIS kendini kapatir, onaya tabi),
+`exit_application` (CYRAEN kendini kapatir, onaya tabi),
 `adb_list_devices` / `adb_connect_wifi` / `adb_pair_wifi` / `adb_enable_wifi` /
 `adb_disconnect_wifi` / `adb_unlock_device` / `adb_open` / `adb_play_media` / `adb_shell`
 (Android ADB Control "Ultron" modulu - USB + WiFi bagli telefon(lar)i yonetir;
@@ -281,11 +281,11 @@ koordinatla dogru alana tikla, sonra yaz),
 `okul_search_notes` / `okul_add_task` / `okul_add_exam` (BÖTE Ders Merkezi koprusu),
 `show_video` / `show_wikipedia` / `show_document` / `show_website` / `show_spotify` /
 `show_news` / `show_market` / `show_weather` / `show_info` / `close_panel` (icerik paneli:
-video, sayfa, belge, haber basliklari, fiyat grafigi, hava durumu ve JARVIS'in yazdigi bilgi
+video, sayfa, belge, haber basliklari, fiyat grafigi, hava durumu ve CYRAEN'in yazdigi bilgi
 karti arayuzun ICINDE acilir; haber Google Haberler RSS, piyasa Yahoo Finance - anahtarsiz).
 
 Kapatma onayi arayuzde modal bir pencereyle sorulur; `confirm_before_close=false`
-(env `JARVIS_CONFIRM_CLOSE=false`) ile devre disi birakilabilir. Harf harf yazma
+(env `CYRAEN_CONFIRM_CLOSE=false`) ile devre disi birakilabilir. Harf harf yazma
 `open_apps_via_search` / `type_in_browser` ayarlariyla kapatilip dogrudan acmaya
 donulebilir (hiz: `search_type_delay`, `browser_type_delay`).
 

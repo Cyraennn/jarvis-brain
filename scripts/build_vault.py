@@ -1,4 +1,4 @@
-"""JARVIS Bilgi Kasasi uretici. Calistir: cd jarvis-brain && python build_vault.py"""
+"""JARVIS Bilgi Kasasi uretici. Calistir: cd cyraen-brain && python build_vault.py"""
 import ast
 import re
 import sys
@@ -6,7 +6,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
-ROOT = Path.cwd()                                  # jarvis-brain
+ROOT = Path.cwd()                                  # cyraen-brain
 sys.path.insert(0, str(ROOT))
 VAULT = Path.home() / "Documents" / "JARVIS Bilgi Kasasi"
 TODAY = date.today().isoformat()
@@ -75,7 +75,7 @@ def gen_tool_catalog() -> tuple[str, int]:
         groups[cat or "Diğer"].append(d)
     gated = {"close_application", "close_active_tab", "kill_process", "move_path", "run_python", "run_shell",
              "git_command", "send_email", "exit_application"}
-    out = [f"JARVIS'in Gemini Live oturumuna tanıttığı **{len(decls)} araç** (kaynak: "
+    out = [f"CYRAEN'in Gemini Live oturumuna tanıttığı **{len(decls)} araç** (kaynak: "
            "`tools/tool_declarations.py`, bu sayfa koddan otomatik üretildi).\n",
            "🔒 = çalışmadan önce kullanıcı onayı ister (bkz. [[Onay Kapıları]]). "
            "Parametrelerde `*` zorunlu olanı gösterir.\n"]
@@ -155,7 +155,7 @@ def gen_filemap() -> str:
         except SyntaxError:
             first = ""
         rows.append((rel, len(text.splitlines()), first))
-    out = [f"`jarvis-brain/` altında **{len(rows)} Python dosyası**, toplam "
+    out = [f"`cyraen-brain/` altında **{len(rows)} Python dosyası**, toplam "
            f"**{sum(r[1] for r in rows):,} satır**.\n", "| Dosya | Satır | İlk docstring satırı |", "|---|---:|---|"]
     for rel, n, first in rows:
         out.append(f"| `{rel}` | {n} | {esc(first)[:110]} |")
@@ -193,14 +193,14 @@ from agents.departments import all_agents  # noqa: E402
 agent_count = len(all_agents())
 
 note("_Index.md", "JARVIS Bilgi Kasası — Ana Sayfa", f"""
-Bu kasa JARVIS'e ait **bütün bilgiyi** tek yerde toplar: mimari, araçlar, entegrasyonlar, yapılandırma, güvenlik,
+Bu kasa CYRAEN'e ait **bütün bilgiyi** tek yerde toplar: mimari, araçlar, entegrasyonlar, yapılandırma, güvenlik,
 testler, karar günlüğü ve açık sorunlar. Büyük kısmı doğrudan koddan üretildi ({TODAY}), yani kodla birebir uyumlu.
 
-> Not: Canlı JARVIS'in kendi otomatik konuşma/not kayıtları ayrı kasada: `C:\\Users\\KULLANICI\\Documents\\JARVIS Hafiza`.
-> Bu kasa **dokümantasyon/inceleme** içindir; JARVIS buraya otomatik yazmaz. Bkz. [[Obsidian Kasaları]].
+> Not: Canlı CYRAEN'in kendi otomatik konuşma/not kayıtları ayrı kasada: `C:\\Users\\KULLANICI\\Documents\\JARVIS Hafiza`.
+> Bu kasa **dokümantasyon/inceleme** içindir; CYRAEN buraya otomatik yazmaz. Bkz. [[Obsidian Kasaları]].
 
 ## Buradan başla
-- [[Genel Bakış]] — JARVIS nedir, neyden oluşur
+- [[Genel Bakış]] — CYRAEN nedir, neyden oluşur
 - [[Nasıl Çalıştırılır]] — kurulum ve çalıştırma
 - [[Sorunlar ve Yapılacaklar]] — açık işler, riskler (**önce bunu incele**)
 - [[2026-10-12 Ekim Güncellemeleri]] — en son yapılan büyük değişiklikler
@@ -234,7 +234,7 @@ testler, karar günlüğü ve açık sorunlar. Büyük kısmı doğrudan koddan 
 """, ["indeks"])
 
 note("00 Genel/Genel Bakış.md", "Genel Bakış", f"""
-**JARVIS**, Sezai için çalışan Türkçe konuşan, sesli bir yapay zeka asistanıdır. Windows masaüstünde çalışır;
+**CYRAEN**, Sezai için çalışan Türkçe konuşan, sesli bir yapay zeka asistanıdır. Windows masaüstünde çalışır;
 mikrofonu dinler, webcam ve ekranı görebilir, klavye/fare ile bilgisayarı kullanabilir, telefonu (ADB) ve WhatsApp'ı
 yönetebilir, 6 departmanlık bir ajan ekibine iş dağıtabilir.
 
@@ -259,9 +259,9 @@ yönetebilir, 6 departmanlık bir ajan ekibine iş dağıtabilir.
 - Windows'a özel: ctypes `SendInput`, `SetWindowDisplayAffinity`, EnumWindows
 
 ## Konum
-- Kod: `C:\\Users\\KULLANICI\\OneDrive\\Masaüstü\\Masaüstü\\multi\\jarvis-brain`
+- Kod: `C:\\Users\\KULLANICI\\OneDrive\\Masaüstü\\Masaüstü\\multi\\cyraen-brain`
 - Aynı klasörün kökünde ayrı bir Next.js projesi vardır: [[OPTIMAL ENGINE (Next.js)]]
-- Çalışma verisi: `jarvis-brain/data/` (git'te yok)
+- Çalışma verisi: `cyraen-brain/data/` (git'te yok)
 
 Ayrıntılı dosya listesi: [[Dosya Haritası]].
 """, ["genel"])
@@ -269,7 +269,7 @@ Ayrıntılı dosya listesi: [[Dosya Haritası]].
 note("00 Genel/Nasıl Çalıştırılır.md", "Nasıl Çalıştırılır", """
 ## Kurulum
 ```bash
-cd jarvis-brain
+cd cyraen-brain
 python -m venv .venv && .venv\\Scripts\\activate
 pip install -r requirements.txt
 copy .env.example .env      # GEMINI_API_KEY vb. doldur
@@ -282,25 +282,25 @@ Opsiyonel: `pip install keyring` (PIN'i Windows Credential Manager'da tutar), `p
 | `python run_ui.py` | **Önerilen.** Masaüstü HUD + sesli beyin + ajan orkestratörü + web konsolu |
 | `python main.py` | Sessiz mod (arayüzsüz) — beyin + WhatsApp kolu aynı TaskGroup'ta |
 | `python run_agents.py` | Yalnızca ajan orkestratörü |
-| `scripts/launch_jarvis.vbs` | Konsolsuz başlatıcı (masaüstü kısayolu bunu çağırır) |
-| `build_windows.bat` | PyInstaller ile `dist/JARVIS/JARVIS.exe` |
+| `scripts/launch_cyraen.vbs` | Konsolsuz başlatıcı (masaüstü kısayolu bunu çağırır) |
+| `build_windows.bat` | PyInstaller ile `dist/CYRAEN/CYRAEN.exe` |
 
 > ⚠️ **`run_agents.py` ile `run_ui.py`'yi aynı anda çalıştırma.** İkisi de `bridge/inbox.txt`'i işler → görevler çift çalışır.
 
 ## Test
 ```bash
-cd jarvis-brain
+cd cyraen-brain
 python -m pytest tests -q                       # birim/simülasyon
-$env:JARVIS_LIVE_TESTS=1; python -m pytest tests/test_keyboard_live.py   # canlı klavye testi (kendi Tk penceresine yazar)
+$env:CYRAEN_LIVE_TESTS=1; python -m pytest tests/test_keyboard_live.py   # canlı klavye testi (kendi Tk penceresine yazar)
 ```
 Ayrıntı: [[Testler]].
 
 ## Ses düşerse
 `-9999 Unanticipated host error` genelde Windows Ayarlar > Mikrofon sayfası açıkken cihazı tuttuğu için olur; sayfayı
-kapat. Ses açılamazsa JARVIS **çökmez**: oturum, ekran, araçlar ve ajanlar çalışır, mikrofon düğmesi yeniden dener.
+kapat. Ses açılamazsa CYRAEN **çökmez**: oturum, ekran, araçlar ve ajanlar çalışır, mikrofon düğmesi yeniden dener.
 
 ## WhatsApp botunu başlatma
-Bkz. [[WhatsApp Kolu]] (kalıcı `enabled` kapalı; geçici açmak için `JARVIS_WHATSAPP_ENABLED=1`).
+Bkz. [[WhatsApp Kolu]] (kalıcı `enabled` kapalı; geçici açmak için `CYRAEN_WHATSAPP_ENABLED=1`).
 """, ["genel"])
 
 note("00 Genel/Dosya Haritası.md", "Dosya Haritası", filemap_md + "\n\nÜst: [[Genel Bakış]]", ["referans", "otomatik"])
@@ -335,7 +335,7 @@ Model Function Declaration ile araç çağırır → `tools/tool_runner.py::Tool
 `on_exit_request`… Arayüz (`ui/qt_observer.py`) bunu Qt sinyallerine çevirir; başsız modda varsayılan `confirm → True`.
 
 ## Ekran görüşü ve yakalama dışı bırakma
-JARVIS penceresi `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` ile **ekran yakalamada görünmez** — model pencerenin
+CYRAEN penceresi `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` ile **ekran yakalamada görünmez** — model pencerenin
 arkasını görür, sen pencereyi görürsün. Ekranla etkileşen araçlar çalışırken pencere geçici çekilir (bkz. [[Klavye ve Fare Kontrolü]]).
 
 ## Sistem prompt'u
@@ -344,7 +344,7 @@ arkasını görür, sen pencereyi görürsün. Ekranla etkileşen araçlar çal�
 
 dep_links = "\n".join(f"- [[Departman - {k}]]" for k in dept_pages)
 note("01 Mimari/Ajan Sistemi (FounderOS).md", "Ajan Sistemi (FounderOS)", f"""
-JARVIS = **Conductor**. Kullanıcı ya da telefon bir görev verir; Conductor görevi departmanlara yönlendirir.
+CYRAEN = **Conductor**. Kullanıcı ya da telefon bir görev verir; Conductor görevi departmanlara yönlendirir.
 
 ## Akış
 1. Görev `bridge/inbox.txt`'ten (ya da `dispatch_to_agent` aracı / `/api/task` ile) gelir — `agents/orchestrator.py::AgentOrchestrator`.
@@ -378,14 +378,14 @@ for k, body in dept_pages.items():
 
 note("01 Mimari/Masaüstü Arayüzü (HUD).md", "Masaüstü Arayüzü (HUD)", """
 `python run_ui.py` — PySide6 (Essentials + Addons). Varsayılan arayüz **Komuta HUD**'dur (`ui/hud/hud_window.py::HudWindow`,
-`MainWindow`'dan türer); eski panel yerleşimi `JARVIS_UI_STYLE=classic` ile açılır. Palet `ui/theme.py`: koyu lacivert zemin,
+`MainWindow`'dan türer); eski panel yerleşimi `CYRAEN_UI_STYLE=classic` ile açılır. Palet `ui/theme.py`: koyu lacivert zemin,
 mint `ACCENT` (#44d7b5), altın `GOLD` (konuşma/uyarı), menekşe `MYSTIC`; kartlar üstten ışık alır, altlarına gölge düşer.
 
 ## Yerleşim (Komuta HUD)
 - **Üst çubuk:** logo + metin chip düğmeler (odak, mikrofon, kamera, ekran, tam ekran, üstte, tepsi, kapat).
 - **Sol sütun** (`ui/hud/stat_cards.py`): saat + mini takvim + hava (`ClockCard`, `MiniCalendar`), okul (`OkulCard`),
   sistem ölçerleri (`SystemCard`: CPU/RAM/disk), ajanlar.
-- **Merkez:** `ui/hud/command_graph.py::CommandGraph(BrainGraph)` — sese tepki veren parçacık küresi (JARVIS), iç yörüngede
+- **Merkez:** `ui/hud/command_graph.py::CommandGraph(BrainGraph)` — sese tepki veren parçacık küresi (CYRAEN), iç yörüngede
   6 departman, dış yörüngede tüm ajanlar. Yörünge izleyiciye yatıktır ve yavaşça döner (öndekiler büyük/parlak, arkadakiler
   küçük/soluk); fareyle sürükleyince elle döner. Durum/animasyon mantığı `BrainGraph`'tan gelir.
 - **Sağ sütun:** canlı görüş (tıkla büyüt), görev akışı, hızlı komutlar (`QuickCommandsCard`), rutinler (`RoutinesCard`), günlük.
@@ -406,12 +406,12 @@ merkezdeki grafın **yerinde** açılır (`ui/widgets/content_panel.py::ContentP
 - Web içeriği QtWebEngine ister (`ui/widgets/panel_web.py`, **PySide6-Addons**, tembel içe aktarılır; yoksa sistem tarayıcısı).
   Haber, grafik, hava ve bilgi kartı saf Qt'dir (`ui/widgets/panel_views.py`).
 - Kaynaklar anahtarsız: YouTube oEmbed, Wikipedia REST, Google Haberler RSS, Yahoo Finance.
-- Belgeler: yalnız `.pdf` / `.txt` / `.md`, en çok 50 MB, izinli kökler `JARVIS_DOCS_DIRS` (boş = Belgeler + Masaüstü + İndirilenler).
+- Belgeler: yalnız `.pdf` / `.txt` / `.md`, en çok 50 MB, izinli kökler `CYRAEN_DOCS_DIRS` (boş = Belgeler + Masaüstü + İndirilenler).
 - Web konsoluna yalnız tür + başlık gider (dosya yolu LAN'a açık veri yoluna yazılmaz).
 
-## Klasik yerleşim (`JARVIS_UI_STYLE=classic`)
+## Klasik yerleşim (`CYRAEN_UI_STYLE=classic`)
 sol ikon şeridi · **sol panel** (`agent_panel.py`: departman ağacı + SOP/rozet detay kartı + görev akışı) · **merkez**
-(`brain_graph.py`: JARVIS → 6 departman altıgeni → tıklayınca alt ajanlar yelpazesi) + konuşma transkripti + köprü/komut
+(`brain_graph.py`: CYRAEN → 6 departman altıgeni → tıklayınca alt ajanlar yelpazesi) + konuşma transkripti + köprü/komut
 girişi · **sağ panel** (webcam + ekran görüşü + sistem günlüğü) · durum çubuğu.
 
 ## Masaüstü uygulaması davranışı
@@ -451,8 +451,8 @@ note("01 Mimari/Web Konsolu ve PWA.md", "Web Konsolu ve PWA", f"""
 - `/hud`: el-jesti kontrollü 3D HUD (webcam + MediaPipe, tarayıcıda).
 
 ## Güvenlik (2026-09-20'de sertleştirildi)
-- Token karşılaştırması `hmac.compare_digest`; token `?key=` (SSE/PWA için) **veya** `X-Jarvis-Key` başlığı.
-- **CORS `*` kaldırıldı** → izin listesi: varsayılan `localhost:8000/8770`, ek için `JARVIS_WEB_CORS_ORIGINS`.
+- Token karşılaştırması `hmac.compare_digest`; token `?key=` (SSE/PWA için) **veya** `X-Cyraen-Key` başlığı.
+- **CORS `*` kaldırıldı** → izin listesi: varsayılan `localhost:8000/8770`, ek için `CYRAEN_WEB_CORS_ORIGINS`.
 - **Token yoksa LAN'a açılmaz**, yalnızca `127.0.0.1`.
 - Kalan risk: token URL'de (tarayıcı geçmişi/log) ve düz HTTP. Bkz. [[Güvenlik Modeli]].
 - Test: `tests/test_console_server.py`.
@@ -505,7 +505,7 @@ Model listesi sırayla denenir; her model için üstel geri çekilmeli yeniden d
 - `AQ.` önekli **ephemeral token** da `generate_content` için çalışır (~30 dk ömür); kalıcı kullanım için AI Studio'dan `AIza…` anahtarı gerekir.
 
 ## Anahtarlar nerede?
-`jarvis-brain/.env` (**gitignore'da**). Değerler bu kasaya bilerek yazılmadı: bkz. [[Gizli Değerler]].
+`cyraen-brain/.env` (**gitignore'da**). Değerler bu kasaya bilerek yazılmadı: bkz. [[Gizli Değerler]].
 """, ["mimari", "model"])
 
 # ---------------------------------------------------------------- ARACLAR
@@ -527,9 +527,9 @@ Başsız modda varsayılan `True` (onay yok!).
 | `run_python`, `run_shell` | Kodu/komutu gösterir (`code_exec_enabled` varsayılan **false**) |
 | `git_command` (yazan alt komutlar) | "git X çalıştırayım mı?" |
 | `send_email` | Taslağı sesli okur, sonra pencere |
-| `exit_application` | "JARVIS'i tamamen kapatayım mı?" |
+| `exit_application` | "CYRAEN'i tamamen kapatayım mı?" |
 
-Ayar: `confirm_before_close` / `JARVIS_CONFIRM_CLOSE`.
+Ayar: `confirm_before_close` / `CYRAEN_CONFIRM_CLOSE`.
 
 ## Onay İSTEMEYEN ama riskli araçlar
 `type_text`, `click_at`, `press_keys`, `clear_field`, `drag_select`, `adb_*` (PIN ile kilit açma dahil). Sesli kullanımı bozmamak için
@@ -550,7 +550,7 @@ note("02 Araçlar/Klavye ve Fare Kontrolü.md", "Klavye ve Fare Kontrolü", """
 1. **`about:blank` hatası:** `type_in_browser` `webbrowser.open_new_tab("about:blank")` kullanıyordu. Windows'ta `about:` kayıtlı protokol değil →
    **"Birlikte aç" (`openwith.exe`) penceresi** açılıyor, `Ctrl+L` + metin + Enter o pencereye yazılıyordu. Artık gerçek `https://www.google.com/` açılır
    ve tarayıcı exe'si (`BROWSER_EXES`) öne gelmeden yazılmaz. *(Kullanıcının varsayılan tarayıcısı Opera GX → `opera.exe`.)*
-2. **Geri çekme eksikti:** `open_application`, `open_website`, `type_in_search` `ToolRunner._retracted` ile sarılı değildi → JARVIS penceresi
+2. **Geri çekme eksikti:** `open_application`, `open_website`, `type_in_search` `ToolRunner._retracted` ile sarılı değildi → CYRAEN penceresi
    odaktayken tuşlar kendi giriş kutusuna gidebiliyordu. Artık sarılı.
 3. **Girdi karışması:** eşzamanlı araçlar aynı anda tuş gönderebiliyordu → global `_INPUT_LOCK` (RLock); tüm girdi fonksiyonları sıralanır.
 4. **`ALT` hilesi:** `focus_window` ön plan kilidi için `ALT`'a dokunuyordu; Not Defteri/Office'te menüyü etkinleştirip harfleri menüye yolluyordu → atanmamış `VK_F24`.
@@ -559,7 +559,7 @@ note("02 Araçlar/Klavye ve Fare Kontrolü.md", "Klavye ve Fare Kontrolü", """
 6. Vekil çiftleri (emoji), `\\t` ve `\\r\\n` doğru; basılı kalmış Shift/Ctrl/Alt/Win bırakılır; 200+ karakterde hızlanır.
 
 ## Bilinen sınır
-Yönetici yetkisiyle çalışan pencerelere `SendInput` ile yazılamaz (UIPI). JARVIS yönetici değilse bu pencerelerde yazma reddedilir.
+Yönetici yetkisiyle çalışan pencerelere `SendInput` ile yazılamaz (UIPI). CYRAEN yönetici değilse bu pencerelerde yazma reddedilir.
 Test: `tests/test_keyboard_live.py` (canlı, kendi Tk penceresine yazar).
 """, ["araç", "windows"])
 
@@ -611,7 +611,7 @@ note("03 Entegrasyonlar/WhatsApp Kolu.md", "WhatsApp Kolu", """
 - Yöneticinin kendi sorusu kişisel sayılmaz.
 
 ## Yönetici komutları (admin numarasından)
-`JARVIS durum` · `JARVIS modu [otomatik|manuel|sessiz]` · `JARVIS sessiz` · `JARVIS mikrofon/hoparlör aç/kapat` · `JARVIS söyle: X` · `JARVIS ajan: X` · `JARVIS hafıza sil` · `JARVIS kapat`.
+`CYRAEN durum` · `CYRAEN modu [otomatik|manuel|sessiz]` · `CYRAEN sessiz` · `CYRAEN mikrofon/hoparlör aç/kapat` · `CYRAEN söyle: X` · `CYRAEN ajan: X` · `CYRAEN hafıza sil` · `CYRAEN kapat`.
 
 ## Yapılandırma ve testler
 [[WhatsApp Yapılandırması]] · `tests/test_whatsapp_sim.py` (DOM sınırı taklit edilir, **gerçek WhatsApp'a dokunmaz**) · [[Testler]].
@@ -659,7 +659,7 @@ note("03 Entegrasyonlar/Android ADB.md", "Android ADB", """
 - **Cihaz:** Samsung SM-S721B (Galaxy S24 FE), kablosuz hata ayıklama ile bağlı.
 - **Kablosuz:** `connect_wifi`, `disconnect_wifi`, `pair_wifi(address, code, connect_port=None)`, `enable_wifi`. Android 11+ **eşleşme portu ≠ bağlantı portu**; `pair_wifi` ikisini ayırır, mDNS ile kendiliğinden görünmeyi de dener.
 - **Kontrol:** `unlock_device` (uyandır + kaydır + kayıtlı PIN'i tuş tuş gir), `open_app_or_url`, `play_media` (URL → VIEW intent; metin → `MEDIA_PLAY_FROM_SEARCH`, olmazsa `spotify:search:` derin bağlantı), `execute_raw_shell`.
-- **PIN:** `adb_set_unlock_pin` → tercihen **Windows Credential Manager** (`keyring`), yoksa `.env` (`JARVIS_ADB_UNLOCK_PIN`). PIN loglanmaz, sesli tekrarlanmaz. Bkz. [[Gizli Değerler]].
+- **PIN:** `adb_set_unlock_pin` → tercihen **Windows Credential Manager** (`keyring`), yoksa `.env` (`CYRAEN_ADB_UNLOCK_PIN`). PIN loglanmaz, sesli tekrarlanmaz. Bkz. [[Gizli Değerler]].
 - **Shell tırnaklama hatası (düzeltildi 2026-09-03):** argümanlar ayrı argv verilince cihaz kabuğu tekrar bölüyordu ("Fenerbahçe 100. yıl marşı" → `pkg=100.`). Artık komut tek string + `shlex.quote`.
 - `probe()` açılışta `adb_tcp_devices` adreslerine 6 sn zaman aşımıyla bağlanır. `device_id=None` → bağlı **tüm** cihazlar.
 - Araçlar `adb_*` önekli ([[Araç Kataloğu]]); hepsi onaysız.
@@ -674,22 +674,22 @@ Yapılandırılmamışsa araç "yapılandırılmamış" döner. Test: `scripts/t
 """, ["entegrasyon"])
 
 note("03 Entegrasyonlar/Okul Köprüsü.md", "Okul Köprüsü", """
-**BÖTE Ders Merkezi** (`okul/`, saf HTML/JS PWA, localStorage) ↔ JARVIS çift yönlü **yerel HTTP köprüsü** (Supabase yok).
+**BÖTE Ders Merkezi** (`okul/`, saf HTML/JS PWA, localStorage) ↔ CYRAEN çift yönlü **yerel HTTP köprüsü** (Supabase yok).
 
-- okul → JARVIS: `okul/assets/js/modules/jarvis.js` her değişiklikte 3 sn debounce ile `POST http://<pc>:8770/api/okul/push` (`App.store.exportAll()`, `text/plain` → CORS preflight yok).
-- JARVIS → okul: `window focus` / `visibilitychange` → `GET /api/okul/pull` → dönen op'lar `applyOps` ile `tasks`/`exams`'a eklenir.
-- JARVIS tarafı: `web/console_server.py` `_okul_push` (→ `data/okul_state.json`, atomik) / `_okul_pull` (→ `data/okul_outbox.json`, döndürür+temizler).
+- okul → CYRAEN: `okul/assets/js/modules/cyraen.js` her değişiklikte 3 sn debounce ile `POST http://<pc>:8770/api/okul/push` (`App.store.exportAll()`, `text/plain` → CORS preflight yok).
+- CYRAEN → okul: `window focus` / `visibilitychange` → `GET /api/okul/pull` → dönen op'lar `applyOps` ile `tasks`/`exams`'a eklenir.
+- CYRAEN tarafı: `web/console_server.py` `_okul_push` (→ `data/okul_state.json`, atomik) / `_okul_pull` (→ `data/okul_outbox.json`, döndürür+temizler).
 - Araçlar (`tools/okul_tool.py`): `okul_status`, `okul_next_exams`, `okul_today_tasks`, `okul_schedule`, `okul_gpa`, `okul_search_notes`, `okul_add_task`, `okul_add_exam`.
 - Veri şekilleri: `tasks{id,title,course,due,priority,status}`, `exams{course,type,date,time,location,topics}`, `schedule{name,day(0=Pzt),start,end,room,instructor}`, `grades_courses{term,name,credit,grade}`.
-- okul **HTTP'den açılmalı** (`python -m http.server 8000` `okul/` içinde); `file://` iken `fetch` bloklu. Yapılandırma: `okul/assets/js/config.js` `jarvis:{host,token,enabled}`.
+- okul **HTTP'den açılmalı** (`python -m http.server 8000` `okul/` içinde); `file://` iken `fetch` bloklu. Yapılandırma: `okul/assets/js/config.js` `cyraen:{host,token,enabled}`.
 
 > ⚠️ **2026-09-20 itibarıyla `data/okul_state.json` içinde ders (`schedule`) yok (0 kayıt).** Bu yüzden [[WhatsApp Kolu]]'nun "şu an derste" cevabı henüz çalışmaz; dersler okul uygulamasına girilip senkronlanınca çalışır.
-> ⚠️ `config.js` içine JARVIS token'ı sabit yazılı (statik sitede `.env` yok) → yenilenmeli ([[Gizli Değerler]]).
+> ⚠️ `config.js` içine CYRAEN token'ı sabit yazılı (statik sitede `.env` yok) → yenilenmeli ([[Gizli Değerler]]).
 """, ["entegrasyon", "okul"])
 
 note("03 Entegrasyonlar/Android İstemcisi.md", "Android İstemcisi", """
-`C:\\dev\\jarvis-android` — Kotlin / Jetpack Compose istemci uygulaması (`app/`, Gradle Kotlin DSL).
-Bağlantı: JARVIS [[Web Konsolu ve PWA]] sunucusuna **SSE** (`/api/events`) + `?key=` token + `/api/say`.
+`C:\\dev\\cyraen-android` — Kotlin / Jetpack Compose istemci uygulaması (`app/`, Gradle Kotlin DSL).
+Bağlantı: CYRAEN [[Web Konsolu ve PWA]] sunucusuna **SSE** (`/api/events`) + `?key=` token + `/api/say`.
 Derleme/KSP notları önceki oturumlardan hafıza notunda; **bu kasa hazırlanırken kod incelenmedi** (yalnızca klasörün var olduğu doğrulandı).
 """, ["entegrasyon", "android"])
 
@@ -698,15 +698,15 @@ note("03 Entegrasyonlar/Obsidian Kaşaları.md".replace("ş", "s"), "Obsidian Ka
 
 | Kasa | Konum | Amaç | Kim yazar |
 |---|---|---|---|
-| **JARVIS Bilgi Kasası** (bu kasa) | `C:\\Users\\KULLANICI\\Documents\\JARVIS Bilgi Kasasi` | Dokümantasyon / inceleme | Bir kez üretildi (koddan); JARVIS yazmaz |
-| **JARVIS Hafıza** | `C:\\Users\\KULLANICI\\Documents\\JARVIS Hafiza` | Canlı otomatik kayıt | JARVIS (`Konusmalar/`, `Notlar/`, `GBrain/`) + eski `Proje/` dokümanları (2026-09-03) |
+| **JARVIS Bilgi Kasası** (bu kasa) | `C:\\Users\\KULLANICI\\Documents\\JARVIS Bilgi Kasasi` | Dokümantasyon / inceleme | Bir kez üretildi (koddan); CYRAEN yazmaz |
+| **JARVIS Hafıza** | `C:\\Users\\KULLANICI\\Documents\\JARVIS Hafiza` | Canlı otomatik kayıt | CYRAEN (`Konusmalar/`, `Notlar/`, `GBrain/`) + eski `Proje/` dokümanları (2026-09-03) |
 | Claude Memory | `C:\\Users\\KULLANICI\\Documents\\Claude Memory` | Claude'un hafızası | Claude |
 
 `tools/obsidian_sync.py`: `vault_dir`, `append_note`, `read_recent_notes`, `write_doc`, `append_conversation(role, text)`.
 - `remember_note` → `<vault>/Notlar/YYYY-MM-DD.md` günlük dosya.
 - GBrain her kaydı `<vault>/GBrain/<slug>.md` aynası olarak bırakır.
-- `Konusmalar/YYYY-MM-DD.md` → `**HH:MM · Etiket:** metin`; `turn_complete`'te user+jarvis (`brain_engine._log_conversation`).
-- Ayarlar: `JARVIS_OBSIDIAN_VAULT`, `JARVIS_OBSIDIAN_SUBDIR` (boş = kasa kökü), `obsidian_log_conversations`. Kasa yoksa sessiz yedek (yerel `data/`).
+- `Konusmalar/YYYY-MM-DD.md` → `**HH:MM · Etiket:** metin`; `turn_complete`'te user+cyraen (`brain_engine._log_conversation`).
+- Ayarlar: `CYRAEN_OBSIDIAN_VAULT`, `CYRAEN_OBSIDIAN_SUBDIR` (boş = kasa kökü), `obsidian_log_conversations`. Kasa yoksa sessiz yedek (yerel `data/`).
 
 > `JARVIS Hafiza\\Proje\\` altındaki 15 doküman 2026-09-03 tarihli; **WhatsApp, ADB PIN/keyring, yazma düzeltmeleri, OpenRouter ve güvenlik sertleştirmesini içermez**. Güncel kaynak bu kasadır.
 """, ["entegrasyon", "obsidian"])
@@ -718,7 +718,7 @@ note("04 Yapılandırma/Ayarlar ve Ortam Değişkenleri.md", "Ayarlar ve Ortam D
 note("04 Yapılandırma/Sistem Prompt'u.md", "Sistem Prompt'u", "`prompts/system_prompt.txt` (canlı beynin kişiliği ve kuralları) — kodla birebir kopya:\n\n```text\n" + sys_prompt.strip() + "\n```\n\nÜst: [[Canlı Beyin Motoru]]", ["yapılandırma"])
 
 note("04 Yapılandırma/WhatsApp Yapılandırması.md", "WhatsApp Yapılandırması", """
-`config/whatsapp.json` (**gitignore'da**; şema `config/whatsapp.example.json`; önce `whatsapp.json`, yoksa örnek okunur). Ortam ezme: `JARVIS_WHATSAPP_ENABLED`, `JARVIS_WHATSAPP_HEADLESS`.
+`config/whatsapp.json` (**gitignore'da**; şema `config/whatsapp.example.json`; önce `whatsapp.json`, yoksa örnek okunur). Ortam ezme: `CYRAEN_WHATSAPP_ENABLED`, `CYRAEN_WHATSAPP_HEADLESS`.
 
 | Alan | Varsayılan | Anlamı |
 |---|---|---|
@@ -749,7 +749,7 @@ Bkz. [[WhatsApp Kolu]].
 
 # ---------------------------------------------------------------- GUVENLIK
 note("05 Güvenlik/Güvenlik Modeli.md", "Güvenlik Modeli", """
-JARVIS klavye, fare, kabuk, e-posta, telefon ve WhatsApp yetkilerine sahip olduğu için güvenlik önemlidir.
+CYRAEN klavye, fare, kabuk, e-posta, telefon ve WhatsApp yetkilerine sahip olduğu için güvenlik önemlidir.
 
 ## Var olan kontroller
 | Kontrol | Nerede |
@@ -779,12 +779,12 @@ note("05 Güvenlik/Gizli Değerler.md", "Gizli Değerler", """
 
 | Gizli | Nerede | Durum / yapılacak |
 |---|---|---|
-| `GEMINI_API_KEY` | `jarvis-brain/.env` | Live için gerekli. `AQ.` ephemeral token de çalışır (~30 dk). |
+| `GEMINI_API_KEY` | `cyraen-brain/.env` | Live için gerekli. `AQ.` ephemeral token de çalışır (~30 dk). |
 | OPTIMAL ENGINE `GEMINI_API_KEY` | `multi/.env.local` | **Sohbette paylaşıldı → yenile** |
-| `OPENROUTER_API_KEY` | `jarvis-brain/.env` | **2026-09-20'de sohbete yapıştırıldı → OpenRouter'dan iptal edip yenile** |
+| `OPENROUTER_API_KEY` | `cyraen-brain/.env` | **2026-09-20'de sohbete yapıştırıldı → OpenRouter'dan iptal edip yenile** |
 | `EMAIL_APP_PASSWORD` | `.env` | Gmail uygulama şifresi |
-| `JARVIS_WEB_TOKEN` | `.env` | Web konsolu; boşsa yalnız localhost |
-| ADB kilit PIN'i | Tercihen **Credential Manager** (`keyring`); yoksa `.env` `JARVIS_ADB_UNLOCK_PIN` | `keyring` bu makinede **kurulu değil** → şu an `.env`. `pip install keyring` sonra PIN'i bir kez yeniden kaydet |
+| `CYRAEN_WEB_TOKEN` | `.env` | Web konsolu; boşsa yalnız localhost |
+| ADB kilit PIN'i | Tercihen **Credential Manager** (`keyring`); yoksa `.env` `CYRAEN_ADB_UNLOCK_PIN` | `keyring` bu makinede **kurulu değil** → şu an `.env`. `pip install keyring` sonra PIN'i bir kez yeniden kaydet |
 | okul `config.js` token'ı | `okul/assets/js/config.js` | Statik sitede sabit yazılı → yenile |
 | WhatsApp oturumu | `data/whatsapp_session/` | Giriş çerezleri; **paylaşma**, git'te yok |
 
@@ -801,9 +801,9 @@ Toplam test dosyaları ve içerikleri (kodda saptandı, {TODAY}):
 ## Çalıştırma
 ```bash
 python -m pytest tests -q
-$env:JARVIS_LIVE_TESTS=1; python -m pytest tests/test_keyboard_live.py -q   # canlı (klavye/fare kullanma!)
+$env:CYRAEN_LIVE_TESTS=1; python -m pytest tests/test_keyboard_live.py -q   # canlı (klavye/fare kullanma!)
 ```
-Son tam çalıştırma: **95 geçti, 3 canlı test atlandı** (canlılar `JARVIS_LIVE_TESTS=1` ister).
+Son tam çalıştırma: **95 geçti, 3 canlı test atlandı** (canlılar `CYRAEN_LIVE_TESTS=1` ister).
 
 ## Ne kapsanıyor / kapsanmıyor
 ✅ WhatsApp karar mantığı (rol, mod, cooldown, kara liste, admin komutu, hafıza, insan gönderimi, tek mesaj birleştirme, kişisel sorular, dürüstlük kuralları, OpenRouter zinciri) — **DOM sınırı taklit edilerek**.
@@ -824,7 +824,7 @@ Bkz. [[Canlı Beyin Motoru]], [[Ajan Sistemi (FounderOS)]], [[Masaüstü Arayüz
 """, ["günlük"])
 
 note("07 Günlük/2026-09-03 Genişleme.md", "2026-09-03 Genişleme", """
-- Masaüstü kısayolu (`scripts/launch_jarvis.vbs`, konsolsuz).
+- Masaüstü kısayolu (`scripts/launch_cyraen.vbs`, konsolsuz).
 - **Obsidian entegrasyonu** ve ayrılmış **JARVIS Hafıza** kasası + otomatik konuşma kaydı ([[Obsidian Kasaları]]).
 - **Telefon kontrolü + çift yönlü sesli görüşme + PWA** ([[Web Konsolu ve PWA]]).
 - **Android ADB / "Ultron" modülü** (WiFi dahil) → 75 araç; sonra **PIN + otomatik kilit açma** → 76 ([[Android ADB]]).
@@ -838,8 +838,8 @@ note("07 Günlük/2026-09-20 İyileştirme Turu.md", "2026-09-20 İyileştirme T
 Auth/origin kontrolü, zod şemaları, hız sınırı, Gemini anahtarı header'a, vault yazıcı symlink/atomik yazma, plan önbelleği, UI iyileştirmeleri,
 vitest + eslint + CI. `RadialGraphCanvas` 542→100 satır, klavye erişilebilirliği.
 
-## JARVIS
-1. **Web konsolu sertleştirme:** `compare_digest`, `X-Jarvis-Key`, CORS izin listesi, token yoksa loopback ([[Web Konsolu ve PWA]]).
+## CYRAEN
+1. **Web konsolu sertleştirme:** `compare_digest`, `X-Cyraen-Key`, CORS izin listesi, token yoksa loopback ([[Web Konsolu ve PWA]]).
 2. **PIN:** keyring desteği (`config/secrets.py`) ([[Gizli Değerler]]).
 3. **Yazma / uygulama açma düzeltmeleri** — kök nedenler `about:blank`→`openwith.exe`, eksik geri çekme, girdi karışması, ALT hilesi ([[Klavye ve Fare Kontrolü]], [[Uygulama Açma]]).
 4. **WhatsApp simülasyon testleri** (DOM taklidi) → tüm karar mantığı doğrulandı ([[WhatsApp Kolu]]).
@@ -865,7 +865,7 @@ Eylül sonundan 13 Ekim'e kadar yapılanların özeti. Ayrıntılı proje notlar
 2. **İçerik paneli:** video, Wikipedia, belge, site, Spotify, haber, piyasa grafiği, hava ve bilgi kartı arayüzün içinde açılır (10 yeni araç, [[Araç Kataloğu]]).
 
 ## Beyin motoru
-3. **Uyandırma kelimesi** "Hey JARVIS" (openwakeword) + en fazla uyanık kalma tavanı; köprü mesajı sırasında mikrofon modele kapanır.
+3. **Uyandırma kelimesi** "Hey CYRAEN" (openwakeword) + en fazla uyanık kalma tavanı; köprü mesajı sırasında mikrofon modele kapanır.
 4. **Kesintisiz hafıza:** Live oturum devam tutamağı (session resumption) + temiz oturumda "OTURUM BAĞLAMI" (tarih/saat, dünün özeti, bugünkü konuşmanın sonu).
 5. **Gün sonu özeti:** `core/daily_summary.py` → `JARVIS Hafiza/Gunluk/YYYY-MM-DD.md` (varsayılan 23:30 + açılışta telafi).
 6. **Yalnız benim sesim:** konuşmacı doğrulama (`core/speaker_verify.py`, sherpa-onnx); profil yoksa pasif.
@@ -892,7 +892,7 @@ note("08 Sorunlar/Sorunlar ve Yapılacaklar.md", "Sorunlar ve Yapılacaklar", ""
 ## Acil / güvenlik
 - ☐ **OpenRouter anahtarını yenile** (sohbette paylaşıldı).
 - ☐ **OPTIMAL ENGINE Gemini anahtarını yenile** (sohbette paylaşılmıştı).
-- ☐ `okul/config.js` içindeki sabit JARVIS token'ını yenile.
+- ☐ `okul/config.js` içindeki sabit CYRAEN token'ını yenile.
 - ☐ `pip install keyring` sonra ADB PIN'ini bir kez yeniden kaydet (şu an `.env`'de).
 - ☐ Başsız modda (`main.py`) onay kapıları fiilen kapalı (`confirm` → `True`): karar ver.
 
@@ -932,7 +932,7 @@ Ayrıntı: [[2026-09-20 İyileştirme Turu]].
 """, ["sorun", "yapılacak"])
 
 note("09 İlgili Projeler/OPTIMAL ENGINE (Next.js).md", "OPTIMAL ENGINE (Next.js)", """
-`multi/` kök dizini — Bennett Spooner'ın "FounderOS / OptimalEngine" AI-agent şablonunun **siberpunk dashboard klonu** (bir Instagram reel videosuna "birebir aynı" istendi; video bulanık olduğu için renk tonları kesin değil). JARVIS'ten **ayrı** bir projedir.
+`multi/` kök dizini — Bennett Spooner'ın "FounderOS / OptimalEngine" AI-agent şablonunun **siberpunk dashboard klonu** (bir Instagram reel videosuna "birebir aynı" istendi; video bulanık olduğu için renk tonları kesin değil). CYRAEN'den **ayrı** bir projedir.
 
 - **Stack:** Next.js 14.2 (App Router), React 18, TypeScript, Tailwind 3.4, Framer Motion, lucide-react, gray-matter, zod. Gemini düz REST.
 - **Sekmeler:** Brain (radyal graph + drill-down) · Personas · Social · Funnel · Finances · Hierarchy.

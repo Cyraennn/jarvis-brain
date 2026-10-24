@@ -1,4 +1,4 @@
-"""JARVIS ana penceresi - Obsidian esintili brain-map arayuzu.
+"""CYRAEN ana penceresi - Obsidian esintili brain-map arayuzu.
 
 Sol ikon serit | sol panel (ajanlar + gorev akisi) | merkez (beyin haritasi +
 transkript) | sag panel (canli gorus + sistem gunlugu) | durum cubugu.
@@ -64,11 +64,11 @@ def _state_text(state: str) -> tuple[str, str]:
 _TASK_TERMINAL = {"done", "failed", "blocked", "cancelled"}
 
 _STARTUP_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
-_STARTUP_REG_NAME = "JARVIS"
+_STARTUP_REG_NAME = "CYRAEN"
 
 
 def _load_app_icon() -> QIcon:
-    for name in ("jarvis.ico", "jarvis.png"):
+    for name in ("cyraen.ico", "cyraen.png"):
         candidate = ASSETS_DIR / name
         if candidate.is_file():
             icon = QIcon(str(candidate))
@@ -132,7 +132,7 @@ class MainWindow(QMainWindow):
         self._agent_count = 0
         self._active_dialog: QMessageBox | None = None
         self._mic_lost = False   # ses cihazi dustu (no-audio) -> mic dugmesi kapali gosterildi
-        self._wake_asleep = False  # uyandirma kapisi uykuda ("Hey JARVIS" bekleniyor)
+        self._wake_asleep = False  # uyandirma kapisi uykuda ("Hey CYRAEN" bekleniyor)
 
         self._icon = _load_app_icon()
         self.setWindowIcon(self._icon)
@@ -281,7 +281,8 @@ class MainWindow(QMainWindow):
         lay.addWidget(self._mic_btn)
 
         self._wake_btn = self._ribbon_btn(
-            "\U0001f442", "Uyandırma kelimesi: yalnızca 'Hey JARVIS' deyince dinle", checkable=True)
+            "\U0001f442", f"Uyandırma kelimesi: yalnızca '{self._settings.wake_phrase}' deyince dinle",
+            checkable=True)
         self._wake_btn.setChecked(self._settings.wake_word_enabled)
         self._wake_btn.toggled.connect(self._on_wake_toggled)
         lay.addWidget(self._wake_btn)
@@ -339,7 +340,7 @@ class MainWindow(QMainWindow):
         lay.setContentsMargins(6, 8, 6, 8)
         lay.setSpacing(4)
 
-        brand = QLabel("J A R V I S")
+        brand = QLabel("C Y R A E N")
         brand.setObjectName("title")
         brand.setContentsMargins(8, 4, 8, 0)
         sub = QLabel("BRAIN MAP  ·  GEMINI LIVE")
@@ -503,7 +504,7 @@ class MainWindow(QMainWindow):
             w.hide()
             lay.addWidget(w)
         lay.addStretch(1)
-        hint = QLabel("beyin haritası · ajanlar JARVIS'e bağlı")
+        hint = QLabel("beyin haritası · ajanlar CYRAEN'e bağlı")
         hint.setObjectName("statusItem")
         hint.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         hint.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)   # dar pencerede kirpilir
@@ -615,7 +616,7 @@ class MainWindow(QMainWindow):
 
     def _on_wake_toggled(self, checked: bool) -> None:
         self._log.add_event(
-            "◉", "Uyandırma kelimesi " + ("AÇIK — 'Hey JARVIS' deyin" if checked else "kapalı"),
+            "◉", "Uyandırma kelimesi " + (f"AÇIK — '{self._settings.wake_phrase}' deyin" if checked else "kapalı"),
             theme.ACCENT)
         if not checked:
             self._wake_asleep = False
@@ -630,7 +631,7 @@ class MainWindow(QMainWindow):
         self._last_state = state
         text, color = _state_text(state)
         if state == "idle" and self._wake_asleep:
-            text, color = "UYKUDA · 'Hey JARVIS'", theme.TEXT_DIM
+            text, color = f"UYKUDA · '{self._settings.wake_phrase}'", theme.TEXT_DIM
         self._state_line.setText(text)
         self._state_line.setStyleSheet(f"color:{color};")
         self._graph.set_center_mode(state)
@@ -667,7 +668,7 @@ class MainWindow(QMainWindow):
         self._log.add_event(icon, f"{name} -> {detail}", color)
 
     def _on_bridge_message(self, text: str) -> None:
-        self._log.add_event("\U0001f309", f"Köprü: {text}", theme.JARVIS_COLOR)
+        self._log.add_event("\U0001f309", f"Köprü: {text}", theme.CYRAEN_COLOR)
         self._transcript.add_system(f"Köprü mesajı: {text}")
 
     # --------------------------------------------------------- orkestrator
@@ -678,7 +679,7 @@ class MainWindow(QMainWindow):
         depts = {getattr(getattr(a, "department", None), "value", "") for a in agents}
         self._sb_agents.setText(f"{len(depts - {''})} departman · {self._agent_count} ajan")
         self._log.add_event(
-            "\U0001f578", f"Ajan ağı: {self._agent_count} ajan / {len(depts - {''})} departman JARVIS'e bağlı", theme.ACCENT
+            "\U0001f578", f"Ajan ağı: {self._agent_count} ajan / {len(depts - {''})} departman CYRAEN'e bağlı", theme.ACCENT
         )
 
     def _on_orch_task(self, update: object) -> None:
@@ -709,13 +710,13 @@ class MainWindow(QMainWindow):
 
     def _on_approval_requested(self, request: object) -> None:
         self._log.add_event("❓", "Ajan onayı isteniyor", theme.WARN)
-        self._ask(request, "JARVIS — Ajan Onayı", "Onayla ve çalıştır", "Reddet",
+        self._ask(request, "CYRAEN — Ajan Onayı", "Onayla ve çalıştır", "Reddet",
                   ("Ajan onaylandı", "Ajan reddedildi"))
 
     def _on_confirm_requested(self, request: object) -> None:
         prompt = getattr(request, "prompt", "Onaylıyor musunuz?")
         self._log.add_event("❓", f"Onay isteniyor: {prompt}", theme.WARN)
-        self._ask(request, "JARVIS — Onay", "Evet", "Hayır", ("Onay verildi", "Onay reddedildi"))
+        self._ask(request, "CYRAEN — Onay", "Evet", "Hayır", ("Onay verildi", "Onay reddedildi"))
 
     def _ask(self, request: object, title: str, yes_text: str, no_text: str,
              messages: tuple[str, str]) -> None:
@@ -731,7 +732,7 @@ class MainWindow(QMainWindow):
             self.activateWindow()
             self._exclude_from_capture()
             if self._tray is not None:
-                self._tray.showMessage("JARVIS", "Onayın bekleniyor.", self._icon, 4000)
+                self._tray.showMessage("CYRAEN", "Onayın bekleniyor.", self._icon, 4000)
 
         box = QMessageBox(self)
         box.setWindowTitle(title)
@@ -944,7 +945,7 @@ class MainWindow(QMainWindow):
         if not self._tray_hint_shown:
             self._tray_hint_shown = True
             self._tray.showMessage(
-                "JARVIS", "Tepside çalışmaya devam ediyor.", self._icon, 4000
+                "CYRAEN", "Tepside çalışmaya devam ediyor.", self._icon, 4000
             )
 
     def _exclude_from_capture(self) -> None:
@@ -1048,7 +1049,7 @@ class MainWindow(QMainWindow):
 
     # ---------------------------------------------------------------- kapatma
     def _on_exit_requested(self) -> None:
-        self._log.add_event("●", "JARVIS kendini kapatıyor (araç).", theme.WARN)
+        self._log.add_event("●", "CYRAEN kendini kapatıyor (araç).", theme.WARN)
         self._force_quit()
 
     def _force_quit(self) -> None:

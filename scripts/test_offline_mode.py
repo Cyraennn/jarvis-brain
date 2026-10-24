@@ -1,4 +1,4 @@
-"""Dogrulama betigi: internet yokken JARVIS yerel modelle hizli ve aracli calisiyor mu?
+"""Dogrulama betigi: internet yokken CYRAEN yerel modelle hizli ve aracli calisiyor mu?
 
 Calistir:  python scripts/test_offline_mode.py   (Ollama acik olmali; internet KESILMEZ,
 yoklama "cevrimdisi" donecek sekilde zorlanir)
@@ -76,7 +76,7 @@ async def _voice_round_trip(settings, chat: OfflineChat) -> bool:
                          audio.send_sample_rate)
     transport = _ScriptedAudio(pcm, audio.chunk_size * audio.sample_width)
     engine = BrainEngine(settings, audio_transport=transport)
-    engine._wake_enabled = False  # sentez ses "Hey JARVIS" demiyor
+    engine._wake_enabled = False  # sentez ses "Hey CYRAEN" demiyor
     engine._offline_chat, engine._offline_voice_io = chat, voice
     heard: list[str] = []
     engine.observer.on_user_transcript = lambda text, final: heard.append(text)

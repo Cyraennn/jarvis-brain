@@ -45,14 +45,14 @@ def make_proxy(fn: Callable[..., Any], hub: ClientHub) -> Callable[..., Any]:
             return {"error": f"Gecersiz argumanlar: {exc}"}
         return hub.request_action_blocking(action, dict(bound.arguments), action_timeout(action))
 
-    proxy.__jarvis_remote__ = action  # type: ignore[attr-defined]
+    proxy.__cyraen_remote__ = action  # type: ignore[attr-defined]
     return proxy
 
 
 def _patch_module(module: ModuleType, hub: ClientHub, originals: dict[int, Callable]) -> list[str]:
     patched: list[str] = []
     for attr, value in list(vars(module).items()):
-        if not callable(value) or getattr(value, "__jarvis_remote__", None):
+        if not callable(value) or getattr(value, "__cyraen_remote__", None):
             continue
         name = qualified_name(value)
         if name not in CLIENT_FUNCTIONS:

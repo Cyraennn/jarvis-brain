@@ -129,7 +129,7 @@ def kitaplik_ekle(ad: str, yazar: str = "") -> dict[str, Any]:
         enrich_in_background(book["id"])
     _bus("kitaplik.degisti", {"neden": "ekle", "id": book["id"]})
     return {"status": "eklendi" if new else "zaten kitaplikta", "kitap": _brief(book),
-            "note": "Kapak ve Jarvis'in sayfalari arka planda doluyor." if new else ""}
+            "note": "Kapak ve Cyraen'in sayfalari arka planda doluyor." if new else ""}
 
 
 def kitap_adlandir(ad: str, yazar: str = "") -> dict[str, Any]:
@@ -205,7 +205,7 @@ def kitap_durum(kitap: str = "", durum: str = "", sayfa: int = 0) -> dict[str, A
 
 
 def kitap_defter_doldur(kitap: str = "", yeniden: bool = False) -> dict[str, Any]:
-    """Jarvis'in kitap defterini (ozet, ana fikirler, yazar, temalar...) yazar."""
+    """Cyraen'in kitap defterini (ozet, ana fikirler, yazar, temalar...) yazar."""
     from tools.bookshelf_notebook import run_notebook_sync
 
     book, err = _resolve(kitap)
@@ -225,7 +225,7 @@ def kitap_defter_doldur(kitap: str = "", yeniden: bool = False) -> dict[str, Any
 
 
 def kitap_ozetle(kitap: str = "") -> dict[str, Any]:
-    """Kitabin Jarvis ozetini dondurur (sesli okumak icin). Defter yoksa once yazar."""
+    """Kitabin Cyraen ozetini dondurur (sesli okumak icin). Defter yoksa once yazar."""
     from tools.bookshelf_notebook import run_notebook_sync
 
     book, err = _resolve(kitap)
@@ -240,7 +240,7 @@ def kitap_ozetle(kitap: str = "") -> dict[str, Any]:
             return {"error": f"Ozet yazilamadi: {exc}"}
     if not d or d.get("bilinmiyor"):
         return {"kitap": book.get("ad"), "ozet": None,
-                "note": "Jarvis bu kitabi tanimiyor; uydurma ozet verme, kullaniciya bunu soyle."}
+                "note": "Cyraen bu kitabi tanimiyor; uydurma ozet verme, kullaniciya bunu soyle."}
     return {"kitap": book.get("ad"), "yazar": book.get("yazar"), "ozet": d.get("ozet"),
             "ana_fikirler": d.get("ana_fikirler"), "note": "Ozeti kendi sesinle kisaca oku."}
 
@@ -254,7 +254,7 @@ def calibre_esitle() -> dict[str, Any]:
 
 
 def kitap_ac(kitap: str = "", format: str = "") -> dict[str, Any]:  # noqa: A002
-    """Kitabin e-kitap dosyasini (Calibre) acar. PDF ise JARVIS panelinde, digerleri varsayilan okuyucuda."""
+    """Kitabin e-kitap dosyasini (Calibre) acar. PDF ise CYRAEN panelinde, digerleri varsayilan okuyucuda."""
     from tools.calibre_library import book_file, find_library, sync
 
     book, err = _resolve(kitap)

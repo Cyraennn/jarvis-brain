@@ -106,10 +106,10 @@ def search_windows(query: str) -> dict[str, Any]:
 # --- yetenek -> callable listesi ---------------------------------------------
 
 def draft_email(to: str, subject: str, body: str) -> dict[str, Any]:
-    """Bir e-posta TASLAGI hazirlar (GONDERMEZ). Gonderme kararini insan/JARVIS verir."""
+    """Bir e-posta TASLAGI hazirlar (GONDERMEZ). Gonderme kararini insan/CYRAEN verir."""
     return {
         "status": "taslak hazir",
-        "note": "Bu bir taslaktir, gonderilmedi. Gondermek icin JARVIS'e / kullaniciya ilet.",
+        "note": "Bu bir taslaktir, gonderilmedi. Gondermek icin CYRAEN'e / kullaniciya ilet.",
         "draft": {"to": to.strip(), "subject": subject, "body": body},
     }
 
@@ -200,7 +200,7 @@ CAPABILITIES: dict[str, list[Callable[..., Any]]] = {
     "email_draft": [check_email, read_email, search_email, draft_email],
     "gbrain": [_kb_write_sync, _kb_search_sync],
     "vault": [memory_search],
-    # salt okuma: ajan SILEMEZ (silme sesli JARVIS + onay kapisinda)
+    # salt okuma: ajan SILEMEZ (silme sesli CYRAEN + onay kapisinda)
     "maintenance": [cleanup_scan],
     "system": [get_system_status, list_processes],
     "okul": [okul_status, okul_next_exams, okul_today_tasks, okul_schedule, okul_gpa,
@@ -211,12 +211,12 @@ CAPABILITIES: dict[str, list[Callable[..., Any]]] = {
     "schedule": [set_reminder, schedule_task, list_reminders, cancel_reminder, add_routine,
                  list_routines],
     "adb": [phone_devices, phone_unlock, phone_open, phone_play_media],
-    # Gmail OAuth: okuma + taslak; ajan GONDEREMEZ (gonderim sesli JARVIS + onay kapisinda)
+    # Gmail OAuth: okuma + taslak; ajan GONDEREMEZ (gonderim sesli CYRAEN + onay kapisinda)
     "gmail": [get_unread_emails, read_gmail, create_email_draft, generate_auto_reply_draft],
     "telegram": [get_latest_telegram_updates, notify_owner_telegram],
     "transit": [eshot_find_stop, eshot_nearby_stops, eshot_line_info, eshot_approaching_buses,
                 transit_route, izmirim_kart_info],
-    # MCP: ajan yalnizca onay gerektirmeyen araclari cagirir (yazma sesli JARVIS + onayda)
+    # MCP: ajan yalnizca onay gerektirmeyen araclari cagirir (yazma sesli CYRAEN + onayda)
     "mcp": [mcp_servers, mcp_list_tools, mcp_call_readonly],
     # odeme/sifre/silme butonlari tarayici katmaninda engellenir
     "browser": BROWSER_TOOLS,

@@ -4,9 +4,9 @@ Zoey OS (zoeyos.com) estetigi: saf siyah zemin, ustu hafif aydinlik cam kartlar,
 rengi turuncu (#ff8c42 / logo #ff6d00) + orb'daki macenta. Govde yazisi Onest, etiketler
 JetBrains Mono. Eski isimler geriye uyumluluk icin korunur.
 
-Vurgu rengi kisilige gore degisir (PALETTES: JARVIS mavi, FRIDAY yesil, ULTRON kirmizi);
+Vurgu rengi kisilige gore degisir (PALETTES: CYRAEN mavi, FRIDAY yesil, ULTRON kirmizi);
 `apply_palette(key)` modul degiskenlerini ve QSS'i calisirken yeniden kurar. Asagidaki
-turuncu degerler yalnizca tabandir, import sonunda jarvis paleti uygulanir.
+turuncu degerler yalnizca tabandir, import sonunda cyraen paleti uygulanir.
 """
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ TEXT_MUTED = "#9e9e9e"
 TEXT_FAINT = "#7a7a80"     # kart zemininde okunur kalsin (~4.5:1)
 
 USER_COLOR = "#d6d6db"
-JARVIS_COLOR = "#ffb07a"
+CYRAEN_COLOR = "#ffb07a"
 
 # Departman dugum renkleri (Zoey orb temalari; sirayla dagitilir)
 DEPT_COLORS = ("#ff8c42", "#e91e8c", "#48cae4", "#ffd166", "#8338ec", "#06d6a0")
@@ -88,11 +88,11 @@ _NEUTRAL_CARD = {
     "BORDER": "#1f1f23", "EDGE_LIGHT": "#3a3a3f",
 }
 PALETTES: dict[str, dict] = {
-    "jarvis": {
+    "cyraen": {
         **_NEUTRAL_CARD,
         "ACCENT": "#4cb4ff", "ACCENT_BASE": "#1e8fff", "ACCENT_DIM": "#0a2a4a",
         "STATE_IDLE": "#1e8fff", "ACCENT_HOVER": "#9ad3ff", "ACCENT_INK": "#001426",
-        "MYSTIC": "#22e3ff", "MYSTIC_DIM": "#063a44", "JARVIS_COLOR": "#9ad3ff",
+        "MYSTIC": "#22e3ff", "MYSTIC_DIM": "#063a44", "CYRAEN_COLOR": "#9ad3ff",
         "glow": (30, 143, 255), "orb": ("#22e3ff", "#1e8fff"), "effect": "",
     },
     "friday": {
@@ -102,7 +102,7 @@ PALETTES: dict[str, dict] = {
         "BORDER": "#233029", "EDGE_LIGHT": "#4a5a53",
         "ACCENT": "#2ee59d", "ACCENT_BASE": "#14c47f", "ACCENT_DIM": "#0a3d2a",
         "STATE_IDLE": "#14c47f", "ACCENT_HOVER": "#9ff5d0", "ACCENT_INK": "#00170d",
-        "MYSTIC": "#b6ffe4", "MYSTIC_DIM": "#1d4a3c", "JARVIS_COLOR": "#9ff5d0",
+        "MYSTIC": "#b6ffe4", "MYSTIC_DIM": "#1d4a3c", "CYRAEN_COLOR": "#9ff5d0",
         "glow": (20, 196, 127), "orb": ("#b6ffe4", "#14c47f"), "effect": "friday",
     },
     "ultron": {
@@ -112,16 +112,16 @@ PALETTES: dict[str, dict] = {
         "BORDER": "#2a1416", "EDGE_LIGHT": "#4a2226",
         "ACCENT": "#ff4d4d", "ACCENT_BASE": "#e01b1b", "ACCENT_DIM": "#4a0b0b",
         "STATE_IDLE": "#e01b1b", "ACCENT_HOVER": "#ff9a8a", "ACCENT_INK": "#1a0000",
-        "MYSTIC": "#ff8a1e", "MYSTIC_DIM": "#4a2406", "JARVIS_COLOR": "#ff9a8a",
+        "MYSTIC": "#ff8a1e", "MYSTIC_DIM": "#4a2406", "CYRAEN_COLOR": "#ff9a8a",
         "glow": (224, 27, 27), "orb": ("#ff8a1e", "#e01b1b"), "effect": "ultron",
     },
 }
 
-# kisilige gore arayuz metinleri ("Hey JARVIS" uyandirma kelimesi sabit kalir)
+# kisilige gore arayuz metinleri ("Hey CYRAEN" uyandirma kelimesi sabit kalir)
 BRANDING: dict[str, dict[str, str]] = {
-    "jarvis": {"name": "JARVIS", "wordmark": "JARVIS", "tag": "KİŞİSEL ASİSTAN",
+    "cyraen": {"name": "CYRAEN", "wordmark": "CYRAEN", "tag": "KİŞİSEL ASİSTAN",
                "greeting": "“Emrinizdeyim efendim.”",
-               "placeholder": "JARVIS'e yaz — Enter ile canlı oturuma gönder"},
+               "placeholder": "CYRAEN'e yaz — Enter ile canlı oturuma gönder"},
     "friday": {"name": "FRIDAY", "wordmark": "FRIDAY", "tag": "OPERASYON ASİSTANI",
                "greeting": "“Hazırım patron, ne yapıyoruz?”",
                "placeholder": "FRIDAY'e yaz — Enter ile canlı oturuma gönder"},
@@ -130,7 +130,7 @@ BRANDING: dict[str, dict[str, str]] = {
                "placeholder": "ULTRON'a yaz — itiraz edecek ama yapacak"},
 }
 
-PERSONA = "jarvis"   # apply_palette ile degisir
+PERSONA = "cyraen"   # apply_palette ile degisir
 EFFECT = ""          # "" | "friday" | "ultron" (HudBackdrop katmani)
 ORB_COLORS = ("#e91e8c", "#ff6d00")
 
@@ -414,18 +414,18 @@ def build_qss() -> str:
 
 
 def branding(key: str | None = None) -> dict[str, str]:
-    return BRANDING.get(key or PERSONA, BRANDING["jarvis"])
+    return BRANDING.get(key or PERSONA, BRANDING["cyraen"])
 
 
 def apply_palette(key: str) -> str:
     """Kisilik paletini modul degiskenlerine uygular ve QSS'i yeniden uretir.
 
     Renkleri olusturulurken yakalayan widget'lar `refresh_theme()` ile tazelenir
-    (bkz. HudWindow.apply_persona_theme). Bilinmeyen anahtar -> jarvis. Uygulanan anahtari doner.
+    (bkz. HudWindow.apply_persona_theme). Bilinmeyen anahtar -> cyraen. Uygulanan anahtari doner.
     """
     global SPEAK, HUD_TICK, HUD_EDGE, DEPT_COLORS, GLOW_EDGE, GLOW_FILL
     global PERSONA, EFFECT, ORB_COLORS, QSS
-    key = key if key in PALETTES else "jarvis"
+    key = key if key in PALETTES else "cyraen"
     pal = PALETTES[key]
     g = globals()
     for name, value in pal.items():
@@ -445,4 +445,4 @@ def apply_palette(key: str) -> str:
 
 _DEPT_REST = DEPT_COLORS[2:]
 QSS = build_qss()
-apply_palette("jarvis")
+apply_palette("cyraen")

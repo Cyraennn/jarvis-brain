@@ -11,7 +11,7 @@ class FakeWorker:
 
 def test_wake_toggle_reaches_worker_and_shows_sleep(main_window, monkeypatch):
     w = main_window
-    w._wake_btn.setChecked(False)  # .env'de JARVIS_WAKE_WORD=true olsa da kapali basla
+    w._wake_btn.setChecked(False)  # .env'de CYRAEN_WAKE_WORD=true olsa da kapali basla
     worker = FakeWorker()
     monkeypatch.setattr(w, "_worker", worker)
     chimes = []
@@ -25,7 +25,7 @@ def test_wake_toggle_reaches_worker_and_shows_sleep(main_window, monkeypatch):
     w._on_state("idle")
     assert "UYKUDA" in w._state_line.text()  # idle uyku metnini ezmez
 
-    w._on_wake(True)  # "Hey JARVIS"
+    w._on_wake(True)  # "Hey CYRAEN"
     assert chimes == [1]
     assert "UYKUDA" not in w._state_line.text()
 

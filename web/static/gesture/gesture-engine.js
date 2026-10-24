@@ -2,7 +2,7 @@
   if (typeof module !== "undefined" && module.exports) {
     module.exports = factory(require("./smoothing.js"));
   } else {
-    root.JarvisGestureEngine = factory(root.JarvisSmoothing);
+    root.CyraenGestureEngine = factory(root.CyraenSmoothing);
   }
 })(typeof self !== "undefined" ? self : this, function (Smoothing) {
   "use strict";

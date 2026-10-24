@@ -1,8 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""PyInstaller spec - JARVIS masaustu uygulamasi (onedir).
+"""PyInstaller spec - CYRAEN masaustu uygulamasi (onedir).
 
-Derle:  pyinstaller --noconfirm jarvis.spec
-Cikti:  dist/JARVIS/JARVIS.exe   (yaninda .env, data/, bridge/ olusur)
+Derle:  pyinstaller --noconfirm cyraen.spec
+Cikti:  dist/CYRAEN/CYRAEN.exe   (yaninda .env, data/, bridge/ olusur)
 """
 
 from pathlib import Path
@@ -32,7 +32,7 @@ for pkg in ("google.genai", "google.api_core", "cv2"):
 
 hiddenimports += collect_submodules("google")
 
-icon_file = ROOT / "assets" / "jarvis.ico"
+icon_file = ROOT / "assets" / "cyraen.ico"
 icon = str(icon_file) if icon_file.is_file() else None
 
 a = Analysis(
@@ -55,7 +55,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="JARVIS",
+    name="CYRAEN",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -72,5 +72,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name="JARVIS",
+    name="CYRAEN",
 )

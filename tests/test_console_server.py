@@ -57,7 +57,7 @@ def test_rejects_missing_or_wrong_token(server):
 def test_accepts_query_and_header_token(server):
     _, port = server
     assert _req(port, "/api/state?key=s3cret-token")[0] == 200
-    assert _req(port, "/api/state", headers={"X-Jarvis-Key": "s3cret-token"})[0] == 200
+    assert _req(port, "/api/state", headers={"X-Cyraen-Key": "s3cret-token"})[0] == 200
 
 
 def test_cors_is_allowlisted_not_wildcard(server):
@@ -79,7 +79,7 @@ def test_control_wake_toggle_reaches_callback_and_bus(server):
     srv, port = server
     seen = []
     srv._on_control = lambda action: seen.append(action) or {"wake": action == "wake_on"}
-    hdr = {"X-Jarvis-Key": "s3cret-token", "Content-Type": "application/json"}
+    hdr = {"X-Cyraen-Key": "s3cret-token", "Content-Type": "application/json"}
     for action, expected in (("wake_on", True), ("wake_off", False)):
         status, _, body = _req(port, "/api/control", headers=hdr,
                                data=json.dumps({"action": action}).encode())

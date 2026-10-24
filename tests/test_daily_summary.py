@@ -34,9 +34,9 @@ def _seed(settings, day: date = DAY) -> None:
     vault = settings.obsidian_dir
     stamp = f"{day:%Y-%m-%d}"
     for sub, text in (
-        ("Konusmalar", "---\ntags: [jarvis]\n---\n\n# Konusma\n\n**16:55 · Sen:** Mikrofonu ac\n\n"
-                       "**16:56 · JARVIS:** Actim efendim.\n"),
-        ("Notlar", "---\ntags: [jarvis]\n---\n\n# JARVIS Notlari\n\n- **17:00** Sut al\n"),
+        ("Konusmalar", "---\ntags: [cyraen]\n---\n\n# Konusma\n\n**16:55 · Sen:** Mikrofonu ac\n\n"
+                       "**16:56 · CYRAEN:** Actim efendim.\n"),
+        ("Notlar", "---\ntags: [cyraen]\n---\n\n# CYRAEN Notlari\n\n- **17:00** Sut al\n"),
     ):
         (vault / sub).mkdir(exist_ok=True)
         (vault / sub / f"{stamp}.md").write_text(text, encoding="utf-8")

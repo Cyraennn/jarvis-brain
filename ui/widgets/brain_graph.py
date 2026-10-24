@@ -1,6 +1,6 @@
-"""Holografik beyin haritasi - JARVIS cekirdegi + 6 departman + alt ajanlar.
+"""Holografik beyin haritasi - CYRAEN cekirdegi + 6 departman + alt ajanlar.
 
-Merkezde JARVIS arc-reactor. Cevresinde 6 departman dugumu (hex). Bir departmana
+Merkezde CYRAEN arc-reactor. Cevresinde 6 departman dugumu (hex). Bir departmana
 tiklaninca alt ajanlari o dugumun etrafinda dairesel acilir. Gorev akisinca kenarlar
 parlar, parcaciklar akar.
 """
@@ -439,7 +439,7 @@ class BrainGraph(QWidget):
         f.setLetterSpacing(f.SpacingType.AbsoluteSpacing, 3)
         p.setFont(f)
         p.drawText(int(c.x() - 55), int(c.y() + r * 2.1), 110, 16,
-                   Qt.AlignmentFlag.AlignHCenter, "J A R V I S")
+                   Qt.AlignmentFlag.AlignHCenter, "C Y R A E N")
 
     def _draw_department(self, p: QPainter, node: _Node) -> None:
         pos, act = node.pos, node.activity

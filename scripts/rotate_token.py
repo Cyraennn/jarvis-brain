@@ -1,12 +1,12 @@
-"""JARVIS web/telefon erişim anahtarını (JARVIS_WEB_TOKEN) yeniler.
+"""CYRAEN web/telefon erişim anahtarını (CYRAEN_WEB_TOKEN) yeniler.
 
     python scripts/rotate_token.py            # .env'deki token'ı yeni rastgele değerle değiştirir
     python scripts/rotate_token.py --env X    # başka bir .env dosyası
 
 Yeni değer EKRANA YAZILMAZ (sohbet/terminal geçmişine düşmesin). Sonra:
-  1. JARVIS'i yeniden başlatın.
+  1. CYRAEN'i yeniden başlatın.
   2. Telefonu yeniden eşleyin: PC'de tarayıcıda 127.0.0.1:8770/pair → QR'ı telefonla okutun.
-  3. Okul uygulamasında Ayarlar > JARVIS'e yeni token'ı girin (aynı sayfadaki adresten kopyalanabilir).
+  3. Okul uygulamasında Ayarlar > CYRAEN'e yeni token'ı girin (aynı sayfadaki adresten kopyalanabilir).
 Eski token anında geçersiz olur (eski adresle gelen istekler 401 alır).
 """
 
@@ -18,7 +18,7 @@ import secrets
 import sys
 from pathlib import Path
 
-KEY = "JARVIS_WEB_TOKEN"
+KEY = "CYRAEN_WEB_TOKEN"
 _LINE = re.compile(rf"^(\s*{KEY}\s*=).*$", re.MULTILINE)
 
 
@@ -46,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     token = rotate(args.env)
     print(f"{KEY} yenilendi ({len(token)} karakter) -> {args.env}")
-    print("Simdi: JARVIS'i yeniden baslatin, telefonu 127.0.0.1:8770/pair QR'i ile yeniden esleyin.")
+    print("Simdi: CYRAEN'i yeniden baslatin, telefonu 127.0.0.1:8770/pair QR'i ile yeniden esleyin.")
     return 0
 
 

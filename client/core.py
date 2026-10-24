@@ -1,6 +1,6 @@
-"""Genel JARVIS istemci cekirdegi - PC, robot ya da baska bir "govde" icin ayni.
+"""Genel CYRAEN istemci cekirdegi - PC, robot ya da baska bir "govde" icin ayni.
 
-    client = JarvisClient(url, token, name="robot-1", kind="robot")
+    client = CyraenClient(url, token, name="robot-1", kind="robot")
     client.register("robot.move", move_handler)          # eylem handler'i (sync ya da async)
     client.on_event("engine_state", lambda data: ...)    # sunucu olaylarini dinle
     client.set_confirm_handler(ask_user)                  # onay isteklerini goster (opsiyonel)
@@ -60,7 +60,7 @@ def _accepts_cancel(handler: Callable[..., Any]) -> bool:
     return len(positional) >= 3
 
 
-class JarvisClient:
+class CyraenClient:
     def __init__(
         self,
         url: str,

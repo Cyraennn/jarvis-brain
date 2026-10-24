@@ -1,4 +1,4 @@
-# JARVIS Brain Engine - Python 3.11+ zorunlu (asyncio.TaskGroup / ExceptionGroup)
+# CYRAEN Brain Engine - Python 3.11+ zorunlu (asyncio.TaskGroup / ExceptionGroup)
 google-genai>=1.16.0
 openai>=1.40    # OpenRouter istemcisi (core/openrouter_client.py)
 anthropic>=0.120  # Claude istemcisi - yazilim ajanlari (core/claude_client.py)
@@ -48,7 +48,7 @@ mcp>=1.20
 # Opsiyonel: PIN gibi gizlileri Windows Credential Manager'da tutar (yoksa .env kullanilir)
 keyring>=24
 
-# Uyandirma kelimesi "Hey JARVIS" (cevrimdisi, ONNX). JARVIS_WAKE_WORD=true ile acilir.
+# Uyandirma kelimesi "Hey CYRAEN" (cevrimdisi, ONNX). CYRAEN_WAKE_WORD=true ile acilir.
 vosk>=0.3.45          # cevrimdisi konusma tanima (core/offline_voice.py)
 piper-tts>=1.3        # cevrimdisi seslendirme; yoksa Windows SAPI sesine dusulur
 sherpa-onnx>=1.10     # konusmaci dogrulama (core/speaker_verify.py); yoksa ozellik pasif

@@ -5,7 +5,7 @@
 On kosul: Google Cloud'dan indirilen "Masaustu uygulamasi" OAuth istemci JSON'u
 config/gmail_credentials.json'da (ya da .env: GMAIL_CREDENTIALS_FILE) olmali.
 Tarayicida izin verdikten sonra token GMAIL_TOKEN_FILE'a (varsayilan data/gmail_token.json)
-yazilir ve JARVIS e-posta araclari otomatik olarak Gmail API'ye gecer.
+yazilir ve CYRAEN e-posta araclari otomatik olarak Gmail API'ye gecer.
 """
 
 from __future__ import annotations

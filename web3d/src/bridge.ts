@@ -1,6 +1,6 @@
-// JARVIS (PySide6 / QtWebEngine) ile sayfa arasindaki kopru.
-//  Qt -> sayfa : page.runJavaScript("window.jarvis.setStats({cpu, ram, disk})")
-//  sayfa -> Qt : document.title = "jarvis:<olay>:<sayac>"  (ui/hud/boot3d.py titleChanged dinler)
+// CYRAEN (PySide6 / QtWebEngine) ile sayfa arasindaki kopru.
+//  Qt -> sayfa : page.runJavaScript("window.cyraen.setStats({cpu, ram, disk})")
+//  sayfa -> Qt : document.title = "cyraen:<olay>:<sayac>"  (ui/hud/boot3d.py titleChanged dinler)
 // Tarayicida tek basina acilinca olcumler benzetilir.
 import { hud, type Stats } from './store'
 
@@ -16,7 +16,7 @@ export const options = {
 let counter = 0
 export function notify(event: 'ready' | 'idle' | 'done' | 'error'): void {
   counter += 1
-  document.title = `jarvis:${event}:${counter}`
+  document.title = `cyraen:${event}:${counter}`
 }
 
 const clamp = (v: unknown) => Math.min(100, Math.max(0, Number(v) || 0))
@@ -25,12 +25,12 @@ let lastLive = 0
 
 declare global {
   interface Window {
-    jarvis: { setStats: (s: Partial<Stats>) => void; dismiss: () => void }
+    cyraen: { setStats: (s: Partial<Stats>) => void; dismiss: () => void }
   }
 }
 
 export function installBridge(onDismiss: () => void): () => void {
-  window.jarvis = {
+  window.cyraen = {
     setStats(s) {
       lastLive = performance.now()
       hud.stats({ cpu: clamp(s.cpu), ram: clamp(s.ram), disk: clamp(s.disk) }, true)
@@ -38,7 +38,7 @@ export function installBridge(onDismiss: () => void): () => void {
     dismiss: onDismiss,
   }
 
-  // JARVIS'ten olcum gelmiyorsa (tarayicida gelistirme) inandirici bir benzetim
+  // CYRAEN'den olcum gelmiyorsa (tarayicida gelistirme) inandirici bir benzetim
   let cpu = 22
   let ram = 58
   const timer = window.setInterval(() => {

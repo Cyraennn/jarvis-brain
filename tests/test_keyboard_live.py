@@ -1,4 +1,4 @@
-"""CANLI klavye testi (Windows, gercek SendInput). Yalnizca JARVIS_LIVE_TESTS=1 ile calisir.
+"""CANLI klavye testi (Windows, gercek SendInput). Yalnizca CYRAEN_LIVE_TESTS=1 ile calisir.
 
 Kendi olusturdugu bir Tk penceresine yazar; baska uygulamalara dokunmaz. Test
 sirasinda klavye/fareye dokunmayin.
@@ -12,13 +12,13 @@ import time
 import pytest
 
 pytestmark = pytest.mark.skipif(
-    sys.platform != "win32" or os.environ.get("JARVIS_LIVE_TESTS") != "1",
-    reason="canli test: JARVIS_LIVE_TESTS=1 ve Windows gerekir",
+    sys.platform != "win32" or os.environ.get("CYRAEN_LIVE_TESTS") != "1",
+    reason="canli test: CYRAEN_LIVE_TESTS=1 ve Windows gerekir",
 )
 
 from tools import keyboard_input as kb  # noqa: E402
 
-TITLE = "JARVIS_TYPE_TEST_WINDOW"
+TITLE = "CYRAEN_TYPE_TEST_WINDOW"
 
 TK_APP = textwrap.dedent(
     '''

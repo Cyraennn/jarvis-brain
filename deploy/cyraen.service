@@ -1,23 +1,23 @@
-# JARVIS sunucusu (beyin) - systemd servisi
-# Kurulum: sudo bash deploy/setup.sh   (bu dosyayi /etc/systemd/system/jarvis.service olarak kopyalar)
-# Loglar : journalctl -u jarvis -f      (JSON log dosyasi: /opt/jarvis/jarvis-brain/data/logs/server.jsonl)
+# CYRAEN sunucusu (beyin) - systemd servisi
+# Kurulum: sudo bash deploy/setup.sh   (bu dosyayi /etc/systemd/system/cyraen.service olarak kopyalar)
+# Loglar : journalctl -u cyraen -f      (JSON log dosyasi: /opt/cyraen/cyraen-brain/data/logs/server.jsonl)
 
 [Unit]
-Description=JARVIS sunucusu (beyin) - Gemini Live + ajanlar
-Documentation=file:///opt/jarvis/jarvis-brain/deploy/README.md
+Description=CYRAEN sunucusu (beyin) - Gemini Live + ajanlar
+Documentation=file:///opt/cyraen/cyraen-brain/deploy/README.md
 # Uvicorn Tailscale IP'sine baglanir -> Tailscale ayaga kalkmadan baslamasin
 After=network-online.target tailscaled.service
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=jarvis
-Group=jarvis
-WorkingDirectory=/opt/jarvis/jarvis-brain
-EnvironmentFile=/opt/jarvis/jarvis-brain/.env
+User=cyraen
+Group=cyraen
+WorkingDirectory=/opt/cyraen/cyraen-brain
+EnvironmentFile=/opt/cyraen/cyraen-brain/.env
 Environment=PYTHONUNBUFFERED=1
 Environment=PYTHONUTF8=1
-ExecStart=/opt/jarvis/venv/bin/python -m server
+ExecStart=/opt/cyraen/venv/bin/python -m server
 
 # 7/24: cokerse (veya Tailscale IP'si henuz yoksa) 5 sn sonra yeniden baslat
 Restart=always
@@ -37,7 +37,7 @@ ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictSUIDSGID=true
 LockPersonality=true
-ReadWritePaths=/opt/jarvis
+ReadWritePaths=/opt/cyraen
 
 [Install]
 WantedBy=multi-user.target

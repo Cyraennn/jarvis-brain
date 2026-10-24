@@ -1,4 +1,4 @@
-"""Lab bilgisayarinda GUI'siz calisan JARVIS sunucusu ("server modu").
+"""Lab bilgisayarinda GUI'siz calisan CYRAEN sunucusu ("server modu").
 
 `main.py` (sessiz/headless) motoru calistirir ama HICBIR disaridan kontrol
 arayuzu acmaz. Bu giris noktasi, ev bilgisayarindan (Tailscale uzerinden) TAM
@@ -6,7 +6,7 @@ kontrol icin gerekenleri ekler:
 
   - Web konsolu (`web/console_server.py`)  : komut gonderme, durum izleme,
     mikrofon/uzak-mod, VE onay/red (`/api/confirm`).
-  - Uzak ses sunucusu (`net/audio_server.py`): `JARVIS_AUDIO_MODE=network` ise
+  - Uzak ses sunucusu (`net/audio_server.py`): `CYRAEN_AUDIO_MODE=network` ise
     mikrofon/hoparlor BU makinede DEGIL, `remote_client/run_remote_client.py`
     calisan ev bilgisayarindadir.
   - Ajan orkestratoru + zamanlayici: masaustu uygulamasiyla (`ui/app.py`) AYNI
@@ -80,14 +80,14 @@ def _check_remote_safety(settings: Settings) -> None:
     missing = [
         name
         for name, val in (
-            ("JARVIS_WEB_TOKEN", settings.web_console_token),
-            ("JARVIS_REMOTE_AUDIO_TOKEN", settings.remote_audio_token),
+            ("CYRAEN_WEB_TOKEN", settings.web_console_token),
+            ("CYRAEN_REMOTE_AUDIO_TOKEN", settings.remote_audio_token),
         )
         if not val
     ]
     if missing:
         raise SystemExit(
-            "JARVIS_AUDIO_MODE=network icin .env'de sunlar DOLU olmali (yoksa "
+            "CYRAEN_AUDIO_MODE=network icin .env'de sunlar DOLU olmali (yoksa "
             "sunucular sessizce sadece bu bilgisayara kapali kalir, ev "
             "bilgisayarindan hicbir sekilde baglanilamaz): " + ", ".join(missing)
         )

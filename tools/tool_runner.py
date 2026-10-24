@@ -205,7 +205,7 @@ def _dispatch_to_agent(agent: str, task: str) -> dict[str, Any]:
             "id": task_id,
             "agent": agent,
             "task": task,
-            "source": "jarvis",
+            "source": "cyraen",
             "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         },
         ensure_ascii=False,
@@ -250,7 +250,7 @@ class ToolRunner:
     ) -> None:
         from tools.tool_declarations import disabled_tool_names
 
-        # JARVIS_TOOLS_OFF ile kapatilan gruplar: model bunlari gormez; yine de cagrilirsa calistirilmaz
+        # CYRAEN_TOOLS_OFF ile kapatilan gruplar: model bunlari gormez; yine de cagrilirsa calistirilmaz
         self._disabled: set[str] = disabled_tool_names(disabled_groups)
         # Onay geri cagrimi: kapatma gibi geri alinamaz islemler icin kullanilir.
         self._confirm: ConfirmFn = confirm or (lambda _prompt: True)
@@ -415,7 +415,7 @@ class ToolRunner:
         self.register("browser_task", self._tool_browser_task)
         self.register("browser_open", browser_open)
 
-        # --- icerik paneli: JARVIS arayuzunun icinde acilir ---
+        # --- icerik paneli: CYRAEN arayuzunun icinde acilir ---
         self.register("show_video", lambda **kw: self._panel(show_video, **kw))
         self.register("show_wikipedia", lambda **kw: self._panel(show_wikipedia, **kw))
         self.register("show_document", lambda **kw: self._panel(show_document, **kw))
@@ -516,7 +516,7 @@ class ToolRunner:
         return result
 
     def _retracted(self, fn: Callable[..., Any], **kwargs: Any) -> Any:
-        """Ekranla etkilesen bir araci, JARVIS penceresi gecici olarak cekilmisken calistirir."""
+        """Ekranla etkilesen bir araci, CYRAEN penceresi gecici olarak cekilmisken calistirir."""
         self._on_typing(True)
         try:
             time.sleep(0.7)  # pencerenin kuculmesini / odagi birakmasini bekle
@@ -695,13 +695,13 @@ class ToolRunner:
         return result
 
     def _tool_exit_application(self) -> dict[str, Any]:
-        if not self._confirm("JARVIS uygulamasini tamamen kapatayim mi?"):
+        if not self._confirm("CYRAEN uygulamasini tamamen kapatayim mi?"):
             return {"status": "iptal edildi", "reason": "kullanici onay vermedi"}
         try:
             self._on_exit()
         except Exception as exc:  # noqa: BLE001
             return {"error": f"Kapatilamadi: {exc}"}
-        return {"status": "JARVIS kapatiliyor"}
+        return {"status": "CYRAEN kapatiliyor"}
 
     def register(self, name: str, fn: ToolFn) -> None:
         self._registry[name] = fn

@@ -1,4 +1,4 @@
-"""JARVIS masaustu arayuzunu baslatir.
+"""CYRAEN masaustu arayuzunu baslatir.
 
 Kullanim:
     python run_ui.py

@@ -1,8 +1,8 @@
 """Lab bilgisayarina ilk kurulum paketi hazirlar (kod + hafiza, tek zip).
 
-Kod (jarvis-brain, `.venv`/`__pycache__`/`build`/`dist` haric) + data/ (GBrain,
+Kod (cyraen-brain, `.venv`/`__pycache__`/`build`/`dist` haric) + data/ (GBrain,
 hatirlatici/rutin, okul durumu, konusma gunlukleri, `config/whatsapp.json`) +
-Obsidian kasasi (`JARVIS_OBSIDIAN_VAULT`) + `.env` (uzak-sunucu satirlari
+Obsidian kasasi (`CYRAEN_OBSIDIAN_VAULT`) + `.env` (uzak-sunucu satirlari
 otomatik eklenmis) tek bir zip'e paketler.
 
 Ayni zamanda BU makinedeki `remote_client/.env`'i, pakete gomulenle AYNI (yeni
@@ -16,11 +16,11 @@ ile dahil edilebilir. `config/whatsapp.json` (kucuk ayar dosyasi) HER ZAMAN dahi
 
 Kullanim:
     python scripts/export_lab_package.py
-    python scripts/export_lab_package.py --out D:\\jarvis-lab-package.zip
+    python scripts/export_lab_package.py --out D:\\cyraen-lab-package.zip
     python scripts/export_lab_package.py --include-whatsapp-session
 
 Sonraki adimlar (lab bilgisayarinda): paketin icindeki README.txt VEYA
-jarvis-brain/docs/remote_setup.md.
+cyraen-brain/docs/remote_setup.md.
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent  # jarvis-brain/
+ROOT = Path(__file__).resolve().parent.parent  # cyraen-brain/
 PROJECT_ROOT = ROOT.parent  # multi/
 REMOTE_CLIENT_DIR = PROJECT_ROOT / "remote_client"
 sys.path.insert(0, str(ROOT))
@@ -43,17 +43,17 @@ _EXCLUDE_DIR_NAMES = {".venv", "venv", "__pycache__", "build", "dist", ".pytest_
 _EXCLUDE_SUFFIXES = {".pyc"}
 
 _REMOTE_CLIENT_ENV_ORDER = [
-    "JARVIS_SERVER_HOST",
-    "JARVIS_REMOTE_AUDIO_TOKEN",
-    "JARVIS_WEB_TOKEN",
-    "JARVIS_REMOTE_AUDIO_PORT",
-    "JARVIS_WEB_PORT",
-    "JARVIS_CLIENT_OPEN_BROWSER",
+    "CYRAEN_SERVER_HOST",
+    "CYRAEN_REMOTE_AUDIO_TOKEN",
+    "CYRAEN_WEB_TOKEN",
+    "CYRAEN_REMOTE_AUDIO_PORT",
+    "CYRAEN_WEB_PORT",
+    "CYRAEN_CLIENT_OPEN_BROWSER",
 ]
 
 
 def _iter_code_files(base: Path, *, include_whatsapp_session: bool):
-    """`base` (jarvis-brain koku) altindaki paketlenecek dosyalari (yol, goreli-yol)
+    """`base` (cyraen-brain koku) altindaki paketlenecek dosyalari (yol, goreli-yol)
     ciftleri olarak dolasir; disarida birakilan klasor/uzantilari atlar."""
     for path in sorted(base.rglob("*")):
         if path.is_dir():
@@ -92,40 +92,40 @@ def ensure_remote_client_tokens(remote_client_dir: Path = REMOTE_CLIENT_DIR) -> 
         lines = example_path.read_text(encoding="utf-8").splitlines()
 
     values = _parse_env_lines(lines)
-    values["JARVIS_WEB_TOKEN"] = values.get("JARVIS_WEB_TOKEN") or secrets.token_urlsafe(24)
-    values["JARVIS_REMOTE_AUDIO_TOKEN"] = (
-        values.get("JARVIS_REMOTE_AUDIO_TOKEN") or secrets.token_urlsafe(24)
+    values["CYRAEN_WEB_TOKEN"] = values.get("CYRAEN_WEB_TOKEN") or secrets.token_urlsafe(24)
+    values["CYRAEN_REMOTE_AUDIO_TOKEN"] = (
+        values.get("CYRAEN_REMOTE_AUDIO_TOKEN") or secrets.token_urlsafe(24)
     )
-    values.setdefault("JARVIS_SERVER_HOST", "")
-    values.setdefault("JARVIS_REMOTE_AUDIO_PORT", "8771")
-    values.setdefault("JARVIS_WEB_PORT", "8770")
-    values.setdefault("JARVIS_CLIENT_OPEN_BROWSER", "true")
+    values.setdefault("CYRAEN_SERVER_HOST", "")
+    values.setdefault("CYRAEN_REMOTE_AUDIO_PORT", "8771")
+    values.setdefault("CYRAEN_WEB_PORT", "8770")
+    values.setdefault("CYRAEN_CLIENT_OPEN_BROWSER", "true")
 
     remote_client_dir.mkdir(parents=True, exist_ok=True)
     out_lines = [f"{k}={values[k]}" for k in _REMOTE_CLIENT_ENV_ORDER]
     env_path.write_text("\n".join(out_lines) + "\n", encoding="utf-8")
     print(f"[export] {env_path} guncellendi (mevcut tokenlar korunur, eksikler uretilir).")
-    return values["JARVIS_WEB_TOKEN"], values["JARVIS_REMOTE_AUDIO_TOKEN"]
+    return values["CYRAEN_WEB_TOKEN"], values["CYRAEN_REMOTE_AUDIO_TOKEN"]
 
 
 def build_lab_env_text(web_token: str, audio_token: str, env_path: Path = ROOT / ".env") -> str:
-    """Mevcut `jarvis-brain/.env` icerigine uzak-sunucu satirlarini ekler.
+    """Mevcut `cyraen-brain/.env` icerigine uzak-sunucu satirlarini ekler.
 
     Ayni isimli bir satir zaten varsa dotenv'in "son satir kazanir" davranisiyla
     buradaki deger gecerli olur (bilincli - lab konfigurasyonu her zaman ustun)."""
     base = env_path.read_text(encoding="utf-8") if env_path.is_file() else ""
     if not base.strip():
         print(
-            "[export] UYARI: jarvis-brain/.env bulunamadi/bos - GEMINI_API_KEY vb. "
+            "[export] UYARI: cyraen-brain/.env bulunamadi/bos - GEMINI_API_KEY vb. "
             "paketteki .env.for-lab'a elle eklenmeli."
         )
     extra = f"""
 # --- scripts/export_lab_package.py tarafindan otomatik eklendi ({datetime.now():%Y-%m-%d %H:%M}) ---
-JARVIS_AUDIO_MODE=network
-JARVIS_WEB_TOKEN={web_token}
-JARVIS_WEB_BIND=0.0.0.0
-JARVIS_REMOTE_AUDIO_TOKEN={audio_token}
-JARVIS_OBSIDIAN_VAULT=C:\\JARVIS\\Hafiza
+CYRAEN_AUDIO_MODE=network
+CYRAEN_WEB_TOKEN={web_token}
+CYRAEN_WEB_BIND=0.0.0.0
+CYRAEN_REMOTE_AUDIO_TOKEN={audio_token}
+CYRAEN_OBSIDIAN_VAULT=C:\\CYRAEN\\Hafiza
 """
     return base.rstrip("\n") + "\n" + extra
 
@@ -137,19 +137,19 @@ def _readme_text(vault_dir: Path | None, include_whatsapp_session: bool) -> str:
         if include_whatsapp_session
         else "HARIC tutuldu (varsayilan; WhatsApp entegrasyonu genelde kapali)"
     )
-    return f"""JARVIS LAB PAKETI - {datetime.now():%Y-%m-%d %H:%M}
+    return f"""CYRAEN LAB PAKETI - {datetime.now():%Y-%m-%d %H:%M}
 
 >>> Adim adim, resimli/basit anlatim icin once "1-BURADAN-BASLA.txt" dosyasini
     ac. Bu dosya (README.txt) teknik/kisa ozet, tercih ettigini kullan. <<<
 
-Bu zip'i lab bilgisayarinda TAM OLARAK "C:\\JARVIS\\" altina cikartin (asagidaki
-.env.for-lab icindeki JARVIS_OBSIDIAN_VAULT bu yolu varsayiyor):
+Bu zip'i lab bilgisayarinda TAM OLARAK "C:\\CYRAEN\\" altina cikartin (asagidaki
+.env.for-lab icindeki CYRAEN_OBSIDIAN_VAULT bu yolu varsayiyor):
 
-    C:\\JARVIS\\jarvis-brain\\   <- kod + data/
-    C:\\JARVIS\\Hafiza\\         <- Obsidian kasasi ("{vault_line}")
+    C:\\CYRAEN\\cyraen-brain\\   <- kod + data/
+    C:\\CYRAEN\\Hafiza\\         <- Obsidian kasasi ("{vault_line}")
 
 Sonra (lab bilgisayarinda, PowerShell/CMD):
-    cd C:\\JARVIS\\jarvis-brain
+    cd C:\\CYRAEN\\cyraen-brain
     python -m venv .venv
     .venv\\Scripts\\activate
     pip install -r requirements.txt
@@ -157,17 +157,17 @@ Sonra (lab bilgisayarinda, PowerShell/CMD):
     python run_server.py
 
 Detayli adimlar (Tailscale, guvenlik duvari, Task Scheduler, dogrulama listesi):
-    jarvis-brain\\docs\\remote_setup.md
+    cyraen-brain\\docs\\remote_setup.md
 
 ICERIK:
-  - jarvis-brain/            : tum kod + data/ (GBrain, hatirlaticilar, okul durumu,
+  - cyraen-brain/            : tum kod + data/ (GBrain, hatirlaticilar, okul durumu,
                                  konusma gunlukleri, config/whatsapp.json).
                                  data/whatsapp_session/ {wa_note}.
-  - jarvis-brain/.env.for-lab : mevcut .env + uzak-sunucu ayarlari. Tokenlar BU
+  - cyraen-brain/.env.for-lab : mevcut .env + uzak-sunucu ayarlari. Tokenlar BU
                                  makinedeki remote_client/.env ile ONCEDEN eslesir -
-                                 ev tarafinda sadece JARVIS_SERVER_HOST'u doldurman yeterli
+                                 ev tarafinda sadece CYRAEN_SERVER_HOST'u doldurman yeterli
                                  (Tailscale kurulduktan sonra lab'in MagicDNS adi).
-  - JARVIS-Hafiza-Vault/     : Obsidian kasasinin tam kopyasi.
+  - CYRAEN-Hafiza-Vault/     : Obsidian kasasinin tam kopyasi.
 
 GUVENLIK: Bu zip GIZLI ANAHTARLAR icerir (GEMINI_API_KEY, web/ses tokenlari, varsa
 e-posta uygulama sifresi, ADB kilit PIN'i). USB'yi baskasiyla paylasmayin; aktarim
@@ -195,15 +195,15 @@ def build_package(out_path: Path, *, include_whatsapp_session: bool) -> Path:
         for path, rel in _iter_code_files(ROOT, include_whatsapp_session=include_whatsapp_session):
             if rel == env_rel:
                 continue  # gercek .env yerine asagidaki .env.for-lab eklenir
-            zf.write(path, arcname=str(Path("jarvis-brain") / rel))
-        zf.writestr("jarvis-brain/.env.for-lab", lab_env_text)
+            zf.write(path, arcname=str(Path("cyraen-brain") / rel))
+        zf.writestr("cyraen-brain/.env.for-lab", lab_env_text)
 
         if vault_dir and vault_dir.is_dir():
             for path in sorted(vault_dir.rglob("*")):
                 if path.is_dir():
                     continue
                 rel = path.relative_to(vault_dir)
-                zf.write(path, arcname=str(Path("JARVIS-Hafiza-Vault") / rel))
+                zf.write(path, arcname=str(Path("CYRAEN-Hafiza-Vault") / rel))
         else:
             print("[export] UYARI: Obsidian kasasi bulunamadi/tanimsiz, pakete eklenmedi.")
 
@@ -227,7 +227,7 @@ def main() -> None:
     args = parser.parse_args()
 
     out_path = args.out or (
-        PROJECT_ROOT / f"jarvis-lab-package-{datetime.now():%Y%m%d-%H%M}.zip"
+        PROJECT_ROOT / f"cyraen-lab-package-{datetime.now():%Y%m%d-%H%M}.zip"
     )
 
     result = build_package(out_path, include_whatsapp_session=args.include_whatsapp_session)

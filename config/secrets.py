@@ -5,7 +5,9 @@ sessizce `None`/`False` doner ve cagiran taraf `.env` yedegine duser.
 """
 from __future__ import annotations
 
-_SERVICE = "jarvis-brain"
+_SERVICE = "cyraen-brain"
+# Ad degisikliginden once kaydedilen sirlar bu servis adinda durur (okuma yedegi)
+_LEGACY_SERVICE = "jarvis-brain"
 
 
 def _kr():
@@ -22,7 +24,7 @@ def get_secret(name: str) -> str | None:
     if kr is None:
         return None
     try:
-        return kr.get_password(_SERVICE, name) or None
+        return kr.get_password(_SERVICE, name) or kr.get_password(_LEGACY_SERVICE, name) or None
     except Exception:  # noqa: BLE001
         return None
 

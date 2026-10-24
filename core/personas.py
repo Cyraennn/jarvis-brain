@@ -1,4 +1,4 @@
-"""Canli beynin kisilik modlari: JARVIS / FRIDAY / ULTRON.
+"""Canli beynin kisilik modlari: CYRAEN / FRIDAY / ULTRON.
 
 Uc mod da ayni Gemini Live oturumunu kullanir; degisen yalnizca sistem promptunun
 kimlik bolumu (prompts/personas/<key>.md), Gemini hazir sesi ve istege bagli ses
@@ -18,7 +18,9 @@ from typing import Any
 
 from loguru import logger
 
-DEFAULT_KEY = "jarvis"
+DEFAULT_KEY = "cyraen"
+# Ad degisikligi oncesi kayitli anahtarlar (data/persona.json, eski istemciler)
+_LEGACY_KEYS = {"jarvis": "cyraen"}
 _STATE_FILE = "persona.json"
 
 
@@ -33,7 +35,7 @@ class PersonaMode:
 
 # (anahtar, ad, renk) - HUD'daki cip sirasi
 CHIPS: tuple[tuple[str, str, str], ...] = (
-    ("jarvis", "JARVIS", "#3da9fc"),
+    ("cyraen", "CYRAEN", "#3da9fc"),
     ("friday", "FRIDAY", "#2ee59d"),
     ("ultron", "ULTRON", "#ff3b3b"),
 )
@@ -41,7 +43,7 @@ CHIPS: tuple[tuple[str, str, str], ...] = (
 
 def modes(settings: Any) -> dict[str, PersonaMode]:
     voices = {
-        "jarvis": getattr(settings, "voice_name", "Puck"),
+        "cyraen": getattr(settings, "voice_name", "Puck"),
         "friday": getattr(settings, "friday_voice", "Kore"),
         "ultron": getattr(settings, "ultron_voice", "Charon"),
     }
@@ -54,7 +56,8 @@ def modes(settings: Any) -> dict[str, PersonaMode]:
 
 def get(settings: Any, key: str | None) -> PersonaMode:
     table = modes(settings)
-    return table.get((key or "").strip().lower(), table[DEFAULT_KEY])
+    k = (key or "").strip().lower()
+    return table.get(_LEGACY_KEYS.get(k, k), table[DEFAULT_KEY])
 
 
 def _state_path(settings: Any) -> Path:

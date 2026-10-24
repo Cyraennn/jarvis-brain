@@ -236,7 +236,7 @@ def classify_rules(mails: list[Mail], replied: set[str], now: datetime | None = 
 
 
 _LLM_SYSTEM = (
-    "Sen JARVIS'in e-posta temizlik modulusun. Kullanici Sezai, bir universite ogrencisi "
+    "Sen CYRAEN'in e-posta temizlik modulusun. Kullanici Sezai, bir universite ogrencisi "
     "(BOTE). Her mail icin karar ver: 'sil' = reklam, bulten, kampanya, eski/degersiz otomatik "
     "bildirim, sosyal medya bildirimi, spam benzeri. 'tut' = kisisel yazisma, okul/hoca, is/staj, "
     "hesap/guvenlik, para/fatura/siparis, resmi kurum, ileride lazim olabilecek her sey. "

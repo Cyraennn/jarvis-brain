@@ -1,4 +1,4 @@
-"""JARVIS Conductor - ust duzey komuta/orkestrasyon ajani.
+"""CYRAEN Conductor - ust duzey komuta/orkestrasyon ajani.
 
 Karmasik bir gorevi analiz eder, 6 kisisel asistan departmanindan (okul, iletisim,
 sistem, telefon, bilgi, gunluk) birine ve o departmandaki bir alt ajana delege eder. (Sesli beyin ile ayni Gemini altyapisi; Ollama'ya `backends`
@@ -20,7 +20,7 @@ from agents.genai_util import generate_with_retry
 from agents.schemas import AgentSpec, Department, RoutingDecision, parse_department
 
 _SYSTEM = (
-    "Sen JARVIS'sin - Sezai'nin (DEU BOTE ogrencisi) kisisel asistaninin orkestratoru. "
+    "Sen CYRAEN'sin - Sezai'nin (DEU BOTE ogrencisi) kisisel asistaninin orkestratoru. "
     "Verilen gorevi analiz eder ve "
     "asagidaki departman/alt-ajan kataloguna gore EN UYGUN tek alt ajana delege "
     "edersin. Yalnizca su JSON'u dondur:\n"

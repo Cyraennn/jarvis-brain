@@ -5,7 +5,7 @@ Ilkeler:
 - Onbellek/gecici klasorler (yeniden olusur) dogrudan silinir; kilitli dosyalar atlanir.
 - Kullanici dosyalari (Indirilenler/Masaustu'ndeki buyuk kurulum/arsiv dosyalari) Geri Donusum
   Kutusu'na TASINIR (geri alinabilir). Her calisma `data/maintenance/<tarih>.csv` manifesti yazar.
-- Korumali yollar (Windows, Program Files, JARVIS projesi, Obsidian kasalari) asla aday olmaz.
+- Korumali yollar (Windows, Program Files, CYRAEN projesi, Obsidian kasalari) asla aday olmaz.
 - Onay kapisi ToolRunner'dadir; bu modul onay istemez.
 """
 

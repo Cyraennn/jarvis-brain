@@ -14,10 +14,10 @@ from ui.hud.boot import BootOverlay
 @pytest.mark.parametrize(
     ("title", "event"),
     [
-        ("jarvis:ready:1", "ready"),
-        ("jarvis:done:7", "done"),
-        ("jarvis:error:2", "error"),
-        ("JARVIS", ""),
+        ("cyraen:ready:1", "ready"),
+        ("cyraen:done:7", "done"),
+        ("cyraen:error:2", "error"),
+        ("CYRAEN", ""),
         ("", ""),
         ("baska:done:1", ""),
     ],

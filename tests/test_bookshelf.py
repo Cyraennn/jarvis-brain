@@ -373,7 +373,7 @@ def test_calibre_sync_imports_and_dedupes(store, tmp_path, monkeypatch):
 
     lib = tmp_path / "Calibre Library"
     _fake_calibre(lib)
-    monkeypatch.setenv("JARVIS_CALIBRE_LIBRARY", str(lib))
+    monkeypatch.setenv("CYRAEN_CALIBRE_LIBRARY", str(lib))
     store.add("Dune")  # fiziksel kitap zaten kayitli
     out = cl.sync(store)
     assert out["toplam"] == 2 and out["eklenen"] == 1
@@ -392,7 +392,7 @@ def test_calibre_sync_imports_and_dedupes(store, tmp_path, monkeypatch):
 def test_calibre_missing_library(store, monkeypatch, tmp_path):
     from tools import calibre_library as cl
 
-    monkeypatch.setenv("JARVIS_CALIBRE_LIBRARY", str(tmp_path / "yok"))
+    monkeypatch.setenv("CYRAEN_CALIBRE_LIBRARY", str(tmp_path / "yok"))
     monkeypatch.setattr(cl, "find_library", lambda: None)
     assert "error" in cl.sync(store)
 

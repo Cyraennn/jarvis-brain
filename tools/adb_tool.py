@@ -120,7 +120,7 @@ class ADBController:
         if binary is None:
             raise ADBError(
                 f"'{self.adb_path}' bulunamadi. Android Platform-Tools kurun ve "
-                f"PATH'e ekleyin ya da .env'de JARVIS_ADB_PATH ile tam yolu verin."
+                f"PATH'e ekleyin ya da .env'de CYRAEN_ADB_PATH ile tam yolu verin."
             )
 
         cmd = [binary]
@@ -183,7 +183,7 @@ class ADBController:
         if not await self.available():
             logger.warning(
                 "ADB bulunamadi - Android cihaz kontrolu devre disi. "
-                "Platform-Tools kurup PATH'e ekleyin veya JARVIS_ADB_PATH ayarlayin."
+                "Platform-Tools kurup PATH'e ekleyin veya CYRAEN_ADB_PATH ayarlayin."
             )
             return {"enabled": True, "available": False}
 
@@ -423,7 +423,7 @@ class ADBController:
         if not await self.available():
             return {
                 "error": "ADB kullanilamiyor. Android Platform-Tools kurulu ve "
-                "PATH'te (veya JARVIS_ADB_PATH ile tanimli) olmali."
+                "PATH'te (veya CYRAEN_ADB_PATH ile tanimli) olmali."
             }
         try:
             targets = await self._target_devices(device_id)
@@ -474,7 +474,7 @@ class ADBController:
         """Cihaz(lar)in ekranini uyandirir, kilit ekranini kaydirir ve (varsa) PIN girer.
 
         `device_id=None` => bagli TUM cihazlar.
-        `pin` verilmezse `self.unlock_pin` (ayar: JARVIS_ADB_UNLOCK_PIN) kullanilir.
+        `pin` verilmezse `self.unlock_pin` (ayar: CYRAEN_ADB_UNLOCK_PIN) kullanilir.
         PIN yoksa yalnizca uyandirma + kaydirma yapilir (guvensiz kilitler acilir).
         """
         if not await self.available():
@@ -519,7 +519,7 @@ class ADBController:
         note = (
             "Kayitli PIN girildi." if use_pin else
             "PIN/desen korumasi varsa ekran acilir ama kilit tam acilmaz "
-            "(PIN kaydetmek icin: JARVIS'e 'telefon sifresini kaydet <PIN>' de)."
+            "(PIN kaydetmek icin: CYRAEN'e 'telefon sifresini kaydet <PIN>' de)."
         )
         return {
             "action": "unlock_device",
@@ -633,7 +633,7 @@ def get_adb_controller(settings: Settings | None = None) -> ADBController:
     return _controller
 
 
-_ENV_PIN_KEY = "JARVIS_ADB_UNLOCK_PIN"
+_ENV_PIN_KEY = "CYRAEN_ADB_UNLOCK_PIN"
 
 
 def _persist_unlock_pin(pin: str) -> dict[str, Any]:
@@ -752,13 +752,13 @@ async def adb_unlock_device(
 ) -> dict[str, Any]:
     """Belirtilen cihazin (veya None ise bagli TUM cihazlarin) ekranini acar.
 
-    `pin` verilmezse kayitli PIN (JARVIS_ADB_UNLOCK_PIN) kullanilir.
+    `pin` verilmezse kayitli PIN (CYRAEN_ADB_UNLOCK_PIN) kullanilir.
     """
     return await get_adb_controller().unlock_device(device_id or None, pin or None)
 
 
 async def adb_set_unlock_pin(pin: str) -> dict[str, Any]:
-    """Telefon ekran kilidi PIN'ini kalici olarak kaydeder (jarvis-brain/.env).
+    """Telefon ekran kilidi PIN'ini kalici olarak kaydeder (cyraen-brain/.env).
 
     Sonraki acilislarda da gecerli olur; `adb_unlock_device` bu PIN'i otomatik girer.
     """

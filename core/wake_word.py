@@ -1,7 +1,7 @@
-"""Uyandirma kelimesi ("Hey JARVIS") - cevrimdisi openWakeWord + uyku/uyaniklik kapisi.
+"""Uyandirma kelimesi ("Hey CYRAEN") - cevrimdisi openWakeWord + uyku/uyaniklik kapisi.
 
 Kapi etkinken mikrofon sesi UYKUDA Gemini Live'a GONDERILMEZ; yalnizca yerel detektore verilir.
-"Hey JARVIS" duyulunca `wake_window_s` saniye boyunca ses normal akar; kullanici konustukca,
+"Hey CYRAEN" duyulunca `wake_window_s` saniye boyunca ses normal akar; kullanici konustukca,
 model konustukca veya arac calistikca pencere uzar. Sessizlikte tekrar uykuya gecer.
 
 openwakeword kurulu degilse / model yuklenemezse detektor `available=False` olur ve motor

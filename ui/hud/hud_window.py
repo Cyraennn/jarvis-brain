@@ -1,12 +1,12 @@
-"""JARVIS "Komuta" HUD penceresi.
+"""CYRAEN "Komuta" HUD penceresi.
 
 Davranis (motor/orkestrator sinyalleri, onay diyaloglari, tepsi, capture-exclusion, dis
 yazmada kenara cekilme...) `MainWindow`'dan aynen miras alinir; burada yalnizca yerlesim
 degisir. `MainWindow` handler'larinin kullandigi oznitelikler (`_graph`, `_log`, `_mic_btn`,
 `_left_sidebar`, `_sb_*`...) ayni adlarla uretilir.
 
-    ┌ ◎ JARVIS Komuta · ● BAĞLI ─────────────── [ODAK][MİK][KAM][EKRAN]… ┐
-    │ ŞİMDİ      │  ┌ JARVIS Komuta ────────────┐  │ CANLI GÖRÜŞ        │
+    ┌ ◎ CYRAEN Komuta · ● BAĞLI ─────────────── [ODAK][MİK][KAM][EKRAN]… ┐
+    │ ŞİMDİ      │  ┌ CYRAEN Komuta ────────────┐  │ CANLI GÖRÜŞ        │
     │ OKUL       │  │  ajan rozet halkasi        │  │ GÖREVLER           │
     │ SİSTEM     │  │  departman halkasi         │  │ HIZLI KOMUTLAR     │
     │ AJANLAR    │  │  parcacik cekirdegi        │  │ RUTİNLER           │
@@ -56,7 +56,7 @@ from ui.widgets.webcam_view import WebcamView
 LEFT_W = 272
 RIGHT_W = 300
 TAG_MIN_W = 1280
-GREETING = theme.BRANDING["jarvis"]["greeting"]   # kisilige gore: theme.branding()["greeting"]
+GREETING = theme.BRANDING["cyraen"]["greeting"]   # kisilige gore: theme.branding()["greeting"]
 THINK_TIMEOUT_MS = 20000   # arac sonucu hic gelmezse orb "dusunme"den ciksin
 
 
@@ -192,7 +192,7 @@ class HudWindow(MainWindow):
         self._mic_btn.setChecked(True)
         self._mic_btn.toggled.connect(self._on_mic_toggled)
         # Uyandirma kelimesi MIK'in acilir menusunde: ayri chip 1024 px genislige sigmiyor
-        self._wake_btn = QAction("Uyandırma kelimesi — yalnızca 'Hey JARVIS' deyince dinle", self)
+        self._wake_btn = QAction(f"Uyandırma kelimesi — yalnızca '{self._settings.wake_phrase}' deyince dinle", self)
         self._wake_btn.setCheckable(True)
         self._wake_btn.setChecked(self._settings.wake_word_enabled)
         self._wake_btn.toggled.connect(self._on_wake_toggled)

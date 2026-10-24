@@ -75,7 +75,7 @@ class EmailClient:
         imap_host: str = "",
         smtp_host: str = "",
         smtp_port: int = 0,
-        sender_name: str = "JARVIS",
+        sender_name: str = "CYRAEN",
     ) -> None:
         self.address = (address or "").strip()
         self.password = password or ""

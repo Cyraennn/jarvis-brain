@@ -40,7 +40,7 @@ def play(path: str | Path, block: bool = False) -> None:
     if block:
         _play_blocking(p)
     else:
-        threading.Thread(target=_play_blocking, args=(p,), daemon=True, name="jarvis-sound").start()
+        threading.Thread(target=_play_blocking, args=(p,), daemon=True, name="cyraen-sound").start()
 
 
 def play_chime() -> None:
@@ -54,7 +54,7 @@ def play_chime() -> None:
         except Exception as exc:  # noqa: BLE001 - ses yoksa sessiz gec
             logger.debug(f"Uyandirma sesi calinamadi: {exc}")
 
-    threading.Thread(target=_beep, daemon=True, name="jarvis-chime").start()
+    threading.Thread(target=_beep, daemon=True, name="cyraen-chime").start()
 
 
 def play_startup(settings) -> None:  # noqa: ANN001

@@ -1,4 +1,4 @@
-"""Dogrulama betigi: JARVIS (Conductor) -> SISTEM departmani -> Markdown Denetcisi.
+"""Dogrulama betigi: CYRAEN (Conductor) -> SISTEM departmani -> Markdown Denetcisi.
 
 Calistir:  python scripts/test_delegation.py
 

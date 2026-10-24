@@ -33,7 +33,7 @@ class Ntfy:
             logger.info(line)
             return
         headers = {
-            "Title": title.encode("utf-8", "ignore").decode("latin-1", "ignore") or "JARVIS",
+            "Title": title.encode("utf-8", "ignore").decode("latin-1", "ignore") or "CYRAEN",
             "Priority": str(priority),
         }
         if tags:

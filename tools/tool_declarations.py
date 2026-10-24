@@ -19,7 +19,7 @@ def _obj(properties: dict[str, types.Schema], required: list[str] | None = None)
 
 
 def build_declarations(disabled: "set[str] | frozenset[str] | None" = None) -> list[types.FunctionDeclaration]:
-    """Modele verilecek araclar. `disabled`: kapatilan grup adlari (bkz. TOOL_GROUPS, env JARVIS_TOOLS_OFF)."""
+    """Modele verilecek araclar. `disabled`: kapatilan grup adlari (bkz. TOOL_GROUPS, env CYRAEN_TOOLS_OFF)."""
     off = set(disabled or ())
     return [*_core_declarations(), *(d for g, fn in TOOL_GROUPS.items() if g not in off for d in fn())]
 
@@ -75,7 +75,7 @@ def _core_declarations() -> list[types.FunctionDeclaration]:
             name="remember_note",
             description=(
                 "Kalici hafizaya zaman damgali bir not ekler. Obsidian vault "
-                "tanimliysa not <vault>/JARVIS/Notlar/ altina da yazilir."
+                "tanimliysa not <vault>/CYRAEN/Notlar/ altina da yazilir."
             ),
             parameters=_obj(
                 {"content": types.Schema(type=_STR, description="Hatirlanacak not metni")},
@@ -90,7 +90,7 @@ def _core_declarations() -> list[types.FunctionDeclaration]:
             name="dispatch_to_agent",
             description=(
                 "Bir gorevi FounderOS cok-ajanli sistemine (6 departman, 37 ajan) "
-                "iletir. `agent` verilmezse ('auto') JARVIS Conductor gorevi analiz "
+                "iletir. `agent` verilmezse ('auto') CYRAEN Conductor gorevi analiz "
                 "edip en uygun departman + alt ajana delege eder. Departmanlar: TECH "
                 "(kod/markdown/sistem/API), COMMUNICATIONS (mesaj/e-posta/duyuru), "
                 "SALES (musteri bulma/teklif), FINANCES (gelir/gider/fatura), CLIENTS "
@@ -391,8 +391,8 @@ def _core_declarations() -> list[types.FunctionDeclaration]:
         types.FunctionDeclaration(
             name="exit_application",
             description=(
-                "JARVIS uygulamasinin kendisini tamamen kapatir. Kullanici "
-                "'kendini kapat', 'JARVIS'i kapat', 'programdan cik' dediginde "
+                "CYRAEN uygulamasinin kendisini tamamen kapatir. Kullanici "
+                "'kendini kapat', 'CYRAEN'i kapat', 'programdan cik' dediginde "
                 "kullan. Kullanicinin onayina tabidir."
             ),
         ),
@@ -424,12 +424,12 @@ def _core_declarations() -> list[types.FunctionDeclaration]:
 
 def _panel_declarations() -> list[types.FunctionDeclaration]:
     """Icerik paneli: video, Wikipedia, belge, site, Spotify, haber, grafik, hava ve bilgi karti
-    JARVIS arayuzunun ICINDE acilir."""
+    CYRAEN arayuzunun ICINDE acilir."""
     n = types.FunctionDeclaration
     return [
         n(name="show_video",
           description=(
-              "Bir YouTube videosunu JARVIS arayuzunun icindeki panelde oynatir. Kullanici '... videosunu ac', "
+              "Bir YouTube videosunu CYRAEN arayuzunun icindeki panelde oynatir. Kullanici '... videosunu ac', "
               "'... fragmanini goster', 'su YouTube linkini ac' dediginde kullan. Videoyu arac kendisi arar ve "
               "dogrular; video kimligi ya da link UYDURMA. Hata donerse video acilmamistir."
           ),
@@ -438,7 +438,7 @@ def _panel_declarations() -> list[types.FunctionDeclaration]:
               ["query"])),
         n(name="show_wikipedia",
           description=(
-              "Bir kisi, yer, kurum ya da kavramin Wikipedia sayfasini JARVIS arayuzunun icindeki panelde acar "
+              "Bir kisi, yer, kurum ya da kavramin Wikipedia sayfasini CYRAEN arayuzunun icindeki panelde acar "
               "ve gercek ozetini dondurur. '... kimdir', '... nedir', 'Wikipedia'da ac' gibi isteklerde kullan. "
               "Konu hakkinda YALNIZCA donen 'summary' metnindekileri soyle."
           ),
@@ -446,7 +446,7 @@ def _panel_declarations() -> list[types.FunctionDeclaration]:
                           ["title"])),
         n(name="show_document",
           description=(
-              "Bilgisayardaki bir belgeyi (PDF, .txt, .md) JARVIS arayuzunun icindeki panelde acar. 'CV'mi ac', "
+              "Bilgisayardaki bir belgeyi (PDF, .txt, .md) CYRAEN arayuzunun icindeki panelde acar. 'CV'mi ac', "
               "'kira sozlesmesini goster', 'su PDF'i ac' gibi isteklerde kullan. Dosya adiyla arar; birden fazla "
               "belge uyarsa 'matches' listesi doner ve panel ACILMAZ: adlarini sayip sor, sonra secilenin "
               "'path' degeriyle yeniden cagir. Dosya yolu UYDURMA."
@@ -456,7 +456,7 @@ def _panel_declarations() -> list[types.FunctionDeclaration]:
               ["query"])),
         n(name="show_website",
           description=(
-              "Bir web sitesini JARVIS arayuzunun icindeki panelde acar (ayri tarayici penceresi ACMAZ). "
+              "Bir web sitesini CYRAEN arayuzunun icindeki panelde acar (ayri tarayici penceresi ACMAZ). "
               "Tam URL, alan adi ('github.com'), kisayol ('gmail') veya arama sorgusu kabul eder. Kullanici "
               "acikca 'tarayicida ac' demedikce site acmak icin open_website yerine bunu kullan. Bilgi, haber, "
               "fiyat ya da hava sormak icin arama sayfasi ACMA: show_news / show_market / show_weather / show_info."
@@ -465,13 +465,13 @@ def _panel_declarations() -> list[types.FunctionDeclaration]:
                           ["target"])),
         n(name="show_spotify",
           description=(
-              "Spotify 'su an caliyor' kartini JARVIS arayuzunun icinde gosterir (kapak, sarki, onceki/duraklat/"
+              "Spotify 'su an caliyor' kartini CYRAEN arayuzunun icinde gosterir (kapak, sarki, onceki/duraklat/"
               "sonraki). 'Spotify'i goster', 'ne caliyor goster' gibi isteklerde kullan. spotify_play zaten "
               "karti kendiliginden acar."
           )),
         n(name="show_news",
           description=(
-              "Guncel haber basliklarini JARVIS arayuzunun icindeki panelde gosterir ve basliklari dondurur. "
+              "Guncel haber basliklarini CYRAEN arayuzunun icindeki panelde gosterir ve basliklari dondurur. "
               "'Haberleri goster', 'gundemde ne var', 'ekonomi / spor / teknoloji haberleri' gibi isteklerde "
               "kullan; arama sayfasi ACMA. Paneli acinca donen basliklardan 3-4 tanesini kisaca anlat; "
               "basliklarda olmayan ayrinti UYDURMA."
@@ -480,7 +480,7 @@ def _panel_declarations() -> list[types.FunctionDeclaration]:
               type=_STR, description="Konu (orn. 'ekonomi', 'Fenerbahce', 'yapay zeka'); gundem icin bos birak")})),
         n(name="show_market",
           description=(
-              "Borsa endeksi, hisse, doviz, altin ya da kripto fiyat GRAFIGINI JARVIS arayuzunun icindeki "
+              "Borsa endeksi, hisse, doviz, altin ya da kripto fiyat GRAFIGINI CYRAEN arayuzunun icindeki "
               "panelde gosterir ve rakamlari dondurur. 'Borsayi goster', 'dolar ne durumda', 'THY hissesi', "
               "'bitcoin grafigi' gibi isteklerde kullan. Sembolu arac kendisi bulur; sembol ya da fiyat "
               "UYDURMA. Paneli acinca fiyati, donem degisimini ve en yuksek/dusugu kisaca anlat."
@@ -491,14 +491,14 @@ def _panel_declarations() -> list[types.FunctionDeclaration]:
           }, ["query"])),
         n(name="show_weather",
           description=(
-              "Hava durumunu (simdi + 3 gunluk tahmin) JARVIS arayuzunun icindeki panelde gosterir ve veriyi "
+              "Hava durumunu (simdi + 3 gunluk tahmin) CYRAEN arayuzunun icindeki panelde gosterir ve veriyi "
               "dondurur. 'Hava nasil', 'yarin yagmur var mi', '... havasi' gibi isteklerde get_weather yerine "
               "bunu kullan ve kisaca anlat."
           ),
           parameters=_obj({"location": types.Schema(type=_STR, description="Sehir; bos birakilirsa kullanicinin sehri")})),
         n(name="show_map",
           description=(
-              "Izmir'in 3B haritasini JARVIS arayuzunun icindeki panelde ve telefon uygulamasinda acar; bir yer verilirse kamera oraya "
+              "Izmir'in 3B haritasini CYRAEN arayuzunun icindeki panelde ve telefon uygulamasinda acar; bir yer verilirse kamera oraya "
               "('telefonumda haritayi ac' icin de bunu kullan, adb degil) "
               "suzulur. 'Izmir haritasini ac', 'Alsancak'i goster', 'Kordon'a git', 'haritada Bornova' gibi "
               "isteklerde kullan. Panel aciksa yeniden cagirmak yalnizca kamerayi tasir. Yeri arac kendisi "
@@ -508,7 +508,7 @@ def _panel_declarations() -> list[types.FunctionDeclaration]:
               type=_STR, description="Izmir'de semt, mahalle, cadde ya da yer adi (orn. 'Alsancak', 'Saat Kulesi'); tum sehir icin bos")})),
         n(name="show_route",
           description=(
-              "Izmir'de iki yer arasindaki rotayi JARVIS'in 3B haritasinda cizer, kamerayi rotaya yaklastirir "
+              "Izmir'de iki yer arasindaki rotayi CYRAEN'in 3B haritasinda cizer, kamerayi rotaya yaklastirir "
               "('buradan', 'bulundugum yerden' denirse origin='konumum': telefonun GPS'i kullanilir) "
               "ve mesafe/sureyi dondurur. 'Buca'dan Alsancak'a rota', 'Konak'tan Kordon'a yurume yolu', "
               "'haritada ... yolunu goster' gibi isteklerde kullan. Toplu tasima (otobus, metro, ESHOT) "
@@ -531,7 +531,7 @@ def _panel_declarations() -> list[types.FunctionDeclaration]:
               ["action"])),
         n(name="show_info",
           description=(
-              "Kendi hazirladigin yazili icerigi JARVIS arayuzunun icindeki panelde gosterir: tarif, adim "
+              "Kendi hazirladigin yazili icerigi CYRAEN arayuzunun icindeki panelde gosterir: tarif, adim "
               "listesi, karsilastirma tablosu, ders/arastirma ozeti, plan. Kullanici bir seyi 'goster', "
               "'yaz', 'listele', 'tablo yap' dediginde ya da cevap ekranda gorulunce daha anlasilir "
               "olacaksa kullan; arama sayfasi ACMA. Govde sade Markdown: '## baslik', '- madde', "
@@ -544,7 +544,7 @@ def _panel_declarations() -> list[types.FunctionDeclaration]:
           }, ["title", "body"])),
         n(name="close_panel",
           description=(
-              "JARVIS arayuzundeki icerik panelini (video, haber, grafik, harita, bilgi karti, belge, site, Spotify) kapatir. "
+              "CYRAEN arayuzundeki icerik panelini (video, haber, grafik, harita, bilgi karti, belge, site, Spotify) kapatir. "
               "'Kapat', 'videoyu kapat', 'paneli kapat' dediginde kullan."
           )),
     ]
@@ -568,7 +568,7 @@ def _mcp_browser_declarations() -> list[types.FunctionDeclaration]:
           parameters=_obj({"server": types.Schema(type=_STR),
                            "tool": types.Schema(type=_STR, description="mcp_list_tools'taki arac adi"),
                            "arguments_json": types.Schema(
-                               type=_STR, description='Parametreler JSON nesnesi olarak, orn. {"query": "jarvis"}')},
+                               type=_STR, description='Parametreler JSON nesnesi olarak, orn. {"query": "cyraen"}')},
                           ["server", "tool"])),
         n(name="browser_task",
           description="Bir web sitesinde cok adimli is yaptirir (siteye gir, ara, form doldur, bilgi bul, "
@@ -578,7 +578,7 @@ def _mcp_browser_declarations() -> list[types.FunctionDeclaration]:
                            "start_url": types.Schema(type=_STR, description="Opsiyonel baslangic adresi")},
                           ["goal"])),
         n(name="browser_open",
-          description="JARVIS'in kontrollu tarayicisinda (kalici giris profili) bir adres acar. "
+          description="CYRAEN'in kontrollu tarayicisinda (kalici giris profili) bir adres acar. "
                       "Kullanicinin kendi tarayicisinda acmak icin open_website kullan.",
           parameters=_obj({"url": types.Schema(type=_STR)}, ["url"])),
     ]
@@ -712,7 +712,7 @@ def _adb_declarations() -> list[types.FunctionDeclaration]:
           })),
         n(name="adb_set_unlock_pin",
           description=(
-              "Telefon ekran kilidi PIN'ini KALICI olarak kaydeder (jarvis-brain/.env, "
+              "Telefon ekran kilidi PIN'ini KALICI olarak kaydeder (cyraen-brain/.env, "
               "gizli dosya). Kullanici 'telefon sifresini kaydet 1234', 'PIN'im 1234' "
               "der veya 'telefonu ac dedigimde otomatik acilsin' isterse kullan. "
               "Kaydedildikten sonra adb_unlock_device PIN'i otomatik girer."
@@ -765,7 +765,7 @@ def _new_declarations() -> list[types.FunctionDeclaration]:
     return [
         # --- proaktif ---
         n(name="set_reminder",
-          description="Hatirlatici kurar. `when` dogal dil: '20 dakika sonra', 'yarin 09:00', '17:30', 'cuma 15:00'. Vadesinde JARVIS sesli soyler + telefon bildirimi.",
+          description="Hatirlatici kurar. `when` dogal dil: '20 dakika sonra', 'yarin 09:00', '17:30', 'cuma 15:00'. Vadesinde CYRAEN sesli soyler + telefon bildirimi.",
           parameters=_obj({"text": types.Schema(type=_STR, description="Hatirlatilacak sey"),
                            "when": types.Schema(type=_STR, description="Ne zaman (dogal dil)")},
                           ["text", "when"])),
@@ -778,14 +778,14 @@ def _new_declarations() -> list[types.FunctionDeclaration]:
               "Bir cumlede birden fazla zamanli istek varsa HER BIRI icin ayri cagri yap."),
           parameters=_obj({"task": types.Schema(type=_STR, description="Yapilacak is, ajana verilecek tam talimat"),
                            "when": types.Schema(type=_STR, description="Ne zaman. 24 saatlik HH:MM tercih et ('saat 3' ogleden sonra ise '15:00'); 'yarin 09:00', '30 dakika sonra' da olur"),
-                           "agent": types.Schema(type=_STR, description="Ajan kod adi (orn. arastirmaci); bos/auto = JARVIS secer"),
+                           "agent": types.Schema(type=_STR, description="Ajan kod adi (orn. arastirmaci); bos/auto = CYRAEN secer"),
                            "save_note": types.Schema(type=_BOOL, description="Sonuc notlara kaydedilsin mi (varsayilan true)")},
                           ["task", "when"])),
         n(name="list_reminders", description="Bekleyen hatirlatici ve zamanli gorevleri listeler."),
         n(name="cancel_reminder", description="Bir hatirlaticiyi iptal eder (id veya metin parcasi).",
           parameters=_obj({"id_or_text": types.Schema(type=_STR)}, ["id_or_text"])),
         n(name="add_routine",
-          description="Zamanlanmis rutin ekler. `schedule`: 'her gun 09:00', 'her saat', 'pazartesi 10:00'. Rutin tetiklendiginde `instruction` bir ajana verilir veya JARVIS'e komut olur.",
+          description="Zamanlanmis rutin ekler. `schedule`: 'her gun 09:00', 'her saat', 'pazartesi 10:00'. Rutin tetiklendiginde `instruction` bir ajana verilir veya CYRAEN'e komut olur.",
           parameters=_obj({"name": types.Schema(type=_STR), "schedule": types.Schema(type=_STR),
                            "instruction": types.Schema(type=_STR, description="Yapilacak is"),
                            "as_agent_task": types.Schema(type=_BOOL, description="Ajana gorev olarak ver (vars. true)")},
@@ -863,7 +863,7 @@ def _new_declarations() -> list[types.FunctionDeclaration]:
         n(name="record_screen", description="Ekrani belirtilen sure kaydeder (mp4).",
           parameters=_obj({"seconds": types.Schema(type=_NUM)}, ["seconds"])),
         # --- kod calistirma (onayli) ---
-        n(name="run_python", description="Python kodu calistirir (sandbox, timeout). ONAYA TABI. Kapaliysa .env JARVIS_CODE_EXEC=true gerekir.",
+        n(name="run_python", description="Python kodu calistirir (sandbox, timeout). ONAYA TABI. Kapaliysa .env CYRAEN_CODE_EXEC=true gerekir.",
           parameters=_obj({"code": types.Schema(type=_STR)}, ["code"])),
         n(name="run_shell", description="Kabuk komutu calistirir (PowerShell/Bash). ONAYA TABI.",
           parameters=_obj({"command": types.Schema(type=_STR)}, ["command"])),
@@ -1000,7 +1000,7 @@ def _transit_declarations() -> list[types.FunctionDeclaration]:
 
 
 def _phone_declarations() -> list[types.FunctionDeclaration]:
-    """Telefon uygulamasi (C:\\dev\\jarvis-android): eylemler web/phone_link.py kanaliyla telefona gider."""
+    """Telefon uygulamasi (C:\\dev\\cyraen-android): eylemler web/phone_link.py kanaliyla telefona gider."""
     n = types.FunctionDeclaration
     _who = types.Schema(type=_STR, description="Rehberdeki kisi adi ya da telefon numarasi (orn. 'Annem', '0532...')")
     return [
@@ -1038,7 +1038,7 @@ def _phone_declarations() -> list[types.FunctionDeclaration]:
         n(name="send_file_to_phone",
           description=(
               "PC'deki bir dosyayi kullanicinin telefonuna gonderir ('bu PDF'i telefonuma at'). Tam dosya yolu gerekir; "
-              "bilmiyorsan once find_files ile bul. Telefondan gelen dosyalar Downloads\\JARVIS klasorune duser."
+              "bilmiyorsan once find_files ile bul. Telefondan gelen dosyalar Downloads\\CYRAEN klasorune duser."
           ),
           parameters=_obj({"path": types.Schema(type=_STR, description="PC'deki dosyanin tam yolu")}, ["path"])),
     ]
@@ -1074,7 +1074,7 @@ def _kitaplik_declarations() -> list[types.FunctionDeclaration]:
           description="Kameradaki kitapligi tarar ve kitap sirtlarini haritalar ('kitapligimi tara'). "
                       "El Kontrolu kapaliysa acar."),
         n(name="kitaplik_ekle",
-          description="Kitapliga kitap ekler ('kitapligima Davranis'i ekle'). Kapak ve Jarvis'in sayfalari "
+          description="Kitapliga kitap ekler ('kitapligima Davranis'i ekle'). Kapak ve Cyraen'in sayfalari "
                       "arka planda dolar.",
           parameters=_obj({"ad": types.Schema(type=_STR), "yazar": types.Schema(type=_STR)}, ["ad"])),
         n(name="kitap_adlandir",
@@ -1093,7 +1093,7 @@ def _kitaplik_declarations() -> list[types.FunctionDeclaration]:
                            "durum": types.Schema(type=_STR, description="okunacak | okunuyor | bitti"),
                            "sayfa": types.Schema(type=_INT)})),
         n(name="kitap_defter_doldur",
-          description="Jarvis'in kitap defterini yazar (ozet, ana fikirler, yazar, temalar, neden okumali, "
+          description="Cyraen'in kitap defterini yazar (ozet, ana fikirler, yazar, temalar, neden okumali, "
                       "rafindan benzerler): 'Davranis'in sayfalarini doldur'.",
           parameters=_obj({"kitap": kitap, "yeniden": types.Schema(type=_BOOL, description="Var olani yeniden yaz")})),
         n(name="calibre_esitle",
@@ -1108,13 +1108,13 @@ def _kitaplik_declarations() -> list[types.FunctionDeclaration]:
           parameters=_obj({"kitap": kitap,
                            "format": types.Schema(type=_STR, description="EPUB | PDF | ... (istege bagli)")})),
         n(name="kitap_ozetle",
-          description="Kitabin Jarvis ozetini getirir; sonra kendi sesinle kisaca oku. 'Bunu ozetle' (acik kitap).",
+          description="Kitabin Cyraen ozetini getirir; sonra kendi sesinle kisaca oku. 'Bunu ozetle' (acik kitap).",
           parameters=_obj({"kitap": kitap})),
     ]
 
 
 # Kapatilabilir arac gruplari (cekirdek her zaman acik). Gemini Live araclari oturum basinda sabitlenir;
-# az kullanilan gruplari kapatmak modelin yanlis arac secmesini azaltir: .env -> JARVIS_TOOLS_OFF=adb,mcp_browser
+# az kullanilan gruplari kapatmak modelin yanlis arac secmesini azaltir: .env -> CYRAEN_TOOLS_OFF=adb,mcp_browser
 TOOL_GROUPS = {
     "new": _new_declarations,
     "adb": _adb_declarations,

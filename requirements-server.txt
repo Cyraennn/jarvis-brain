@@ -1,4 +1,4 @@
-# JARVIS SUNUCU (Linux VPS) bagimliliklari - Python 3.11+ (Ubuntu 24.04: 3.12)
+# CYRAEN SUNUCU (Linux VPS) bagimliliklari - Python 3.11+ (Ubuntu 24.04: 3.12)
 # Mikrofon/hoparlor (pyaudio), masaustu arayuzu (PySide6) ve WhatsApp (playwright) SUNUCUDA YOK;
 # bunlar istemcide (PC) calisir -> requirements.txt
 google-genai>=1.16.0

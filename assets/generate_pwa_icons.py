@@ -1,4 +1,4 @@
-"""PWA ikonlarini `assets/jarvis.png`'den uretir.
+"""PWA ikonlarini `assets/cyraen.png`'den uretir.
 
     python assets/generate_pwa_icons.py
 
@@ -15,7 +15,7 @@ from pathlib import Path
 from PIL import Image
 
 _HERE = Path(__file__).resolve().parent
-_SRC = _HERE / "jarvis.png"
+_SRC = _HERE / "cyraen.png"
 _BG = (5, 7, 13, 255)  # #05070d - HUD uzay-siyahi
 
 

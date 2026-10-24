@@ -1,5 +1,5 @@
 {
-  "_comment": "JARVIS Multi-Model Ajan Yapılandırması - yazılım ajanları (kodcu, bilgisayar_op) ücretli Claude (claude-*, ANTHROPIC_API_KEY) ile çalışır, yedekleri ücretsiz OpenRouter; diğerleri yalnızca ücretsiz OpenRouter modelleri (araç çağırma test edildi: 2026-10-03); en son yedek her zaman Gemini.",
+  "_comment": "CYRAEN Multi-Model Ajan Yapılandırması - yazılım ajanları (kodcu, bilgisayar_op) ücretli Claude (claude-*, ANTHROPIC_API_KEY) ile çalışır, yedekleri ücretsiz OpenRouter; diğerleri yalnızca ücretsiz OpenRouter modelleri (araç çağırma test edildi: 2026-10-03); en son yedek her zaman Gemini.",
   "orchestrator": {
     "default_model": "qwen/qwen3.8-27b:free",
     "fallback_models": [

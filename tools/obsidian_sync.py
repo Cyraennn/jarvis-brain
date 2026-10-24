@@ -1,13 +1,13 @@
 """Obsidian vault koprusu.
 
-JARVIS'in aldigi notlar, GBrain kayitlari ve KONUSMALAR, `.env`'de
-`JARVIS_OBSIDIAN_VAULT` tanimliysa Obsidian kasasina markdown olarak yazilir.
+CYRAEN'in aldigi notlar, GBrain kayitlari ve KONUSMALAR, `.env`'de
+`CYRAEN_OBSIDIAN_VAULT` tanimliysa Obsidian kasasina markdown olarak yazilir.
 Vault yoksa sessizce atlanir; yerel `data/` her zaman calismaya devam eder.
 
-Yerlesim (kasa icinde; `JARVIS_OBSIDIAN_SUBDIR` bos ise dogrudan kok):
+Yerlesim (kasa icinde; `CYRAEN_OBSIDIAN_SUBDIR` bos ise dogrudan kok):
     Notlar/YYYY-MM-DD.md      -> gunluk not dosyalari (remember_note)
     GBrain/<slug>.md          -> GBrain kayit aynasi (kb_write)
-    Konusmalar/YYYY-MM-DD.md  -> otomatik konusma kaydi (her tur: Sen / JARVIS)
+    Konusmalar/YYYY-MM-DD.md  -> otomatik konusma kaydi (her tur: Sen / CYRAEN)
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ from config.settings import get_settings
 
 
 def vault_dir() -> Path | None:
-    """JARVIS'in yazacagi kasa klasoru; vault tanimsiz/gecersizse None."""
+    """CYRAEN'in yazacagi kasa klasoru; vault tanimsiz/gecersizse None."""
     return get_settings().obsidian_dir
 
 
@@ -48,8 +48,8 @@ def append_note(text: str) -> Path | None:
         f = notes_dir / f"{now:%Y-%m-%d}.md"
         if not f.exists():
             f.write_text(
-                f"---\ntags: [jarvis, not]\nsource: JARVIS\n---\n\n"
-                f"# JARVIS Notlari - {now:%d.%m.%Y}\n\n",
+                f"---\ntags: [cyraen, not]\nsource: CYRAEN\n---\n\n"
+                f"# CYRAEN Notlari - {now:%d.%m.%Y}\n\n",
                 encoding="utf-8",
             )
         # cok satirli notlar (zamanli gorev sonuclari) liste maddesinin icinde kalsin
@@ -100,7 +100,7 @@ def write_doc(
         folder = base / subfolder
         folder.mkdir(parents=True, exist_ok=True)
         now = datetime.now().astimezone()
-        tag_list = ["jarvis", subfolder.lower(), *(t.strip() for t in (tags or []) if t.strip())]
+        tag_list = ["cyraen", subfolder.lower(), *(t.strip() for t in (tags or []) if t.strip())]
         f = folder / f"{_slug(title)}.md"
         f.write_text(
             "\n".join(
@@ -109,7 +109,7 @@ def write_doc(
                     f"title: {title.strip()}",
                     f"created: {now.isoformat(timespec='seconds')}",
                     f"tags: [{', '.join(dict.fromkeys(tag_list))}]",
-                    "source: JARVIS GBrain",
+                    "source: CYRAEN GBrain",
                     "---",
                     "",
                     f"# {title.strip()}",
@@ -131,7 +131,7 @@ _APPEND_LOCK = threading.Lock()
 
 _ROLE_LABEL = {
     "user": "Sen",
-    "jarvis": "JARVIS",
+    "cyraen": "CYRAEN",
     "telefon": "Sen (telefon)",
     "sistem": "Sistem",
     "kopru": "Kopru",
@@ -156,15 +156,15 @@ def append_conversation(role: str, text: str) -> Path | None:
         if not f.exists():
             f.write_text(
                 "---\n"
-                "tags: [jarvis, konusma, gunluk]\n"
-                "source: JARVIS canli oturum\n"
+                "tags: [cyraen, konusma, gunluk]\n"
+                "source: CYRAEN canli oturum\n"
                 f"tarih: {now:%Y-%m-%d}\n"
                 "---\n\n"
                 f"# Konusma - {now:%d.%m.%Y}\n\n",
                 encoding="utf-8",
             )
         label = _ROLE_LABEL.get(role, role)
-        # Kullanici + JARVIS turu ayni anda ayri thread'lerden yazilir; Windows'ta
+        # Kullanici + CYRAEN turu ayni anda ayri thread'lerden yazilir; Windows'ta
         # 'a' modu atomik degil, kilitsiz yazimlar birbirinin ustune binip satir kirpar.
         with _APPEND_LOCK, f.open("a", encoding="utf-8") as handle:
             handle.write(f"**{now:%H:%M} · {label}:** {body}\n\n")
@@ -174,8 +174,8 @@ def append_conversation(role: str, text: str) -> Path | None:
         return None
 
 
-_MANAGED_START = "<!-- jarvis:start -->"
-_MANAGED_END = "<!-- jarvis:end -->"
+_MANAGED_START = "<!-- cyraen:start -->"
+_MANAGED_END = "<!-- cyraen:end -->"
 
 
 def write_managed_doc(
@@ -183,12 +183,12 @@ def write_managed_doc(
     content: str,
     subfolder: str,
     tags: list[str] | None = None,
-    source: str = "JARVIS",
+    source: str = "CYRAEN",
 ) -> Path | None:
-    """JARVIS'in yonettigi bolumu gunceller, kullanicinin elle yazdiklarini korur.
+    """CYRAEN'in yonettigi bolumu gunceller, kullanicinin elle yazdiklarini korur.
 
     Dosya yoksa frontmatter + baslik + isaretli bolum yazilir. Varsa yalnizca
-    `<!-- jarvis:start -->` ... `<!-- jarvis:end -->` arasi degisir; isaret yoksa
+    `<!-- cyraen:start -->` ... `<!-- cyraen:end -->` arasi degisir; isaret yoksa
     (kullanici silmis) bolum dosyanin sonuna eklenir. Kitaplik notlari bunu kullanir.
     """
     body = (content or "").strip()
@@ -209,7 +209,7 @@ def write_managed_doc(
                 new = old.rstrip() + "\n\n" + block + "\n"
         else:
             now = datetime.now().astimezone()
-            tag_list = ["jarvis", subfolder.lower(), *(t.strip() for t in (tags or []) if t.strip())]
+            tag_list = ["cyraen", subfolder.lower(), *(t.strip() for t in (tags or []) if t.strip())]
             new = "\n".join([
                 "---",
                 f"title: {title.strip()}",

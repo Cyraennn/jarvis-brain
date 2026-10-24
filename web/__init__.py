@@ -1,1 +1,1 @@
-"""JARVIS yerel web konsolu (telefon <-> PC)."""
+"""CYRAEN yerel web konsolu (telefon <-> PC)."""

@@ -1,4 +1,4 @@
-"""EKİPLER karti: JARVIS / FRIDAY / ULTRON kisilik cipleri.
+"""EKİPLER karti: CYRAEN / FRIDAY / ULTRON kisilik cipleri.
 
 Cipler Iron Man 3'teki yapay zeka kartlarina benzer: koyu cerceve, ustte el yazisi
 isimli beyaz etiket, altta kendi renginde parlayan devre penceresi. Resim dosyasi
@@ -169,7 +169,7 @@ class PersonaCard(HudCard):
 
     selected = Signal(str)
 
-    def __init__(self, active: str = "jarvis", parent: QWidget | None = None) -> None:
+    def __init__(self, active: str = "cyraen", parent: QWidget | None = None) -> None:
         super().__init__("EKİPLER", parent=parent)
         row = QHBoxLayout()
         row.setSpacing(6)
@@ -184,11 +184,11 @@ class PersonaCard(HudCard):
 
     @property
     def active(self) -> str:
-        return next((k for k, c in self.chips.items() if c.active), "jarvis")
+        return next((k for k, c in self.chips.items() if c.active), "cyraen")
 
     def set_active(self, key: str) -> None:
         if key not in self.chips:
-            key = "jarvis"
+            key = "cyraen"
         for k, chip in self.chips.items():
             chip.set_active(k == key)
         self.set_meta(self.chips[key].label)

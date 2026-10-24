@@ -1,4 +1,4 @@
-"""JARVIS istemcisini baslatir (jarvis-brain klasorunden):
+"""CYRAEN istemcisini baslatir (cyraen-brain klasorunden):
 
     python -m client          # arayuzsuz: masaustu eylemleri + ekran/kamera + ses + onay penceresi
     python -m client --ui     # sinematik HUD arayuzu, sunucuya bagli (yerel motor YOK)
@@ -26,15 +26,15 @@ def _configure_logging() -> None:
 
 
 async def _run_headless(cfg) -> None:  # noqa: ANN001
-    from client.core import JarvisClient
+    from client.core import CyraenClient
     from client.desktop import make_confirm_handler, register_desktop_handlers
 
-    client = JarvisClient(cfg.ws_url, cfg.token, name=cfg.name, kind=cfg.kind)
+    client = CyraenClient(cfg.ws_url, cfg.token, name=cfg.name, kind=cfg.kind)
     if cfg.desktop:
         register_desktop_handlers(client, cfg)
     client.set_confirm_handler(make_confirm_handler(cfg.confirm_mode))
     client.on_event("transcript", lambda d: logger.info(
-        f"{'SEN' if (d or {}).get('who') == 'user' else 'JARVIS'}: {(d or {}).get('text', '')}"))
+        f"{'SEN' if (d or {}).get('who') == 'user' else 'CYRAEN'}: {(d or {}).get('text', '')}"))
     client.on_event("model_fallback", lambda d: logger.warning(f"YEDEK MODEL: {d}"))
 
     coros = [client.run()]
@@ -72,7 +72,7 @@ def _run_ui(cfg) -> int:  # noqa: ANN001
     from ui.qt_observer import QtEngineObserver
 
     app = QApplication(sys.argv)
-    app.setApplicationName("JARVIS")
+    app.setApplicationName("CYRAEN")
     app.setWindowIcon(_load_app_icon())
     app.setQuitOnLastWindowClosed(False)
     load_fonts()
@@ -96,7 +96,7 @@ def _run_ui(cfg) -> int:  # noqa: ANN001
 
     window = HudWindow(settings, engine_obs, _SharedWebcamPreview(), orch_observer=orch_obs)
     window.attach_worker(worker)
-    window.setWindowTitle(f"JARVIS — {cfg.server_host}")
+    window.setWindowTitle(f"CYRAEN — {cfg.server_host}")
     window.show()
     worker.start()
     worker.wait_ready(5.0)
@@ -107,7 +107,7 @@ def _run_ui(cfg) -> int:  # noqa: ANN001
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="python -m client", description="JARVIS istemcisi")
+    parser = argparse.ArgumentParser(prog="python -m client", description="CYRAEN istemcisi")
     parser.add_argument("--ui", action="store_true", help="HUD arayuzunu ac")
     parser.add_argument("--no-audio", action="store_true", help="mikrofon/hoparlor kanalini acma")
     parser.add_argument("--no-vision", action="store_true", help="ekran/kamera karesi gonderme")

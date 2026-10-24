@@ -34,7 +34,7 @@ def _parse_until(value: str | None) -> datetime | None:
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description="JARVIS gelen kutusu temizligi")
+    p = argparse.ArgumentParser(description="CYRAEN gelen kutusu temizligi")
     p.add_argument("--dry-run", action="store_true", help="hicbir maili tasima, sadece CSV yaz")
     p.add_argument("--limit", type=int, default=None, help="en eski N maili isle")
     p.add_argument("--restore", type=Path, help="CSV'deki mailleri INBOX'a geri tasi")

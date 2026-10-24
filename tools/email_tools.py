@@ -1,4 +1,4 @@
-"""E-posta araclari - hem sesli JARVIS hem COMMUNICATIONS ajanlari kullanir.
+"""E-posta araclari - hem sesli CYRAEN hem COMMUNICATIONS ajanlari kullanir.
 
 Arka uc secimi: Gmail OAuth (tools/gmail_tool.py) yapilandirilmissa Gmail API,
 degilse IMAP/SMTP (agents/integrations/email_client.py). Iki yol da ayni alan

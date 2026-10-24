@@ -107,8 +107,8 @@ class OpenRouterClient:
                     model=current_model,
                     messages=messages,
                     extra_headers={
-                        "HTTP-Referer": "https://github.com/jarvis-brain",
-                        "X-Title": "JARVIS Brain Engine",
+                        "HTTP-Referer": "https://github.com/cyraen-brain",
+                        "X-Title": "CYRAEN Brain Engine",
                     },
                     **kwargs,
                 )

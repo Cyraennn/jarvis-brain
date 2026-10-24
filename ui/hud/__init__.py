@@ -1,1 +1,1 @@
-"""Sinematik JARVIS HUD arayuzu (PySide6)."""
+"""Sinematik CYRAEN HUD arayuzu (PySide6)."""

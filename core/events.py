@@ -74,5 +74,5 @@ class EngineObserver:
         pass
 
     def on_persona(self, key: str) -> None:
-        """Kisilik modu degisti: "jarvis" | "friday" | "ultron" (core/personas.py)."""
+        """Kisilik modu degisti: "cyraen" | "friday" | "ultron" (core/personas.py)."""
         pass

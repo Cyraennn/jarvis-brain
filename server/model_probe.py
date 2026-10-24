@@ -111,7 +111,7 @@ def summarize(results: list[ModelStatus], agent_chain: list[str]) -> list[str]:
     by_name = {(r.role, r.name): r for r in results}
     for r in results:
         if r.role == "live" and not r.ok:
-            problems.append(f"CANLI SES MODELI CALISMIYOR: {r.name} - {r.error}. JARVIS sesli yanit veremez.")
+            problems.append(f"CANLI SES MODELI CALISMIYOR: {r.name} - {r.error}. CYRAEN sesli yanit veremez.")
         if r.role == "embedding" and not r.ok:
             problems.append(f"GBrain embedding modeli calismiyor: {r.name} - {r.error} "
                             "(kelime aramasi yedegi kullanilacak).")

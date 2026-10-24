@@ -83,7 +83,7 @@ _BODY = """
 <canvas id="demoSrc"></canvas>
 <canvas id="fx"></canvas>
 <div class="bar top">
-  <div class="logo"><span class="orb"></span>JARVIS · EL KONTROLÜ</div>
+  <div class="logo"><span class="orb"></span>CYRAEN · EL KONTROLÜ</div>
   <span class="pill" id="pThink">DÜŞÜNÜYOR</span>
   <span class="pill" id="pConn">● bağlı</span>
   <span class="pill" id="pFps">– FPS</span>
@@ -101,7 +101,7 @@ _BODY = """
 <div class="panel" id="fxPanel"></div>
 <div class="panel" id="calibPanel"></div>
 <div id="off"><div><div class="big">✋</div><h2>El Kontrolü kapalı</h2>
-  <p>H tuşu ya da “Jarvis, el kontrolünü aç”. Kamera kapalı.</p><button id="btnOn">Aç</button></div></div>
+  <p>H tuşu ya da “Cyraen, el kontrolünü aç”. Kamera kapalı.</p><button id="btnOn">Aç</button></div></div>
 """
 
 
@@ -126,7 +126,7 @@ def render_el_page(demo: bool = False) -> str:
     return f"""<!doctype html>
 <html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>JARVIS · El Kontrolü</title>
+<title>CYRAEN · El Kontrolü</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <style>{_CSS}</style></head>

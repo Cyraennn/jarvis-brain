@@ -12,7 +12,7 @@ _HTML = r"""<!doctype html><html lang="tr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#05070d">
-<title>JARVIS · Gesture HUD</title>
+<title>CYRAEN · Gesture HUD</title>
 <style>
 :root{--bg:#05070d;--panel:#0b1120;--card:#0d1220;--border:#16233a;--cyan:#34e3f0;
 --gold:#ffb84d;--mystic:#b47cff;--text:#cfe6ef;--dim:#7f97a6;--good:#3ff5b0;--bad:#ff5c72}
@@ -53,7 +53,7 @@ border-top-color:var(--cyan);animation:spin 1s linear infinite}
 color:var(--dim);z-index:6;pointer-events:none;letter-spacing:1px}
 </style></head><body>
 <div class="hud-top">
-  <span class="logo">J A R V I S</span>
+  <span class="logo">C Y R A E N</span>
   <span class="pill" id="pConn">baglaniyor</span>
   <span class="pill" id="pGesture">jest: yok</span>
   <span class="pill locked" id="pLock" style="display:none">KILITLI</span>
@@ -135,10 +135,10 @@ const parts = [
     new THREE.Vector3(-0.2, -0.9, 1.3), new THREE.Vector3(0, -1, 1)),
 ];
 
-const { createGestureBridge } = window.JarvisGestureBridge;
-const { GestureEngine } = window.JarvisGestureEngine;
-const { DeixisBuffer, containsDeixis, resolveCommand } = window.JarvisDeixis;
-const { loadCalibration, runCalibration } = window.JarvisCalibration;
+const { createGestureBridge } = window.CyraenGestureBridge;
+const { GestureEngine } = window.CyraenGestureEngine;
+const { DeixisBuffer, containsDeixis, resolveCommand } = window.CyraenDeixis;
+const { loadCalibration, runCalibration } = window.CyraenCalibration;
 
 const deixis = new DeixisBuffer(800);
 let locked = false;
@@ -246,7 +246,7 @@ function speak(text) {
   } catch (e) {}
 }
 async function askAboutPart(partName) {
-  setCaption(`🔍 ${partName} seciliyor, JARVIS'e soruluyor...`);
+  setCaption(`🔍 ${partName} seciliyor, CYRAEN'e soruluyor...`);
   try {
     const res = await api("/api/gesture", { gesture: "select", part: partName, ts: Date.now() });
     pendingGestureId = res && res.id ? res.id : null;
@@ -307,7 +307,7 @@ function cameraErrorMessage(e) {
   if (name === "NotFoundError" || name === "OverconstrainedError")
     return "Webcam bulunamadi - bilgisayarina bagli bir webcam oldugundan emin ol.";
   if (name === "NotReadableError" || name === "TrackStartError")
-    return "Webcam baska bir uygulama tarafindan kullaniliyor - JARVIS ana penceresindeki kamera butonu acik olabilir, onu kapatip tekrar dene.";
+    return "Webcam baska bir uygulama tarafindan kullaniliyor - CYRAEN ana penceresindeki kamera butonu acik olabilir, onu kapatip tekrar dene.";
   return "Webcam acilamadi (" + (name || "bilinmeyen hata") + ").";
 }
 
@@ -411,7 +411,7 @@ if (SR) {
       const resolved = deixis.resolve(Date.now());
       if (resolved) {
         text = resolveCommand(text, resolved);
-        setCaption(`🎙 "${text}" -> JARVIS'e gonderildi`);
+        setCaption(`🎙 "${text}" -> CYRAEN'e gonderildi`);
       }
     }
     api("/api/say", { text }).catch(() => setCaption("Gonderilemedi."));

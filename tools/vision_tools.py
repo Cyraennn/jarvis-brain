@@ -35,7 +35,7 @@ def save_screenshot(path: str = "") -> dict[str, Any]:
     if path.strip():
         out = Path(path).expanduser()
         if out.is_dir():
-            out = out / f"jarvis_{datetime.now():%Y%m%d_%H%M%S}.png"
+            out = out / f"cyraen_{datetime.now():%Y%m%d_%H%M%S}.png"
     else:
         _SHOTS.mkdir(parents=True, exist_ok=True)
         out = _SHOTS / f"{datetime.now():%Y%m%d_%H%M%S}.png"

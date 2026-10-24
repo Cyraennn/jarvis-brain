@@ -17,6 +17,8 @@ _URL = re.compile(r"https?://\S+")
 _LINK = re.compile(r"\[([^\]]+)\]\([^)]*\)")
 # emoji ve resim yazilari (ses bunlari adlariyla okumasin)
 _EMOJI = re.compile("[\U0001F000-\U0001FAFF\u2600-\u27BF\uFE0F\u200D]+")
+# Asistanin adi CYRAEN yazilir, "Siren" okunur (ses motorlari harf harf / yanlis okumasin)
+_NAME = re.compile(r"\bC\.Y\.R\.A\.E\.N\.?|\bCYRAEN\b", re.IGNORECASE)
 
 
 def speakable(text: str) -> str:
@@ -25,6 +27,7 @@ def speakable(text: str) -> str:
     text = _URL.sub("", text)
     text = _MD.sub("", text)
     text = _EMOJI.sub("", text)
+    text = _NAME.sub("Siren", text)
     return " ".join(text.split())[:MAX_CHARS]
 
 

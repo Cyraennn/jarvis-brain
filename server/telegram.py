@@ -19,7 +19,7 @@ MAX_PER_HOUR = 20
 
 
 class TelegramNotifier:
-    def __init__(self, bot_token: str = "", chat_id: str = "", *, prefix: str = "JARVIS") -> None:
+    def __init__(self, bot_token: str = "", chat_id: str = "", *, prefix: str = "CYRAEN") -> None:
         self.bot_token = bot_token.strip()
         self.chat_id = chat_id.strip()
         self.prefix = prefix

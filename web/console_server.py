@@ -1,23 +1,23 @@
-"""JARVIS yerel web konsolu sunucusu (stdlib http.server).
+"""CYRAEN yerel web konsolu sunucusu (stdlib http.server).
 
 Telefondan `http://<pc-lan-ip>:<port>?key=<token>` ile acilir.
   GET  /                 -> mobil kontrol sayfasi
   GET  /api/state        -> anlik durum (JSON)
   GET  /api/events       -> SSE canli akis
-  POST /api/say          -> {"text": "..."} JARVIS canli oturumuna enjekte
+  POST /api/say          -> {"text": "..."} CYRAEN canli oturumuna enjekte
   POST /api/task         -> {"task": "...", "agent": "auto"} orkestratore gorev
   POST /api/phone-event  -> {"app": "...", "text": "..."} telefon bildirim aynasi
   POST /api/control      -> {"action": "mic_on|mic_off|away_on|away_off|wake_on|wake_off"} PC ses kontrolu
   POST /api/confirm      -> {"id": "...", "approve": true|false} bekleyen onay istegini coz
   GET  /api/events?client=phone -> telefon uygulamasi (web/phone_link.py: eylem kanali acilir)
   POST /api/phone-result -> {"id", "ok", "result"|"error"} telefonun phone_action yaniti
-  POST /api/files/upload?name=  -> ham govde, ~/Downloads/JARVIS'e (web/phone_files.py)
+  POST /api/files/upload?name=  -> ham govde, ~/Downloads/CYRAEN'e (web/phone_files.py)
   GET  /api/files        -> telefona sunulan dosyalar; GET /api/files/get?name= indirir
-  GET  /pair             -> telefon eslestirme QR'i (yalnizca localhost; jarvis://pair?host&port&key)
+  GET  /pair             -> telefon eslestirme QR'i (yalnizca localhost; cyraen://pair?host&port&key)
   GET  /api/screen/stream -> PC ekrani MJPEG; POST /api/remote/input fare/klavye (web/remote_desktop.py,
-                            yalnizca JARVIS_REMOTE_DESKTOP=1 iken; aksi halde 403)
+                            yalnizca CYRAEN_REMOTE_DESKTOP=1 iken; aksi halde 403)
   POST /api/okul/push    -> okul (BOTE Ders Merkezi) tam durum JSON'u (localStorage aynasi)
-  GET  /api/okul/pull    -> JARVIS'in okul'a ilettigi bekleyen degisiklikler (+ kuyrugu bosaltir)
+  GET  /api/okul/pull    -> CYRAEN'in okul'a ilettigi bekleyen degisiklikler (+ kuyrugu bosaltir)
   GET  /hud              -> el-jesti kontrollu 3D HUD (webcam + MediaPipe, tarayicida)
   GET  /gesture/<dosya>  -> HUD'un jest modulleri (statik JS, ui/gesture yerine web/static/gesture)
   POST /api/gesture      -> {"gesture":"select","part":"..."} -> ilgili ajana kisa aciklama sorar
@@ -58,10 +58,10 @@ _ICON_FILES = {
     "/icon-512.png": "icon-512.png",
     "/icon-maskable-512.png": "icon-maskable-512.png",
     "/apple-touch-icon.png": "apple-touch-icon.png",
-    "/favicon.ico": "jarvis.ico",
+    "/favicon.ico": "cyraen.ico",
 }
 
-_FRAME_HEAD = b"--jarvisframe\r\nContent-Type: image/jpeg\r\nContent-Length: "
+_FRAME_HEAD = b"--cyraenframe\r\nContent-Type: image/jpeg\r\nContent-Length: "
 
 _GESTURE_DIR = Path(__file__).parent / "static" / "gesture"
 _GESTURE_FILES = {
@@ -88,8 +88,8 @@ class _BodyTooLarge(Exception):
 
 
 def _cors_allowlist() -> set[str]:
-    """CORS'a izin verilen kaynaklar (okul uygulamasi vb.). Env: JARVIS_WEB_CORS_ORIGINS (virgullu)."""
-    raw = os.getenv("JARVIS_WEB_CORS_ORIGINS", "")
+    """CORS'a izin verilen kaynaklar (okul uygulamasi vb.). Env: CYRAEN_WEB_CORS_ORIGINS (virgullu)."""
+    raw = os.getenv("CYRAEN_WEB_CORS_ORIGINS", "")
     extra = {o.strip().rstrip("/") for o in raw.split(",") if o.strip()}
     defaults = {
         "http://localhost:8000", "http://127.0.0.1:8000",
@@ -137,12 +137,12 @@ class ConsoleServer:
         link = pair_link(host, self.port, self.token)
         svg = _qr_svg(link) or "<p>QR icin: pip install qrcode</p>"
         where = "Tailscale (evde de disarida da calisir)" if ts else "ev Wi-Fi'si (Tailscale bulunamadi)"
-        return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>JARVIS · Telefonu eşle</title>
+        return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>CYRAEN · Telefonu eşle</title>
 <style>body{{background:#000;color:#ffffffcc;font:16px 'Segoe UI',sans-serif;display:grid;place-items:center;min-height:100vh;margin:0}}
 .c{{text-align:center;max-width:420px}}h1{{color:#ff8c42;font-size:22px;letter-spacing:.12em}}
 .q{{background:#fff;padding:14px;border-radius:18px;display:inline-block;margin:18px 0}}.q svg{{width:300px;height:300px}}
 small{{color:#ffffff70}}code{{color:#ff8c42}}</style></head><body><div class="c">
-<h1>JARVIS · TELEFONU EŞLE</h1><p>Telefonun kamerasıyla bu kodu okutun ya da uygulamada <b>Ayarlar → QR ile eşle</b>.</p>
+<h1>CYRAEN · TELEFONU EŞLE</h1><p>Telefonun kamerasıyla bu kodu okutun ya da uygulamada <b>Ayarlar → QR ile eşle</b>.</p>
 <div class="q">{svg}</div><p>Adres: <code>{_html.escape(host)}:{self.port}</code><br><small>{where}</small></p>
 <small>Bu sayfa erişim anahtarını içerir; yalnızca bu bilgisayarda açılır.</small></div></body></html>"""
 
@@ -166,7 +166,8 @@ small{{color:#ffffff70}}code{{color:#ff8c42}}</style></head><body><div class="c"
                     # token yoksa yalnizca localhost'a izin ver
                     return self.client_address[0] in ("127.0.0.1", "::1", "localhost")
                 qs = parse_qs(urlparse(self.path).query)
-                given = self.headers.get("X-Jarvis-Key") or qs.get("key", [""])[0]
+                given = (self.headers.get("X-Cyraen-Key") or self.headers.get("X-Jarvis-Key")
+                         or qs.get("key", [""])[0])
                 return hmac.compare_digest(given.encode("utf-8"), server.token.encode("utf-8"))
 
             def _cors_headers(self) -> None:
@@ -210,7 +211,7 @@ small{{color:#ffffff70}}code{{color:#ff8c42}}</style></head><body><div class="c"
                 self.send_response(204)
                 self._cors_headers()
                 self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-                self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Jarvis-Key")
+                self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Cyraen-Key, X-Jarvis-Key")
                 self.send_header("Content-Length", "0")
                 self.end_headers()
 
@@ -312,7 +313,7 @@ small{{color:#ffffff70}}code{{color:#ff8c42}}</style></head><body><div class="c"
                     return
                 if path == "/api/screen/stream":
                     if not server.remote_desktop:
-                        self._json(403, {"error": "uzaktan ekran kapali (.env: JARVIS_REMOTE_DESKTOP=1)"})
+                        self._json(403, {"error": "uzaktan ekran kapali (.env: CYRAEN_REMOTE_DESKTOP=1)"})
                         return
                     self._screen_stream()
                     return
@@ -345,7 +346,7 @@ small{{color:#ffffff70}}code{{color:#ff8c42}}</style></head><body><div class="c"
                 fps = float((qs.get("fps") or [remote_desktop.DEFAULT_FPS])[0])
                 quality = int((qs.get("q") or [remote_desktop.DEFAULT_QUALITY])[0])
                 self.send_response(200)
-                self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=jarvisframe")
+                self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=cyraenframe")
                 self.send_header("Cache-Control", "no-cache")
                 self.end_headers()
                 client = self.client_address[0]
@@ -504,7 +505,7 @@ small{{color:#ffffff70}}code{{color:#ff8c42}}</style></head><body><div class="c"
                     return
                 if path == "/api/remote/input":
                     if not server.remote_desktop:
-                        self._json(403, {"error": "uzaktan kontrol kapali (.env: JARVIS_REMOTE_DESKTOP=1)"})
+                        self._json(403, {"error": "uzaktan kontrol kapali (.env: CYRAEN_REMOTE_DESKTOP=1)"})
                         return
                     from web.remote_desktop import handle_input
                     self._json(200, handle_input(data))
@@ -699,7 +700,7 @@ small{{color:#ffffff70}}code{{color:#ff8c42}}</style></head><body><div class="c"
         return 200, out
 
     def _okul_pull(self) -> dict:
-        """JARVIS'in okul'a iletecegi bekleyen degisiklikleri dondurur ve kuyrugu bosaltir."""
+        """CYRAEN'in okul'a iletecegi bekleyen degisiklikleri dondurur ve kuyrugu bosaltir."""
         if self.okul_outbox_path is None:
             return {"ops": []}
         with self._okul_lock:
@@ -751,7 +752,7 @@ def _tailscale_ip() -> str:
 def pair_link(host: str, port: int, token: str) -> str:
     from urllib.parse import urlencode
 
-    return "jarvis://pair?" + urlencode({"host": host, "port": port, "key": token})
+    return "cyraen://pair?" + urlencode({"host": host, "port": port, "key": token})
 
 
 def _qr_svg(text: str) -> str:

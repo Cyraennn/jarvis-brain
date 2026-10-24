@@ -37,7 +37,7 @@ _CONTROL_ACTIONS = {"mic_on", "mic_off", "away_on", "away_off",
 SESSION_DOWN_ALERT_S = 300.0   # canli oturum bu kadar suredir kopuksa kritik bildirim
 
 
-class JarvisRuntime:
+class CyraenRuntime:
     def __init__(self, settings: Settings, cfg: ServerConfig, notifier: TelegramNotifier) -> None:
         self.settings = settings
         self.cfg = cfg
@@ -261,7 +261,7 @@ class JarvisRuntime:
             if engine is not None:
                 if engine.session_active:
                     if alerted:
-                        self.notifier.notify("Canli oturum yeniden BAGLANDI - JARVIS calisiyor.")
+                        self.notifier.notify("Canli oturum yeniden BAGLANDI - CYRAEN calisiyor.")
                     down_since, alerted = None, False
                 else:
                     down_since = down_since or time.monotonic()
@@ -269,7 +269,7 @@ class JarvisRuntime:
                         alerted = True
                         logger.bind(event="session_down").critical(
                             f"Canli oturum {SESSION_DOWN_ALERT_S // 60:.0f} dakikadir BAGLI DEGIL "
-                            "(API anahtari / kota / ag). JARVIS sesli yanit veremiyor."
+                            "(API anahtari / kota / ag). CYRAEN sesli yanit veremiyor."
                         )
             with contextlib.suppress(asyncio.TimeoutError):
                 await asyncio.wait_for(self._stop.wait(), timeout=1.0)

@@ -5,7 +5,7 @@
 On kosul: developer.spotify.com/dashboard'da bir uygulama (Redirect URI:
 http://127.0.0.1:8888/callback) ve .env'de SPOTIFY_CLIENT_ID + SPOTIFY_CLIENT_SECRET.
 Tarayicida izin verdikten sonra token SPOTIFY_TOKEN_FILE'a (varsayilan
-data/spotify_token.json) yazilir ve JARVIS spotify_* araclari calismaya baslar.
+data/spotify_token.json) yazilir ve CYRAEN spotify_* araclari calismaya baslar.
 """
 
 from __future__ import annotations

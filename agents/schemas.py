@@ -60,8 +60,8 @@ def parse_department(value: object) -> Department | None:
 
 class Autonomy(str, Enum):
     HUMAN_LED = "human_led"           # yalnizca insan baslatir
-    HUMAN_ASSISTED = "human_assisted"  # JARVIS onerir, insan onaylar
-    FULLY_AUTONOMOUS = "fully_autonomous"  # JARVIS dogrudan calistirir
+    HUMAN_ASSISTED = "human_assisted"  # CYRAEN onerir, insan onaylar
+    FULLY_AUTONOMOUS = "fully_autonomous"  # CYRAEN dogrudan calistirir
 
 
 AUTONOMY_BADGE: dict[Autonomy, str] = {
@@ -125,7 +125,7 @@ class TaskRequest(BaseModel):
     id: str = Field(default_factory=_new_id)
     agent: str = "auto"
     task: str
-    source: str = "jarvis"
+    source: str = "cyraen"
     context: str = ""
     created_at: str = Field(default_factory=_now)
 

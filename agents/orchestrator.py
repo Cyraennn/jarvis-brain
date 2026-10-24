@@ -1,4 +1,4 @@
-"""Ajan orkestratoru - JARVIS (Conductor) kisisel asistan departmanlarina delege eder.
+"""Ajan orkestratoru - CYRAEN (Conductor) kisisel asistan departmanlarina delege eder.
 
 bridge/inbox.txt  <- gorev istekleri (JSON satirlari)
 bridge/outbox.txt -> ajan sonuclari (sesli beyin bunlari okuyup asistana enjekte eder)
@@ -136,7 +136,7 @@ class AgentOrchestrator:
             name = (request.agent or "auto").strip().lower()
             reason = ""
             if name in ("", "auto") or name not in self.agents:
-                self._emit(request, "routing", "JARVIS departman seciyor")
+                self._emit(request, "routing", "CYRAEN departman seciyor")
                 decision = await self.conductor.route(request.task, request.context)
                 name = decision.agent
                 reason = decision.reason
@@ -152,7 +152,7 @@ class AgentOrchestrator:
                 self._emit(request, "blocked", "yalnizca insan baslatir",
                            agent=spec.name, department=dept, autonomy=spec.autonomy.value)
                 await self.notifier.notify(
-                    f"JARVIS · {spec.title}",
+                    f"CYRAEN · {spec.title}",
                     f"'{request.task[:80]}' gorevi bu ajanla YALNIZCA insan tarafindan baslatilir.",
                     priority=4, tags=["warning", "lock"],
                 )
@@ -170,7 +170,7 @@ class AgentOrchestrator:
                 self._emit(request, "awaiting_approval", f"onay bekliyor ({badge})",
                            agent=spec.name, department=dept, autonomy=spec.autonomy.value)
                 await self.notifier.notify(
-                    f"JARVIS · {spec.title} onay bekliyor",
+                    f"CYRAEN · {spec.title} onay bekliyor",
                     f"{reason or request.task[:80]}",
                     priority=4, tags=["hourglass_flowing_sand"],
                 )
@@ -215,7 +215,7 @@ class AgentOrchestrator:
                     await self._save_result_note(request, spec.title, result.text)
                 if spec.autonomy == Autonomy.FULLY_AUTONOMOUS:
                     await self.notifier.notify(
-                        f"JARVIS · {spec.title} tamamladi",
+                        f"CYRAEN · {spec.title} tamamladi",
                         result.text[:180], priority=3, tags=["white_check_mark"],
                     )
             else:
@@ -223,7 +223,7 @@ class AgentOrchestrator:
                            agent=spec.name, department=dept, autonomy=spec.autonomy.value)
                 self._write_outbox(f"[{spec.title}] Gorev tamamlanamadi: {result.error or 'hata'}")
                 await self.notifier.notify(
-                    f"JARVIS · {spec.title} basarisiz", result.error or "hata",
+                    f"CYRAEN · {spec.title} basarisiz", result.error or "hata",
                     priority=4, tags=["x"],
                 )
 

@@ -2,21 +2,21 @@
 //
 // KONTROLLER dizisine bir satir ekleyerek yeni komut tanimlanir:
 //   { jest: "thumbs_up", sure: 1000, ad: "Türk kahvesi",
-//     eylem: { tip: "komut", metin: "Jarvis, ..." } }      -> Jarvis'e sesli komut gibi gider
+//     eylem: { tip: "komut", metin: "Cyraen, ..." } }      -> Cyraen'e sesli komut gibi gider
 //   { ..., eylem: { tip: "kontrol", action: "interrupt" } } -> /api/control
-//   kosul: "speaking"  -> yalnizca Jarvis konusurken
+//   kosul: "speaking"  -> yalnizca Cyraen konusurken
 // Jestler: thumbs_up · victory · fist · open · point (poses.js)
 (function (root, factory) {
   if (typeof module !== "undefined" && module.exports) module.exports = factory();
-  else root.JarvisController = factory();
+  else root.CyraenController = factory();
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
   const KONTROLLER = [
     { jest: "thumbs_up", sure: 1000, ad: "Türk kahvesi",
-      eylem: { tip: "komut", metin: "Jarvis, bana bol köpüklü bir Türk kahvesi yap" } },
+      eylem: { tip: "komut", metin: "Cyraen, bana bol köpüklü bir Türk kahvesi yap" } },
     { jest: "victory", sure: 900, ad: "Salon ışığı",
-      eylem: { tip: "komut", metin: "Jarvis, salon ışığını aç ya da kapat" } },
+      eylem: { tip: "komut", metin: "Cyraen, salon ışığını aç ya da kapat" } },
     { jest: "fist", sure: 1800, ad: "Sustur", kosul: "speaking",
       eylem: { tip: "kontrol", action: "interrupt" } },
   ];

@@ -397,7 +397,7 @@ class WeatherView(QWidget):
 
 # ================================================================== bilgi karti
 class InfoView(QTextBrowser):
-    """JARVIS'in yazdigi Markdown govde. Baglantilar acilmaz, uzak kaynak (gorsel) yuklenmez."""
+    """CYRAEN'in yazdigi Markdown govde. Baglantilar acilmaz, uzak kaynak (gorsel) yuklenmez."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)

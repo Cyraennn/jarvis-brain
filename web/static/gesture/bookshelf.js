@@ -3,7 +3,7 @@
 (function () {
   "use strict";
   const JEL = (window.JEL = window.JEL || {});
-  const G = window.JarvisShelfGeom;
+  const G = window.CyraenShelfGeom;
 
   const SELECT_MS = 150;     // ucun hizasindaki sirt bu kadar sabit kalinca secilir
   const AIM_LOST_MS = 450;
@@ -28,7 +28,7 @@
       this.page = 0;
       this.glow = null;      // {id, t}
       this.covers = new Map(); // id -> HTMLImageElement | "yok"
-      this.holds = new window.JarvisController.HoldController([
+      this.holds = new window.CyraenController.HoldController([
         { jest: "thumbs_up", sure: 1000, ad: "Özet", eylem: { tip: "ozet" } },
         { jest: "fist", sure: 900, ad: "Rafa koy", eylem: { tip: "geri" } },
       ], { cooldownMs: 1200 });
@@ -211,7 +211,7 @@
       if (!b) return;
       this.app.audio.confirm();
       if (this.app.demo) { this.app.toast("Demo: özet okunmaz"); return; }
-      if (!b.ad) { this.app.toast("Kitabın adı bilinmiyor. “Jarvis, bu kitabın adı …” deyin."); return; }
+      if (!b.ad) { this.app.toast("Kitabın adı bilinmiyor. “Cyraen, bu kitabın adı …” deyin."); return; }
       this.app.say(`Bu kitabın özetini oku: ${b.ad}`);
     }
 
@@ -253,13 +253,13 @@
       if (cal.formatlar && cal.formatlar.length) kunye.push(["E-kitap", cal.formatlar.join(" · ") + " (Calibre)"]);
       P.push({ title: "KÜNYE", kv: kunye, progress: b.durum === "bitti" ? 1 : b.durum === "okunuyor" ? 0.5 : 0 });
       if (!b.ad) {
-        P.push({ title: "JARVIS", text: "Bu kitabın adı okunamadı. “Jarvis, bu kitabın adı …” deyin; kapak ve sayfalar birkaç saniyede dolar." });
+        P.push({ title: "CYRAEN", text: "Bu kitabın adı okunamadı. “Cyraen, bu kitabın adı …” deyin; kapak ve sayfalar birkaç saniyede dolar." });
       } else if (!d) {
-        P.push({ title: "JARVIS'İN ÖZETİ", text: "Jarvis sayfaları yazıyor…", pending: true });
+        P.push({ title: "CYRAEN'İN ÖZETİ", text: "Cyraen sayfaları yazıyor…", pending: true });
       } else if (d.bilinmiyor) {
-        P.push({ title: "JARVIS'İN ÖZETİ", text: "Jarvis bu kitabı tanımıyor. Uydurmamak için sayfa yazmadı; notlarınızı ekleyebilirsiniz." });
+        P.push({ title: "CYRAEN'İN ÖZETİ", text: "Cyraen bu kitabı tanımıyor. Uydurmamak için sayfa yazmadı; notlarınızı ekleyebilirsiniz." });
       } else {
-        P.push({ title: "JARVIS'İN ÖZETİ", text: d.ozet });
+        P.push({ title: "CYRAEN'İN ÖZETİ", text: d.ozet });
         if (d.ana_fikirler && d.ana_fikirler.length) P.push({ title: "ANA FİKİRLER", list: d.ana_fikirler });
         P.push({ title: "YAZAR VE TEMALAR", text: d.yazar_hakkinda || "", list: d.temalar && d.temalar.length ? d.temalar : null });
         P.push({ title: "NEDEN OKUMALI", text: [d.neden_oku, d.kime_uygun ? "Kime uygun: " + d.kime_uygun : ""].filter(Boolean).join("\n\n") });

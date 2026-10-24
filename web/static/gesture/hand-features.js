@@ -3,7 +3,7 @@
 //   0 bilek · 1-4 basparmak · 5-8 isaret · 9-12 orta · 13-16 yuzuk · 17-20 serce
 (function (root, factory) {
   if (typeof module !== "undefined" && module.exports) module.exports = factory();
-  else root.JarvisHandFeatures = factory();
+  else root.CyraenHandFeatures = factory();
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 

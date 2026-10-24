@@ -62,7 +62,7 @@ def test_ask_reports_errors_without_silent_fallback(monkeypatch):
 
 def test_ask_unknown_and_live_personas():
     assert "bilinmeyen" in asyncio.run(stark_team.ask("ultron", "x"))["error"]
-    assert asyncio.run(stark_team.ask("jarvis", "x"))["error"]
+    assert asyncio.run(stark_team.ask("cyraen", "x"))["error"]
 
 
 def test_openrouter_handler_uses_only_persona_model(monkeypatch):
@@ -216,7 +216,7 @@ def test_council_turn_sees_previous_speakers(monkeypatch):
     _scripted(monkeypatch, "gemini", ["Özet."], seen)
     asyncio.run(stark_team.council_turn("friday", "konu", [], final=True, tts=False))
     assert "KAPANIŞ" in seen[0][1] and "İltifat etme" in seen[0][1]
-    assert asyncio.run(stark_team.council_turn("jarvis", "konu", []))["error"]
+    assert asyncio.run(stark_team.council_turn("cyraen", "konu", []))["error"]
 
 
 # ------------------------------------------------------------------ sirasiz toplanti
@@ -256,8 +256,8 @@ def test_next_speaker_ends_and_survives_errors(monkeypatch):
     assert asyncio.run(stark_team.next_speaker("konu", [], ["pepper", "homer"]))["next"] == "pepper"
 
     _pick(monkeypatch, RuntimeError("kota"))
-    out = asyncio.run(stark_team.next_speaker("konu", said[:1], ["pepper", "homer", "jarvis"], "pepper"))
-    assert out["next"] == "homer"                    # jarvis (canli) toplantiya alinmaz
+    out = asyncio.run(stark_team.next_speaker("konu", said[:1], ["pepper", "homer", "cyraen"], "pepper"))
+    assert out["next"] == "homer"                    # cyraen (canli) toplantiya alinmaz
     assert asyncio.run(stark_team.next_speaker("konu", [], ["pepper"], "pepper"))["next"] is None
 
 
@@ -272,7 +272,7 @@ def test_voices_are_native_turkish_without_extreme_tuning():
 
 
 def test_names_are_spoken_not_spelled(monkeypatch):
-    assert stark_team.spoken("J.A.R.V.I.S. ve F.R.I.D.A.Y., DUM-E ile") == "Carvis ve Frayday, Dami ile"
+    assert stark_team.spoken("C.Y.R.A.E.N. ve F.R.I.D.A.Y., DUM-E ile") == "Siren ve Frayday, Dami ile"
     got = {}
 
     async def fake_synth(text, voice, *, rate, pitch):
@@ -360,7 +360,7 @@ def test_team_ask_validation_and_answer(server, monkeypatch):
 
 def test_council_turn_endpoint(server, monkeypatch):
     _, port, _ = server
-    assert _req(port, "/api/team/council/turn", {"persona": "jarvis", "topic": "x"})[0] == 400
+    assert _req(port, "/api/team/council/turn", {"persona": "cyraen", "topic": "x"})[0] == 400
     assert _req(port, "/api/team/council/turn", {"persona": "homer", "topic": ""})[0] == 400
 
     async def fake_turn(key, topic, transcript, *, final, tts):
@@ -399,8 +399,8 @@ def test_team_page_is_a_stage(server):
     assert "await speak(" in html                                    # sesler ust uste binmez
 
 
-def test_jarvis_question_goes_to_live_brain(server):
+def test_cyraen_question_goes_to_live_brain(server):
     _, port, tmp = server
-    code, body = _req(port, "/api/team/ask", {"persona": "jarvis", "text": "saat kaç"})
+    code, body = _req(port, "/api/team/ask", {"persona": "cyraen", "text": "saat kaç"})
     assert code == 200 and json.loads(body)["via"] == "live"
     assert (tmp / "outbox.txt").read_text(encoding="utf-8").strip() == "[TELEFON] saat kaç"

@@ -3,7 +3,7 @@
   GET  /api/screen/stream  -> MJPEG (multipart/x-mixed-replace), birincil ekran, her parcada Content-Length
   POST /api/remote/input   -> {"type": tap|double|right|move|drag|scroll|keys|text, ...}
 
-Varsayilan KAPALI: `.env` -> `JARVIS_REMOTE_DESKTOP=1`. Token + Tailscale ile korunur; acikken
+Varsayilan KAPALI: `.env` -> `CYRAEN_REMOTE_DESKTOP=1`. Token + Tailscale ile korunur; acikken
 her yayin baslangici/bitisi loga (HUD gunlugu) ve veriyoluna yazilir.
 Koordinatlar telefondan 0-1 gelir, `tools/keyboard_input.py`'nin 0-1000 olcegine cevrilir
 (ikisi de birincil ekranin tamami: DPI olcegi fark etmez).

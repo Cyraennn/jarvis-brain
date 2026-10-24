@@ -49,7 +49,7 @@ type HudState = {
   stats: Stats
   cpuHistory: number[]
   ramHistory: number[]
-  live: boolean           // olcumler gercek mi (JARVIS'ten) yoksa benzetim mi
+  live: boolean           // olcumler gercek mi (CYRAEN'den) yoksa benzetim mi
   model: 'procedural' | 'glb'
 }
 

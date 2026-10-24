@@ -9,7 +9,7 @@ Iki mod:
     seritte "sirada" diye yanar. En sonda secilen uye kararlari ozetler.
 Sahnede konusanin buyuk avatari kendi renginde sesle birlikte parlar; soyledigi cumle kelime
 kelime (karaoke gibi) akar. Gorunum Zoey OS dili: siyah zemin, turuncu vurgu, cam paneller.
-J.A.R.V.I.S. canli beyne gider ve PC'den kendi Live sesiyle konusur (toplantiya katilamaz).
+C.Y.R.A.E.N. canli beyne gider ve PC'den kendi Live sesiyle konusur (toplantiya katilamaz).
 """
 
 from __future__ import annotations
@@ -409,7 +409,7 @@ function browserSay(it,done){
 }
 
 // ------------------------------------------------------------------ sohbet (+ ekip koprusu)
-let waitingJarvis=false;
+let waitingCyraen=false;
 async function sendChat(text){
   if(!sel){alert('Önce bir yapay zekâ seç.');return;}
   const p=sel,k='chat:'+p.key;
@@ -421,7 +421,7 @@ async function sendChat(text){
     const r=await api('/api/team/ask',{persona:p.key,text,history,consult:consultOn,allow_paid:paidOn});
     if(!r.ok){push(k,{kind:'err',text:(r.j&&r.j.error)||('hata '+r.status)});return;}
     const res=r.j;
-    if(res.via==='live'){waitingJarvis=true;push(k,{kind:'ai',persona:'jarvis',text:'(PC hoparlöründen yanıtlıyor…)',meta:'canlı oturum'});return;}
+    if(res.via==='live'){waitingCyraen=true;push(k,{kind:'ai',persona:'cyraen',text:'(PC hoparlöründen yanıtlıyor…)',meta:'canlı oturum'});return;}
     for(const c of res.consults||[]){
       const to=P[c.to];
       push(k,{kind:'link',persona:c.to,text:p.name+' → '+(to?to.name:c.to)+': '+c.question});
@@ -513,11 +513,11 @@ q('#mic').onclick=()=>{
   recOn=true;q('#mic').classList.add('rec');rec.start();
 };
 
-// ------------------------------------------------------------------ J.A.R.V.I.S. (SSE)
+// ------------------------------------------------------------------ C.Y.R.A.E.N. (SSE)
 function connectSSE(){const ev=new EventSource('/api/events?key='+encodeURIComponent(KEY));
   ev.onmessage=e=>{try{const evt=JSON.parse(e.data);
-    if(evt.kind==='transcript'&&evt.data.who==='jarvis'&&waitingJarvis)
-      push('chat:jarvis',{kind:'ai',persona:'jarvis',text:evt.data.text,meta:'gemini-2.5-flash-native-audio · canlı ses'});
+    if(evt.kind==='transcript'&&evt.data.who==='cyraen'&&waitingCyraen)
+      push('chat:cyraen',{kind:'ai',persona:'cyraen',text:evt.data.text,meta:'gemini-2.5-flash-native-audio · canlı ses'});
   }catch(x){}};
   ev.onerror=()=>{ev.close();setTimeout(connectSSE,3000);};}
 

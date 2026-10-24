@@ -8,7 +8,7 @@
   const ITEMS = [
     ["ates", "Ateş (açık el)"], ["muhur", "Mühür halkaları (iki açık el)"], ["gezegen", "Gezegen (çimdik)"],
     ["patlatma", "Patlatma (yumruk → açık el)"], ["simsek", "Şimşek (iki işaret)"], ["iz", "Işık izi (tek işaret)"],
-    ["kontroller", "Jarvis kontrolleri (👍 ✌️ ✊)"], ["yuz", "Yüz kilidi"], ["kitaplik", "Kitaplık"],
+    ["kontroller", "Cyraen kontrolleri (👍 ✌️ ✊)"], ["yuz", "Yüz kilidi"], ["kitaplik", "Kitaplık"],
     ["sesler", "Efekt sesleri"], ["rafAtesYok", "Raf bölgesinde ateş/iz yok"],
   ];
   const DEFAULTS = { ates: true, muhur: true, gezegen: true, patlatma: true, simsek: true, iz: true,

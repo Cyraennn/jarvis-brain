@@ -1,10 +1,10 @@
-"""Proaktif JARVIS - hatirlatici + rutin zamanlayicisi.
+"""Proaktif CYRAEN - hatirlatici + rutin zamanlayicisi.
 
 Durum dosya-tabanlidir (data/reminders.json, data/routines.json). Hem bu dongu hem
 araclar (tools/scheduler_tools.py) ayni dosyalari okur/yazar - singleton gerekmez.
 
 Vade gelince:
-  - hatirlatici -> bridge/outbox.txt (JARVIS sesli soyler) + Notifier
+  - hatirlatici -> bridge/outbox.txt (CYRAEN sesli soyler) + Notifier
   - rutin(prompt) -> bridge/outbox.txt
   - rutin(agent_task) -> bridge/inbox.txt
 """
@@ -199,7 +199,7 @@ class Scheduler:
             self._publish()
 
     def _fire_task(self, r: dict[str, Any]) -> None:
-        """Zamanli gorev: isi orkestratore (bridge/inbox.txt) verir, JARVIS'e haber verir.
+        """Zamanli gorev: isi orkestratore (bridge/inbox.txt) verir, CYRAEN'e haber verir.
 
         `source` "zamanli" ile baslar -> orkestrator onay beklemez (kullanici gorevi
         kurarken onaylamistir); "zamanli:not" ise sonucu notlara da kaydeder.

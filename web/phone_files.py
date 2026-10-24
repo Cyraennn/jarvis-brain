@@ -1,6 +1,6 @@
 """Telefon <-> PC dosya alisverisi.
 
-  telefon -> PC : `POST /api/files/upload?name=<ad>` (govde = ham dosya) -> `~/Downloads/JARVIS/`
+  telefon -> PC : `POST /api/files/upload?name=<ad>` (govde = ham dosya) -> `~/Downloads/CYRAEN/`
   PC -> telefon : `send_file_to_phone` araci dosyayi `data/phone_outbox/`'a kopyalar, veriyoluna
                   `file` olayi yazar; telefon `GET /api/files/get?name=<ad>` ile indirir.
 
@@ -19,7 +19,7 @@ from typing import BinaryIO
 from config.settings import APP_DIR
 
 PHONE_OUTBOX = APP_DIR / "data" / "phone_outbox"
-PHONE_INBOX = Path.home() / "Downloads" / "JARVIS"
+PHONE_INBOX = Path.home() / "Downloads" / "CYRAEN"
 MAX_BYTES = 500 * 1024 * 1024
 _CHUNK = 256 * 1024
 _BAD = re.compile(r'[<>:"/\\|?*\x00-\x1f]')

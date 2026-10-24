@@ -1,4 +1,4 @@
-' JARVIS Brain - sessiz baslatici (konsol penceresi acmaz)
+' CYRAEN Brain - sessiz baslatici (konsol penceresi acmaz)
 ' Masaustu kisayolu bu dosyayi cagirir.
 Option Explicit
 
@@ -6,7 +6,7 @@ Dim fso, shell, here, projectDir, pyw, cmd
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set shell = CreateObject("WScript.Shell")
 
-' Bu betigin bulundugu klasor -> ..\ = jarvis-brain kok dizini
+' Bu betigin bulundugu klasor -> ..\ = cyraen-brain kok dizini
 here = fso.GetParentFolderName(WScript.ScriptFullName)
 projectDir = fso.GetParentFolderName(here)
 

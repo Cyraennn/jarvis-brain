@@ -1,11 +1,11 @@
 // El Kontrolu ✋ ana uygulamasi (/el). Kamera -> MediaPipe (el 30 Hz, yuz 5 Hz) -> duruslar ->
-// efektler / Jarvis kontrolleri / kitaplik. Kamera goruntusu hicbir yere gonderilmez; yalnizca
-// kitaplik taramasinda (K modu, ya da "kitapligimi tara") tek kare yerel JARVIS sunucusuna gider.
+// efektler / Cyraen kontrolleri / kitaplik. Kamera goruntusu hicbir yere gonderilmez; yalnizca
+// kitaplik taramasinda (K modu, ya da "kitapligimi tara") tek kare yerel CYRAEN sunucusuna gider.
 (function () {
   "use strict";
   const JEL = window.JEL;
-  const HF = window.JarvisHandFeatures, P = window.JarvisPoses, C = window.JarvisController;
-  const G = window.JarvisShelfGeom, D = window.JarvisDemoHands, S = window.JarvisSmoothing;
+  const HF = window.CyraenHandFeatures, P = window.CyraenPoses, C = window.CyraenController;
+  const G = window.CyraenShelfGeom, D = window.CyraenDemoHands, S = window.CyraenSmoothing;
   const CFG = window.EL_CONFIG || {};
   const MP_VER = "0.10.14";
   const CDN = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}`;
@@ -48,7 +48,7 @@
   const trail = new JEL.Trail();
   const holds = new C.HoldController(C.KONTROLLER);
   const face = new JEL.FaceHud(CFG.user || "Sezai");
-  const drift = new window.JarvisShelfDrift.DriftWatch();
+  const drift = new window.CyraenShelfDrift.DriftWatch();
   planets.onEvent = (type) => {
     if (!settings.get("sesler")) return;
     if (type === "form" || type === "morph") audio.chime();
@@ -94,7 +94,7 @@
   let capTimer = 0;
   function caption(text, who) {
     const el = q("#caption");
-    el.textContent = text; el.dataset.who = who || "jarvis"; el.classList.add("show");
+    el.textContent = text; el.dataset.who = who || "cyraen"; el.classList.add("show");
     clearTimeout(capTimer); capTimer = setTimeout(() => el.classList.remove("show"), Math.min(14000, 3500 + text.length * 55));
   }
   function setThinking(on) { st.thinking = on; st.thinkingT = performance.now(); q("#pThink").style.display = on ? "inline-flex" : "none"; }
@@ -221,7 +221,7 @@
     const n = e && e.name;
     if (n === "NotAllowedError") return "Kamera izni verilmedi — adres çubuğundaki kamera simgesinden izin verin.";
     if (n === "NotFoundError" || n === "OverconstrainedError") return "Kamera bulunamadı.";
-    if (n === "NotReadableError") return "Kamera başka bir uygulamada açık (JARVIS ana penceresindeki kamera?).";
+    if (n === "NotReadableError") return "Kamera başka bir uygulamada açık (CYRAEN ana penceresindeki kamera?).";
     return "Kamera açılamadı (" + (n || e) + ")";
   }
 
@@ -430,11 +430,11 @@
       demoTruth = D.drawShelf(g, W, H);
       demoShelf = g.getImageData(0, 0, W, H);
       bookshelf.setData({ books: demoTruth.boxes.map((b) => Object.assign({ durum: "okunuyor", notlar: [{ metin: "Demo notu: bu sayfa sentetik." }], alintilar: [],
-        defter: { bilinmiyor: false, ozet: `${b.ad} için demo özeti. Gerçek kullanımda Jarvis bu sayfayı kitabı tanıyorsa yazar.`,
+        defter: { bilinmiyor: false, ozet: `${b.ad} için demo özeti. Gerçek kullanımda Cyraen bu sayfayı kitabı tanıyorsa yazar.`,
           ana_fikirler: ["Demo ana fikir 1", "Demo ana fikir 2", "Demo ana fikir 3", "Demo ana fikir 4"],
           yazar_hakkinda: `${b.yazar} (demo).`, temalar: ["demo"], neden_oku: "Demo.", kime_uygun: "Herkese.", benzerler: [] } }, b)),
       raf: demoTruth.raf });
-      drift.setReference({ gri: window.JarvisShelfDrift.thumb(demoCanvas) });
+      drift.setReference({ gri: window.CyraenShelfDrift.thumb(demoCanvas) });
       const target = (i) => {
         const b = demoTruth.boxes[i];
         if (!b) return null;
@@ -565,7 +565,7 @@
         if (st.speaking) setThinking(false);
       }
       if (e.kind === "transcript" && d) {
-        if (d.who === "jarvis") { caption(d.text, "jarvis"); setThinking(false); }
+        if (d.who === "cyraen") { caption(d.text, "cyraen"); setThinking(false); }
         else if (d.who === "user" && d.source !== "el") caption(d.text, "user");
       }
       if (DEMO) return;

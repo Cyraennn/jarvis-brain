@@ -13,7 +13,7 @@ NOTEPAD = {"hwnd": 11, "title": "notlar.txt - Not Defteri", "exe": "notepad.exe"
            "exe_path": r"C:\Windows\notepad.exe"}
 TERMINAL = {"hwnd": 22, "title": "claude", "exe": "windowsterminal.exe",
             "exe_path": r"C:\wt\WindowsTerminal.exe"}
-JARVIS = {"hwnd": 33, "title": "J.A.R.V.I.S.", "exe": "pythonw.exe", "exe_path": r"C:\py\pythonw.exe"}
+CYRAEN = {"hwnd": 33, "title": "C.Y.R.A.E.N.", "exe": "pythonw.exe", "exe_path": r"C:\py\pythonw.exe"}
 
 
 class Harness:
@@ -79,7 +79,7 @@ def test_alt_f4_sent_to_the_confirmed_window_only(monkeypatch):
 
 
 def test_close_combo_refused_on_protected_or_missing_window(monkeypatch):
-    h = Harness(monkeypatch, approve=True, foreground=JARVIS)
+    h = Harness(monkeypatch, approve=True, foreground=CYRAEN)
     assert "korumali" in h.runner._tool_press_keys("alt+f4")["error"]
     assert "korumali" in h.runner._tool_close_active_tab()["error"]
     h2 = Harness(monkeypatch, approve=True, foreground=None)
@@ -123,8 +123,8 @@ def test_close_application_with_many_windows_lists_them(monkeypatch):
 
 def test_close_application_refuses_protected_window(monkeypatch):
     h = Harness(monkeypatch, approve=True)
-    monkeypatch.setattr(tr, "find_close_target", lambda name, hint="": {**JARVIS, "siblings": []})
-    assert "korumali" in h.runner._tool_close_application("jarvis penceresi")["error"]
+    monkeypatch.setattr(tr, "find_close_target", lambda name, hint="": {**CYRAEN, "siblings": []})
+    assert "korumali" in h.runner._tool_close_application("cyraen penceresi")["error"]
     assert h.sent == [] and h.prompts == []
 
 

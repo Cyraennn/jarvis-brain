@@ -155,7 +155,7 @@ async def _settle(eng: BrainEngine) -> None:
         await eng._speaker_task
 
 
-def test_stranger_cannot_wake_jarvis():
+def test_stranger_cannot_wake_cyraen():
     async def run():
         c = Clock()
         v = FakeVerifier([0.30])
@@ -243,7 +243,7 @@ MODEL = Path(__file__).resolve().parents[1] / "data" / "voice" / "wespeaker_en_v
 VOICE = Path(__file__).resolve().parents[1] / "data" / "piper" / "tr_TR-dfki-medium.onnx"
 
 
-@pytest.mark.skipif(os.getenv("JARVIS_LIVE_TESTS") != "1", reason="gercek ses izi modeli + iki TTS sesi")
+@pytest.mark.skipif(os.getenv("CYRAEN_LIVE_TESTS") != "1", reason="gercek ses izi modeli + iki TTS sesi")
 def test_live_model_tells_two_voices_apart(tmp_path):
     from core.offline_voice import LocalTTS, resample_int16
 
@@ -257,7 +257,7 @@ def test_live_model_tells_two_voices_apart(tmp_path):
     assert enroll.load_model()
     clips = [enroll.embed(say(piper, t)) for t in (
         "Bugün hava çok güzel, dışarı çıkıp biraz yürümek istiyorum.",
-        "Yarın sabah dokuzda dersim var, bana hatırlatır mısın?", "Hey Jarvis")]
+        "Yarın sabah dokuzda dersim var, bana hatırlatır mısın?", "Hey Cyraen")]
     save_profile(tmp_path / "p.npz", clips, 0.7)
 
     v = SpeakerVerifier(MODEL, tmp_path / "p.npz")
