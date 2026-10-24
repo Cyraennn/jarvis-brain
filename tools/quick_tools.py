@@ -42,9 +42,21 @@ async def _gen(prompt: str, *, grounded: bool = False) -> str:
             cfg_kw["tools"] = [types.Tool(google_search=types.GoogleSearch())]
         except Exception:  # noqa: BLE001
             pass
+    config = types.GenerateContentConfig(**cfg_kw)
+    if grounded:
+        # Google arama topraklamasinin kotasi hesap genelinde: 429 verince zincirdeki her modeli uc
+        # kez denemek ~1 dk suruyor ve canli oturum beklerken kopuyordu. Ayrica zincirin sonunda
+        # yerel modele dusuluyor, o da web'e bakmadan cevap uyduruyordu. Tek, dogrudan deneme;
+        # hata cagirana gider ve DuckDuckGo'ya gecilir.
+        import asyncio
+
+        resp = await asyncio.wait_for(
+            client.aio.models.generate_content(model=s.agent_model_chain[0], contents=prompt, config=config),
+            timeout=45.0,
+        )
+        return (getattr(resp, "text", None) or "").strip()
     resp = await generate_with_retry(
-        client, model=s.agent_model_chain, contents=prompt,
-        config=types.GenerateContentConfig(**cfg_kw),
+        client, model=s.agent_model_chain, contents=prompt, config=config,
     )
     return (getattr(resp, "text", None) or "").strip()
 

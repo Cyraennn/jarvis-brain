@@ -94,7 +94,8 @@ def bind_observers(client: JarvisClient, engine_obs: Any, orch_obs: Any | None) 
             result=(d or {}).get("result"), steps=0)))
 
     # onay: HUD'un kendi onay diyalogu (QtEngineObserver.confirm GUI thread'inde soru sorar)
-    client.set_confirm_handler(lambda prompt, source: bool(engine_obs.confirm(prompt)))
+    client.set_confirm_handler(
+        lambda prompt, source, cancel: bool(engine_obs.confirm(prompt, cancel=cancel)))
 
 
 class RemoteEngineWorker(threading.Thread):

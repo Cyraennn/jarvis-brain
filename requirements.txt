@@ -2,7 +2,7 @@
 google-genai>=1.16.0
 openai>=1.40    # OpenRouter istemcisi (core/openrouter_client.py)
 anthropic>=0.120  # Claude istemcisi - yazilim ajanlari (core/claude_client.py)
-edge-tts>=7.0   # Stark Ekibi (/ekip) sesli yanitlari - ucretsiz Microsoft noral sesler
+edge-tts>=7.3.1   # Stark Ekibi (/ekip) sesli yanitlari - ucretsiz Microsoft noral sesler
 httpx>=0.27     # Telegram + Izmir acik veri (google-genai ile de gelir; acikca istenir)
 
 # Gmail API (tools/gmail_tool.py). Yoksa e-posta araclari IMAP/SMTP ile calisir.
@@ -30,6 +30,12 @@ websockets>=16.0
 
 # Masaustu arayuzu (run_ui.py). Sadece sessiz mod (main.py) icin gerekli degil.
 PySide6-Essentials>=6.6
+# Icerik paneli (ui/widgets/panel_web.py): video / Wikipedia / site / PDF arayuzun icinde acilir
+# (QtWebEngine). Essentials ile AYNI surum olmali. Yoksa panel icerigi tarayicida acar.
+PySide6-Addons>=6.6
+# PySide6 6.12'den itibaren QtWebEngine ve QtPdf Addons'tan ayrildi (surum 6.12.0.140 gibi).
+PySide6-WebEngine
+PySide6-Pdf
 
 # WhatsApp kolu (core/whatsapp_handler.py). Sadece config/whatsapp.json enabled=true ise gerekli.
 # Kurulumdan sonra: `playwright install chromium`

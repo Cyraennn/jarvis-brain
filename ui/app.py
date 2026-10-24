@@ -5,10 +5,12 @@ from __future__ import annotations
 import sys
 
 from loguru import logger
+from PySide6.QtCore import QCoreApplication, Qt
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from agents.qt_observer import QtOrchestratorObserver
 from config.settings import Settings, get_settings
+from core import personas
 from core.webcam_streamer import WebcamStreamer
 from ui import theme
 from ui.engine_worker import EngineWorker
@@ -42,6 +44,8 @@ def _configure_file_logging(settings: Settings) -> None:
 
 
 def run() -> int:
+    # Icerik panelinin web gorunumu (QtWebEngine) bunu QApplication'dan ONCE ister
+    QCoreApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
     app.setApplicationName("JARVIS")
     app.setApplicationDisplayName("JARVIS")
@@ -62,6 +66,9 @@ def run() -> int:
         return 1
 
     _configure_file_logging(settings)
+    # son secilen kisiligin temasi (JARVIS mavi / FRIDAY yesil / ULTRON kirmizi)
+    theme.apply_palette(personas.load_active(settings).key)
+    app.setStyleSheet(theme.QSS)
 
     observer = QtEngineObserver()
     webcam = WebcamStreamer(
@@ -77,8 +84,8 @@ def run() -> int:
         record = message.record
         try:
             window.log_message.emit(record["level"].name, record["message"])
-        except RuntimeError:
-            pass  # pencere yok edildi
+        except (RuntimeError, TypeError):
+            pass  # pencere kapanirken yok edildi (sinyal artik bagli degil)
 
     logger.add(_qt_sink, level="INFO", format="{message}", enqueue=True)
 
@@ -111,6 +118,9 @@ def run() -> int:
         if action in ("wake_on", "wake_off"):
             window.wake_toggle_requested.emit(action == "wake_on")  # dugme -> motor + BUS
             return {"wake": action == "wake_on"}
+        if action == "interrupt":  # El Kontrolu ✊: konusmayi kes
+            worker.interrupt_speaking()
+            return {"interrupted": True}
         return {"error": "bilinmeyen"}
 
     web_worker = (

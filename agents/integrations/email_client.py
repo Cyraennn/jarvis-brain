@@ -39,6 +39,34 @@ def _strip(text: str, limit: int = 600) -> str:
     return text if len(text) <= limit else text[:limit] + " …"
 
 
+_AUTH_MARKERS = ("authenticationfailed", "invalid credentials", "username and password not accepted")
+
+AUTH_ERROR_MSG = (
+    "Mail girisi reddedildi: uygulama sifresi gecersiz veya iptal edilmis. "
+    "myaccount.google.com/apppasswords adresinden yeni sifre olusturup .env icindeki "
+    "EMAIL_APP_PASSWORD'u guncelleyin (veya Gmail OAuth kurun: python scripts/gmail_auth.py)."
+)
+
+
+def _auth_error(exc: BaseException) -> str | None:
+    """Hata bir kimlik dogrulama reddi ise anlasilir mesaj dondurur, degilse None."""
+    if isinstance(exc, smtplib.SMTPAuthenticationError):
+        return AUTH_ERROR_MSG
+    text = str(exc).lower()
+    if any(m in text for m in _AUTH_MARKERS):
+        return AUTH_ERROR_MSG
+    return None
+
+
+def _fail(exc: BaseException, fallback: str) -> dict[str, Any]:
+    """except bloklari icin ortak donus: once kimlik hatasini, sonra genel mesaji dener."""
+    auth = _auth_error(exc)
+    if auth:
+        logger.warning(auth)
+        return {"error": auth}
+    return {"error": f"{fallback}: {exc}"}
+
+
 class EmailClient:
     def __init__(
         self,
@@ -99,9 +127,9 @@ class EmailClient:
             finally:
                 conn.logout()
         except imaplib.IMAP4.error as exc:
-            return {"error": f"IMAP giris/erisim hatasi: {exc}"}
+            return _fail(exc, "IMAP giris/erisim hatasi")
         except Exception as exc:  # noqa: BLE001
-            return {"error": f"E-posta okunamadi: {exc}"}
+            return _fail(exc, "E-posta okunamadi")
 
     def read(self, uid: str, folder: str = "INBOX") -> dict[str, Any]:
         if not self.enabled:
@@ -139,7 +167,7 @@ class EmailClient:
             finally:
                 conn.logout()
         except Exception as exc:  # noqa: BLE001
-            return {"error": f"Mesaj okunamadi: {exc}"}
+            return _fail(exc, "Mesaj okunamadi")
 
     def search(self, query: str, folder: str = "INBOX", limit: int = 10) -> dict[str, Any]:
         if not self.enabled:
@@ -164,7 +192,7 @@ class EmailClient:
             finally:
                 conn.logout()
         except Exception as exc:  # noqa: BLE001
-            return {"error": f"Arama basarisiz: {exc}"}
+            return _fail(exc, "Arama basarisiz")
 
     # ------------------------------------------------------------------ SMTP
     def send(
@@ -204,7 +232,7 @@ class EmailClient:
             logger.info(f"E-posta gonderildi -> {to} : {subject}")
             return {"status": "gonderildi", "to": to, "subject": msg["Subject"]}
         except Exception as exc:  # noqa: BLE001
-            return {"error": f"Gonderilemedi: {exc}"}
+            return _fail(exc, "Gonderilemedi")
 
 
 def _fmt_date(raw: object) -> str:

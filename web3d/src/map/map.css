@@ -1,0 +1,61 @@
+/* 3B Izmir haritasi: Zoey OS dili (saf siyah, tek turuncu vurgu, Onest + JetBrains Mono). */
+@font-face { font-family: "Onest"; src: url("/fonts/Onest-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("/fonts/JetBrainsMono.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+:root { --accent: #ff8c42; --accent-base: #ff6d00; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; background: #000; overflow: hidden; }
+body { font-family: "Onest", "Segoe UI", sans-serif; color: #ffffff9e; -webkit-font-smoothing: antialiased; }
+
+.map-page { position: relative; width: 100%; height: 100%; }
+.map-canvas { position: absolute; inset: 0; }
+/* kenarlar siyaha erir: harita panelin icinde yuzer gibi */
+.map-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, #000 100%);
+}
+
+.map-hud {
+  position: absolute; left: 16px; bottom: 14px;
+  font: 11px/1 "JetBrains Mono", Consolas, monospace;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--accent);
+  padding: 7px 11px; border: 1px solid #ff8c4240; border-radius: 999px;
+  background: #0b0704cc; backdrop-filter: blur(6px);
+}
+
+.map-error {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 14px; color: #ffffff9e;
+}
+
+/* hedef isaretcisi: nabiz atan turuncu halka */
+.map-marker { position: relative; width: 14px; height: 14px; }
+.map-marker-dot {
+  position: absolute; inset: 3px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 12px var(--accent-base);
+}
+.map-marker-ring {
+  position: absolute; inset: -10px; border-radius: 50%;
+  border: 1.5px solid var(--accent); opacity: 0;
+  animation: map-pulse 2.2s ease-out infinite;
+}
+.map-marker-label {
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
+  white-space: nowrap; font-size: 12px; font-weight: 500; letter-spacing: .04em; color: #fff;
+  text-shadow: 0 0 6px #000, 0 0 2px #000;
+}
+/* rota baslangici: kucuk, sabit macenta nokta (orb macentasi), nabizsiz */
+.map-marker-origin .map-marker-dot { background: #e91e8c; box-shadow: 0 0 10px #e91e8c; }
+.map-marker-origin .map-marker-ring { display: none; }
+@keyframes map-pulse {
+  0% { transform: scale(.4); opacity: .9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* MapLibre'nin acik renkli kunyesi koyu temaya */
+.maplibregl-ctrl-attrib, .maplibregl-ctrl-attrib.maplibregl-compact {
+  background: #0b0704aa !important; color: #ffffff57 !important;
+}
+.maplibregl-ctrl-attrib a { color: #ffffff80 !important; }
+.maplibregl-ctrl-attrib-button { filter: invert(1) opacity(.5); }

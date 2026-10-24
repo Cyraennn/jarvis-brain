@@ -269,7 +269,7 @@ def eshot_approaching_buses(stop_id: str, line_no: str = "") -> dict[str, Any]:
     return {"stop_id": stop, "line_no": line or None, "count": len(buses), "buses": buses[:15]}
 
 
-def plan_route(origin: str, destination: str, open_browser: bool = True) -> dict[str, Any]:
+def plan_route(origin: str = "", destination: str = "", open_browser: bool = True) -> dict[str, Any]:
     """Iki nokta arasinda toplu tasima rotasi: Google Haritalar'i (transit modu) acar ve varis
     noktasina yakin ESHOT duraklarini onerir. origin bos ise mevcut konum kullanilir."""
     destination = (destination or "").strip()

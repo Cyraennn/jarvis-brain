@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path.cwd()                                  # jarvis-brain
 sys.path.insert(0, str(ROOT))
 VAULT = Path.home() / "Documents" / "JARVIS Bilgi Kasasi"
-TODAY = "2026-09-20"
+TODAY = date.today().isoformat()
 SECRET_RX = re.compile(r"(KEY|TOKEN|PASSWORD|PASS|PIN|SECRET|CREDENTIAL)", re.I)
 
 written: list[str] = []
@@ -40,6 +40,9 @@ def gen_tool_catalog() -> tuple[str, int]:
                            "write_text_file", "remember_note", "recall_notes"},
         "Uygulama ve Web": {"open_application", "open_website", "open_path", "close_application",
                             "open_gesture_hud", "exit_application"},
+        "İçerik Paneli (arayüz içi)": {"show_video", "show_wikipedia", "show_document", "show_website",
+                                       "show_spotify", "show_news", "show_market", "show_weather", "show_map", "show_route", "map_control",
+                                       "show_info", "close_panel"},
         "Klavye ve Fare": {"type_text", "type_in_search", "click_at", "move_mouse", "scroll", "press_keys",
                            "clear_field", "drag_select", "select_word", "select_line", "erase_chars",
                            "close_active_tab", "type_in_browser"},
@@ -52,6 +55,8 @@ def gen_tool_catalog() -> tuple[str, int]:
         "Proaktif (Hatırlatıcı/Rutin)": {"set_reminder", "list_reminders", "cancel_reminder", "add_routine",
                                          "list_routines", "remove_routine"},
         "Ajan Sistemi": {"dispatch_to_agent"},
+        "Telefon Uygulaması": {"phone_call", "send_sms", "set_alarm", "set_timer", "open_phone_app",
+                               "phone_location", "phone_status", "ring_phone", "send_file_to_phone"},
     }
     prefix_cats = [("adb_", "Android (ADB)"), ("okul_", "Okul (BÖTE Ders Merkezi)"),
                    ("kb_", "GBrain (kalıcı bilgi)"), ("summarize_", "GBrain (kalıcı bilgi)")]
@@ -183,6 +188,10 @@ VAULT.mkdir(parents=True, exist_ok=True)
 (VAULT / ".obsidian" / "app.json").write_text('{\n  "showFrontmatter": true,\n  "defaultViewMode": "preview"\n}\n', encoding="utf-8")
 
 # ---------------------------------------------------------------- GENEL
+from agents.departments import all_agents  # noqa: E402
+
+agent_count = len(all_agents())
+
 note("_Index.md", "JARVIS Bilgi Kasası — Ana Sayfa", f"""
 Bu kasa JARVIS'e ait **bütün bilgiyi** tek yerde toplar: mimari, araçlar, entegrasyonlar, yapılandırma, güvenlik,
 testler, karar günlüğü ve açık sorunlar. Büyük kısmı doğrudan koddan üretildi ({TODAY}), yani kodla birebir uyumlu.
@@ -194,13 +203,13 @@ testler, karar günlüğü ve açık sorunlar. Büyük kısmı doğrudan koddan 
 - [[Genel Bakış]] — JARVIS nedir, neyden oluşur
 - [[Nasıl Çalıştırılır]] — kurulum ve çalıştırma
 - [[Sorunlar ve Yapılacaklar]] — açık işler, riskler (**önce bunu incele**)
-- [[2026-09-20 İyileştirme Turu]] — en son yapılan büyük değişiklikler
+- [[2026-10-12 Ekim Güncellemeleri]] — en son yapılan büyük değişiklikler
 
 ## Mimari
 [[Canlı Beyin Motoru]] · [[Ajan Sistemi (FounderOS)]] · [[Masaüstü Arayüzü (HUD)]] · [[Web Konsolu ve PWA]] ·
 [[Köprü (Bridge)]] · [[Proaktif Sistem]] · [[GBrain Kalıcı Hafıza]] · [[Modeller ve Anahtarlar]]
 
-## Departmanlar (6) ve 27 ajan
+## Departmanlar (6) ve {agent_count} ajan
 {' · '.join(f'[[Departman - {k}]]' for k in dept_pages)}
 
 ## Araçlar
@@ -217,7 +226,8 @@ testler, karar günlüğü ve açık sorunlar. Büyük kısmı doğrudan koddan 
 [[Güvenlik Modeli]] · [[Gizli Değerler]] · [[Testler]]
 
 ## Günlük
-[[2026-09-02 İlk Kurulum]] · [[2026-09-03 Genişleme]] · [[2026-09-20 İyileştirme Turu]]
+[[2026-09-02 İlk Kurulum]] · [[2026-09-03 Genişleme]] · [[2026-09-20 İyileştirme Turu]] ·
+[[2026-10-12 Ekim Güncellemeleri]]
 
 ## İlgili projeler
 [[OPTIMAL ENGINE (Next.js)]]
@@ -338,7 +348,7 @@ JARVIS = **Conductor**. Kullanıcı ya da telefon bir görev verir; Conductor g�
 
 ## Akış
 1. Görev `bridge/inbox.txt`'ten (ya da `dispatch_to_agent` aracı / `/api/task` ile) gelir — `agents/orchestrator.py::AgentOrchestrator`.
-2. `agents/conductor.py::Conductor.route` (Gemini, JSON çıktı) görevi **6 departman (okul, iletişim, sistem, telefon, bilgi, günlük) / 27 ajana** delege eder.
+2. `agents/conductor.py::Conductor.route` (Gemini, JSON çıktı) görevi **6 departman (okul, iletişim, sistem, telefon, bilgi, günlük) / {agent_count} ajana** delege eder.
 3. **Otonomi kapısı:**
    - `fully_autonomous` → doğrudan çalışır
    - `human_assisted` → `observer.confirm` diyaloğu (ya da `agents_auto_approve_assisted`)
@@ -367,13 +377,42 @@ for k, body in dept_pages.items():
     note(f"01 Mimari/Departmanlar/Departman - {k}.md", f"Departman - {k}", body, ["departman"])
 
 note("01 Mimari/Masaüstü Arayüzü (HUD).md", "Masaüstü Arayüzü (HUD)", """
-`python run_ui.py` — PySide6-Essentials, "Iron Man / holografik HUD" teması (uzay-siyahı zemin, holografik cyan `ACCENT`,
-altın `GOLD`, mistik menekşe `MYSTIC`; `ui/theme.py`).
+`python run_ui.py` — PySide6 (Essentials + Addons). Varsayılan arayüz **Komuta HUD**'dur (`ui/hud/hud_window.py::HudWindow`,
+`MainWindow`'dan türer); eski panel yerleşimi `JARVIS_UI_STYLE=classic` ile açılır. Palet `ui/theme.py`: koyu lacivert zemin,
+mint `ACCENT` (#44d7b5), altın `GOLD` (konuşma/uyarı), menekşe `MYSTIC`; kartlar üstten ışık alır, altlarına gölge düşer.
 
-## Yerleşim
+## Yerleşim (Komuta HUD)
+- **Üst çubuk:** logo + metin chip düğmeler (odak, mikrofon, kamera, ekran, tam ekran, üstte, tepsi, kapat).
+- **Sol sütun** (`ui/hud/stat_cards.py`): saat + mini takvim + hava (`ClockCard`, `MiniCalendar`), okul (`OkulCard`),
+  sistem ölçerleri (`SystemCard`: CPU/RAM/disk), ajanlar.
+- **Merkez:** `ui/hud/command_graph.py::CommandGraph(BrainGraph)` — sese tepki veren parçacık küresi (JARVIS), iç yörüngede
+  6 departman, dış yörüngede tüm ajanlar. Yörünge izleyiciye yatıktır ve yavaşça döner (öndekiler büyük/parlak, arkadakiler
+  küçük/soluk); fareyle sürükleyince elle döner. Durum/animasyon mantığı `BrainGraph`'tan gelir.
+- **Sağ sütun:** canlı görüş (tıkla büyüt), görev akışı, hızlı komutlar (`QuickCommandsCard`), rutinler (`RoutinesCard`), günlük.
+- **Alt:** `>_` komut satırı + kayan durum satırı.
+- Eski zırh büstü `ui/hud/suit_core.py::SuitCore` **silindi** (2026-10-12).
+
+## İçerik paneli
+Video, Wikipedia, web sitesi, belge, Spotify kartı, haberler, fiyat grafiği, hava durumu ve bilgi kartı ayrı pencerede değil
+merkezdeki grafın **yerinde** açılır (`ui/widgets/content_panel.py::ContentPanel`).
+- Araçlar (`tools/panel_tools.py`): `show_video`, `show_wikipedia`, `show_document`, `show_website`, `show_spotify`,
+  `show_news`, `show_market`, `show_weather`, `show_map`, `show_route`, `map_control`, `show_info`, `close_panel`.
+- Model kimlik, adres ya da dosya yolu **uyduramaz**: yalnız sorgu/ad verir; video kimliğini, sayfa başlığını ve dosya yolunu
+  araç bulur ve doğrular. Doğrulanamayan istek `{"error": ...}` döner, panel açılmaz. Tek istisna `show_info` (gövdeyi model yazar).
+- Akış: araç sonucu `"panel"` yükü taşır → `ToolRunner._panel` yükü modele giden yanıttan çıkarır →
+  `EngineObserver.on_panel(payload) -> bool` → `QtEngineObserver.panel` sinyali → `ContentPanel.show_content`.
+- Arayüz yoksa (sessiz mod / web gözlemcisi `False` döner) video, wiki, site ve belge varsayılan uygulamada açılır; haber,
+  grafik, hava ve bilgi kartının verisi zaten yanıtta olduğundan model sesli aktarır.
+- Web içeriği QtWebEngine ister (`ui/widgets/panel_web.py`, **PySide6-Addons**, tembel içe aktarılır; yoksa sistem tarayıcısı).
+  Haber, grafik, hava ve bilgi kartı saf Qt'dir (`ui/widgets/panel_views.py`).
+- Kaynaklar anahtarsız: YouTube oEmbed, Wikipedia REST, Google Haberler RSS, Yahoo Finance.
+- Belgeler: yalnız `.pdf` / `.txt` / `.md`, en çok 50 MB, izinli kökler `JARVIS_DOCS_DIRS` (boş = Belgeler + Masaüstü + İndirilenler).
+- Web konsoluna yalnız tür + başlık gider (dosya yolu LAN'a açık veri yoluna yazılmaz).
+
+## Klasik yerleşim (`JARVIS_UI_STYLE=classic`)
 sol ikon şeridi · **sol panel** (`agent_panel.py`: departman ağacı + SOP/rozet detay kartı + görev akışı) · **merkez**
-(`brain_graph.py`: arc-reactor beyin haritası — JARVIS → 6 departman altıgeni → tıklayınca alt ajanlar yelpazesi; otonomi rengi
-cyan/altın/mistik) + konuşma transkripti + köprü/komut girişi · **sağ panel** (webcam + ekran görüşü + sistem günlüğü) · durum çubuğu.
+(`brain_graph.py`: JARVIS → 6 departman altıgeni → tıklayınca alt ajanlar yelpazesi) + konuşma transkripti + köprü/komut
+girişi · **sağ panel** (webcam + ekran görüşü + sistem günlüğü) · durum çubuğu.
 
 ## Masaüstü uygulaması davranışı
 - Her zaman üstte pencere + `QSystemTrayIcon` (Göster/Gizle, Her zaman üstte, Windows ile başlat `HKCU\\...\\Run`, Çıkış).
@@ -383,7 +422,8 @@ cyan/altın/mistik) + konuşma transkripti + köprü/komut girişi · **sağ pan
 - Dış yazma sırasında (`on_external_typing`) pencere `showMinimized()` olur (klavye odağını da bırakır), bitince `showNormal()`.
 
 Bileşenler: `ui/{app,main_window,engine_worker,orchestrator_worker,scheduler_worker,web_worker,qt_observer,sound,theme}.py`,
-`ui/widgets/{webcam_view,transcript_view,log_view,agent_panel,brain_graph}.py`, `ui/strings.py` (doğru Türkçe metinler, `tr_upper/tr_lower`).
+`ui/widgets/{webcam_view,transcript_view,log_view,agent_panel,brain_graph,content_panel,panel_views,panel_web}.py`,
+`ui/hud/{hud_window,command_graph,stat_cards,hud_card,backdrop,boot,fonts}.py`, `ui/strings.py` (doğru Türkçe metinler, `tr_upper/tr_lower`).
 
 ## Performans (2026-09-20, Aşama 1)
 - `WebcamView`: aynı kare tekrar gelirse decode/ölçekleme yok, ölçeklenmiş kare önbellekte, gizliyken zamanlayıcı durur.
@@ -393,7 +433,7 @@ Bileşenler: `ui/{app,main_window,engine_worker,orchestrator_worker,scheduler_wo
 - Ölçüm (offscreen, 6 departman): kare başına 17,9 → 15,4 ms; boşta tahmini CPU ≈ %54 → %23 (tek çekirdek).
 - Ölü kod `HudOrb` silindi. Durum çubuğu: gerçek model adı, `GÖREV aktif/toplam`, ribbon beyin düğmesi = **odak modu** (yan panelleri gizle/göster), sahte sekme kaldırıldı.
 - Bulunan hata: Python `lower()` `BAĞLI`→`bağli` yapıyordu → `tr_lower`.
-- Test: `tests/ui/` (offscreen), `scripts/ui_snapshot.py` (PNG). Plan: `C:\Users\KULLANICI\.claude\plans\aray-z-biraz-g-ncelleyelim-snug-moon.md` (Aşama 2-4 bekliyor).
+- Test: `tests/ui/` (offscreen), `scripts/ui_snapshot.py` (PNG). Plan: `C:\\Users\\KULLANICI\\.claude\\plans\\aray-z-biraz-g-ncelleyelim-snug-moon.md` (Aşama 2-4 bekliyor).
 """, ["mimari", "arayüz"])
 
 note("01 Mimari/Web Konsolu ve PWA.md", "Web Konsolu ve PWA", f"""
@@ -815,6 +855,34 @@ vitest + eslint + CI. `RadialGraphCanvas` 542→100 satır, klavye erişilebilir
 ## Bulgular
 - Gemini ücretsiz kotası tüm zincirde tükenmişti (429).
 - Modelin insan taklidi yapması ve senin adına söz vermesi gerçek bir risk olarak görüldü → kurallar koda gömüldü.
+""", ["günlük"])
+
+note("07 Günlük/2026-10-12 Ekim Güncellemeleri.md", "2026-10-12 Ekim Güncellemeleri", """
+Eylül sonundan 13 Ekim'e kadar yapılanların özeti. Ayrıntılı proje notları ayrı kasada: `JARVIS Hafiza/Proje/`.
+
+## Arayüz
+1. **Komuta HUD** varsayılan oldu; merkezde dönen 3B yörünge (`CommandGraph`), zırh büstü (`SuitCore`) silindi, mint palet ([[Masaüstü Arayüzü (HUD)]]).
+2. **İçerik paneli:** video, Wikipedia, belge, site, Spotify, haber, piyasa grafiği, hava ve bilgi kartı arayüzün içinde açılır (10 yeni araç, [[Araç Kataloğu]]).
+
+## Beyin motoru
+3. **Uyandırma kelimesi** "Hey JARVIS" (openwakeword) + en fazla uyanık kalma tavanı; köprü mesajı sırasında mikrofon modele kapanır.
+4. **Kesintisiz hafıza:** Live oturum devam tutamağı (session resumption) + temiz oturumda "OTURUM BAĞLAMI" (tarih/saat, dünün özeti, bugünkü konuşmanın sonu).
+5. **Gün sonu özeti:** `core/daily_summary.py` → `JARVIS Hafiza/Gunluk/YYYY-MM-DD.md` (varsayılan 23:30 + açılışta telafi).
+6. **Yalnız benim sesim:** konuşmacı doğrulama (`core/speaker_verify.py`, sherpa-onnx); profil yoksa pasif.
+7. **Çevrimdışı mod:** internet yokken yerel model (Ollama qwen2.5) + yazılı sohbet + sesli konuşma (vosk + Piper/SAPI).
+
+## Ajanlar ve entegrasyonlar
+8. Ajan başına model + yedek zinciri (Claude → OpenRouter → Gemini → yerel), sessiz yedek yok ([[OpenRouter]], [[Modeller ve Anahtarlar]]).
+9. Gmail OAuth, Telegram kolu, İzmir ulaşım araçları, Spotify kolu, MCP istemcisi, tarayıcı ajanı, disk bakımı, kişisel hafıza araması.
+10. Sunucu (beyin) + istemci (gövde) ayrımı ve VPS kurulum dosyaları (`server/`, `client/`, `deploy/`).
+
+## Güvenlik
+11. **Güvenli kapatma:** kapatma kısayolları (alt+f4, ctrl+w ...) onaysız gitmez, onay gerçek pencere başlığını gösterir, korumalı pencereler reddedilir ([[Onay Kapıları]]).
+
+## Paketler (2026-10-13)
+google-genai 2.30.1, PySide6 6.12.0 (Essentials + Addons), playwright 1.63.0, anthropic 1.13.0, huggingface_hub 2.2.0,
+numpy 2.5.4, onnxruntime 1.31.0. Aynı Python'u paylaşan crewai yüzünden pydantic 2.12.5, openai 2.x ve mcp 1.28.x'te bırakıldı;
+websockets 16.x'te kaldı (google-genai `<17` istiyor).
 """, ["günlük"])
 
 # ---------------------------------------------------------------- SORUNLAR

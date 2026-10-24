@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Rajdhani";
+  src: url("/fonts/Rajdhani-Regular.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Rajdhani";
+  src: url("/fonts/Rajdhani-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/JetBrainsMono.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@theme {
+  --font-display: "Rajdhani", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+  --color-void: #03070d;
+  --color-hud: #05101c;
+  --color-arc: #63d2ff;
+  --color-arc-dim: #2f7391;
+  --color-mint: #44d7b5;
+  --color-gold: #f5b54a;
+  --color-ink: #cfeaf7;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--color-void);
+  overflow: hidden;
+  user-select: none;
+}
+
+body {
+  font-family: var(--font-display);
+  color: var(--color-ink);
+}
+
+@keyframes hud-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.hud-blink { animation: hud-blink 1.1s steps(2, jump-none) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-blink { animation: none; }
+}

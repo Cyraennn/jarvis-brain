@@ -62,7 +62,7 @@ class BootOverlay(QWidget):
         c = QPointF(w / 2, h / 2)
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        p.fillRect(self.rect(), QColor(5, 7, 13, int(235 * fade)))
+        p.fillRect(self.rect(), QColor(0, 0, 0, int(240 * fade)))
 
         accent = QColor(theme.ACCENT)
         base = min(w, h) * 0.12
@@ -76,7 +76,7 @@ class BootOverlay(QWidget):
             span = int(-360 * 16 * prog)
             p.drawArc(QRectF(c.x() - r, c.y() - r, r * 2, r * 2), 90 * 16, span)
 
-        gold = QColor(theme.GOLD)
+        gold = QColor(theme.ACCENT_HOVER)
         gold.setAlpha(int(230 * fade))
         p.setPen(QPen(gold, 1.6))
         spin = k * math.tau

@@ -64,7 +64,7 @@ def _engine(tmp_path=None) -> BrainEngine:
     eng = BrainEngine.__new__(BrainEngine)
     eng.settings = SimpleNamespace(
         session_context_enabled=True, obsidian_dir=None, voice_name="Puck",
-        load_system_prompt=lambda: "TEMEL ISTEM",
+        load_system_prompt=lambda persona="jarvis": "TEMEL ISTEM",
     )
     eng._resume_handle = None
     eng._resume_saved_at = 0.0

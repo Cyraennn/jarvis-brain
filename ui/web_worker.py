@@ -34,6 +34,7 @@ class WebWorker(threading.Thread):
             okul_state_path=s.okul_state_path if s.okul_enabled else None,
             okul_outbox_path=s.okul_outbox_path if s.okul_enabled else None,
             team_tts=s.team_tts_enabled,
+            remote_desktop=s.remote_desktop_enabled,
         )
         try:
             self._server.serve_forever()

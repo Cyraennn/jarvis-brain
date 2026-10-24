@@ -14,6 +14,8 @@ ROOT = Path(SPECPATH)
 datas = [
     (str(ROOT / "prompts"), "prompts"),
     (str(ROOT / "assets"), "assets"),
+    # web konsolunun statik dosyalari (jest modulleri, yerel MediaPipe modelleri)
+    (str(ROOT / "web" / "static"), "web/static"),
 ]
 binaries = []
 hiddenimports = ["winsound", "mss", "mss.windows"]
@@ -41,7 +43,8 @@ a = Analysis(
     hiddenimports=hiddenimports,
     hookspath=[],
     runtime_hooks=[],
-    excludes=["tkinter", "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets"],
+    # QtWebEngine dahil: icerik paneli (ui/widgets/panel_web.py) onu tembel ice aktarir
+    excludes=["tkinter"],
     noarchive=False,
 )
 

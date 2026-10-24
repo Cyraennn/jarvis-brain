@@ -35,6 +35,7 @@ class EventBus:
             "reminders": [],
             "routines": [],
             "confirmations": [],       # bekleyen onay istekleri [{id,prompt,source,requested_at}]
+            "panel": None,             # acik icerik paneli (telefon uygulamasi icin)
             "started_at": time.time(),
         }
 
@@ -82,6 +83,15 @@ class EventBus:
             s["confirmations"] = [c for c in s["confirmations"] if c.get("id") != conf_id]
         elif kind == "remote_audio":
             s["remote_audio"] = data or {}
+        elif kind == "persona":
+            s["persona"] = data or "jarvis"
+        elif kind == "panel":
+            # telefon sonradan baglanirsa acik paneli /api/state'ten alir
+            pkind = (data or {}).get("kind")
+            if pkind == "close":
+                s["panel"] = None
+            elif pkind != "map_control":
+                s["panel"] = data
 
     # -------------------------------------------------------------- abonelik
     def subscribe(self) -> deque[dict[str, Any]]:

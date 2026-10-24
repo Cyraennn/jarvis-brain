@@ -9,11 +9,21 @@ Telefondan `http://<pc-lan-ip>:<port>?key=<token>` ile acilir.
   POST /api/phone-event  -> {"app": "...", "text": "..."} telefon bildirim aynasi
   POST /api/control      -> {"action": "mic_on|mic_off|away_on|away_off|wake_on|wake_off"} PC ses kontrolu
   POST /api/confirm      -> {"id": "...", "approve": true|false} bekleyen onay istegini coz
+  GET  /api/events?client=phone -> telefon uygulamasi (web/phone_link.py: eylem kanali acilir)
+  POST /api/phone-result -> {"id", "ok", "result"|"error"} telefonun phone_action yaniti
+  POST /api/files/upload?name=  -> ham govde, ~/Downloads/JARVIS'e (web/phone_files.py)
+  GET  /api/files        -> telefona sunulan dosyalar; GET /api/files/get?name= indirir
+  GET  /pair             -> telefon eslestirme QR'i (yalnizca localhost; jarvis://pair?host&port&key)
+  GET  /api/screen/stream -> PC ekrani MJPEG; POST /api/remote/input fare/klavye (web/remote_desktop.py,
+                            yalnizca JARVIS_REMOTE_DESKTOP=1 iken; aksi halde 403)
   POST /api/okul/push    -> okul (BOTE Ders Merkezi) tam durum JSON'u (localStorage aynasi)
   GET  /api/okul/pull    -> JARVIS'in okul'a ilettigi bekleyen degisiklikler (+ kuyrugu bosaltir)
   GET  /hud              -> el-jesti kontrollu 3D HUD (webcam + MediaPipe, tarayicida)
   GET  /gesture/<dosya>  -> HUD'un jest modulleri (statik JS, ui/gesture yerine web/static/gesture)
   POST /api/gesture      -> {"gesture":"select","part":"..."} -> ilgili ajana kisa aciklama sorar
+  GET  /el               -> El Kontrolu + Kitaplik (web/el_page.py; ?el=demo, &kitaplik=1)
+  GET  /models/<dosya>   -> yerel MediaPipe modelleri/wasm (scripts/el_modeli_indir.py)
+  *    /api/el/*, /api/kitaplik/* -> web/el_api.py
 """
 
 from __future__ import annotations
@@ -22,6 +32,7 @@ import contextlib
 import hmac
 import json
 import os
+import shutil
 import socket
 import tempfile
 import threading
@@ -29,13 +40,15 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Callable
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, urlparse
 
 from loguru import logger
 
 from config.settings import ASSETS_DIR
 from web.confirm_registry import REGISTRY
 from web.event_bus import BUS
+from web import phone_files
+from web.phone_link import PHONE
 from web.hud_page import render_hud_page
 from web.page import PWA_SERVICE_WORKER, render_manifest, render_page
 from web.team_page import render_team_page
@@ -48,10 +61,30 @@ _ICON_FILES = {
     "/favicon.ico": "jarvis.ico",
 }
 
+_FRAME_HEAD = b"--jarvisframe\r\nContent-Type: image/jpeg\r\nContent-Length: "
+
 _GESTURE_DIR = Path(__file__).parent / "static" / "gesture"
 _GESTURE_FILES = {
     "smoothing.js", "gesture-engine.js", "gesture-bridge.js", "deixis.js", "calibration.js",
+    # El Kontrolu (/el)
+    "hand-features.js", "poses.js", "controller.js", "frame-scheduler.js", "fx-audio.js",
+    "fx-particles.js", "fx-fire.js", "fx-seal.js", "fx-planet.js", "fx-burst.js",
+    "fx-settings.js", "face-hud.js",
+    "shelf-geom.js", "bookshelf.js", "shelf-calib.js", "shelf-drift.js",
+    "demo-hands.js", "el-app.js",
 }
+_MODELS_DIR = Path(__file__).parent / "static" / "models"
+_MODEL_TYPES = {".wasm": "application/wasm", ".js": "text/javascript; charset=utf-8",
+                ".mjs": "text/javascript; charset=utf-8",
+                ".task": "application/octet-stream", ".tflite": "application/octet-stream"}
+# JSON govdesi ust siniri (gorseller ham govdeyle gelir, bkz. web/el_api.py)
+MAX_JSON_BYTES = 2 * 1024 * 1024
+# /api/say kaynak on-ekleri (motor bunlara gore mikrofonu bekletir / bekletmez)
+_SAY_SOURCES = {"TELEFON": "[TELEFON]", "EL": "[EL]"}
+
+
+class _BodyTooLarge(Exception):
+    pass
 
 
 def _cors_allowlist() -> set[str]:
@@ -78,6 +111,7 @@ class ConsoleServer:
         okul_state_path: "Path | None" = None,
         okul_outbox_path: "Path | None" = None,
         team_tts: bool = True,
+        remote_desktop: bool = False,
     ) -> None:
         self.outbox = Path(outbox_path)
         self.inbox = Path(inbox_path)
@@ -91,12 +125,35 @@ class ConsoleServer:
         self.okul_outbox_path = Path(okul_outbox_path) if okul_outbox_path else None
         self._okul_lock = threading.Lock()
         self.team_tts = bool(team_tts)
+        self.remote_desktop = bool(remote_desktop)  # web/remote_desktop.py: varsayilan kapali
         self._httpd: ThreadingHTTPServer | None = None
+
+    def pair_page(self) -> str:
+        """Telefon uygulamasini tek dokunusla eslestiren sayfa (Tailscale adresi tercih edilir)."""
+        import html as _html
+
+        ts, lan = _tailscale_ip(), _lan_ip()
+        host = ts or lan
+        link = pair_link(host, self.port, self.token)
+        svg = _qr_svg(link) or "<p>QR icin: pip install qrcode</p>"
+        where = "Tailscale (evde de disarida da calisir)" if ts else "ev Wi-Fi'si (Tailscale bulunamadi)"
+        return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>JARVIS · Telefonu eşle</title>
+<style>body{{background:#000;color:#ffffffcc;font:16px 'Segoe UI',sans-serif;display:grid;place-items:center;min-height:100vh;margin:0}}
+.c{{text-align:center;max-width:420px}}h1{{color:#ff8c42;font-size:22px;letter-spacing:.12em}}
+.q{{background:#fff;padding:14px;border-radius:18px;display:inline-block;margin:18px 0}}.q svg{{width:300px;height:300px}}
+small{{color:#ffffff70}}code{{color:#ff8c42}}</style></head><body><div class="c">
+<h1>JARVIS · TELEFONU EŞLE</h1><p>Telefonun kamerasıyla bu kodu okutun ya da uygulamada <b>Ayarlar → QR ile eşle</b>.</p>
+<div class="q">{svg}</div><p>Adres: <code>{_html.escape(host)}:{self.port}</code><br><small>{where}</small></p>
+<small>Bu sayfa erişim anahtarını içerir; yalnızca bu bilgisayarda açılır.</small></div></body></html>"""
 
     # ------------------------------------------------------------------ lifecycle
     def serve_forever(self) -> None:
         server = self
         BUS.state["web_url"] = self.url()
+        if not os.getenv("PYTEST_CURRENT_TEST"):
+            with contextlib.suppress(Exception):  # yuz kilidi sesi hazir beklesin
+                from web.el_api import prewarm_welcome
+                prewarm_welcome()
 
         class Handler(BaseHTTPRequestHandler):
             protocol_version = "HTTP/1.1"
@@ -130,9 +187,15 @@ class ConsoleServer:
             def _read_body(self) -> dict:
                 try:
                     n = int(self.headers.get("Content-Length", 0))
-                    return json.loads(self.rfile.read(n) or b"{}")
+                except (TypeError, ValueError):
+                    return {}
+                if n > MAX_JSON_BYTES:
+                    raise _BodyTooLarge(n)  # okumadan reddet
+                try:
+                    data = json.loads(self.rfile.read(n) or b"{}")
                 except Exception:  # noqa: BLE001
                     return {}
+                return data if isinstance(data, dict) else {}
 
             # --------------------------------------------------------- GET
             def _raw(self, body: bytes, ctype: str, cache: str = "no-cache") -> None:
@@ -173,6 +236,13 @@ class ConsoleServer:
                         return
                     self._json(404, {"error": "ikon yok"})
                     return
+                if path == "/pair":
+                    # Telefon eslestirme QR'i: token icerdigi icin YALNIZCA bu PC'den acilir
+                    if self.client_address[0] not in ("127.0.0.1", "::1"):
+                        self._json(403, {"error": "eslestirme sayfasi yalnizca PC'den acilir"})
+                        return
+                    self._raw(server.pair_page().encode("utf-8"), "text/html; charset=utf-8")
+                    return
                 if path.startswith("/gesture/"):
                     name = path[len("/gesture/"):]
                     if name not in _GESTURE_FILES:
@@ -184,11 +254,28 @@ class ConsoleServer:
                         return
                     self._raw(fp.read_bytes(), "text/javascript; charset=utf-8", cache="no-cache")
                     return
+                if path.startswith("/models/"):
+                    name = path[len("/models/"):]
+                    ctype = _MODEL_TYPES.get(Path(name).suffix.lower())
+                    if "/" in name or "\\" in name or ".." in name or ctype is None \
+                            or not (_MODELS_DIR / name).is_file():
+                        self._json(404, {"error": "yok"})
+                        return
+                    self._raw((_MODELS_DIR / name).read_bytes(), ctype, cache="max-age=604800")
+                    return
                 if not self._authed():
                     self._json(401, {"error": "gecersiz veya eksik key"})
                     return
                 if path == "/hud":
                     self._raw(render_hud_page().encode("utf-8"), "text/html; charset=utf-8")
+                    return
+                if path == "/el":
+                    from web.el_page import render_el_page
+                    self._raw(render_el_page().encode("utf-8"), "text/html; charset=utf-8")
+                    return
+                if path.startswith(("/api/el/", "/api/kitaplik")):
+                    from web import el_api
+                    el_api.handle_get(self, server, path)
                     return
                 if path == "/ekip":
                     self._raw(render_team_page().encode("utf-8"), "text/html; charset=utf-8")
@@ -201,12 +288,96 @@ class ConsoleServer:
                     self._json(200, BUS.snapshot())
                     return
                 if path == "/api/events":
-                    self._sse()
+                    client = parse_qs(urlparse(self.path).query).get("client", [""])[0]
+                    is_phone = client == "phone"
+                    is_el = client == "el"
+                    if is_phone:
+                        PHONE.attach()
+                    if is_el:
+                        from web.el_api import EL_CLIENTS
+                        EL_CLIENTS.attach()
+                    try:
+                        self._sse()
+                    finally:
+                        if is_phone:
+                            PHONE.detach()
+                        if is_el:
+                            EL_CLIENTS.detach()
                     return
                 if path == "/api/okul/pull":
                     self._json(200, server._okul_pull())
                     return
+                if path == "/api/files":
+                    self._json(200, {"files": phone_files.list_outbox()})
+                    return
+                if path == "/api/screen/stream":
+                    if not server.remote_desktop:
+                        self._json(403, {"error": "uzaktan ekran kapali (.env: JARVIS_REMOTE_DESKTOP=1)"})
+                        return
+                    self._screen_stream()
+                    return
+                if path == "/api/files/get":
+                    self._download(parse_qs(urlparse(self.path).query).get("name", [""])[0])
+                    return
                 self._json(404, {"error": "yok"})
+
+            def _download(self, name: str) -> None:
+                target = phone_files.outbox_file(name)
+                if target is None:
+                    self._json(404, {"error": "dosya yok"})
+                    return
+                size = target.stat().st_size
+                self.send_response(200)
+                self.send_header("Content-Type", "application/octet-stream")
+                self.send_header("Content-Length", str(size))
+                self.send_header("Content-Disposition", "attachment; filename*=UTF-8''" + quote(target.name))
+                self.end_headers()
+                try:
+                    with target.open("rb") as f:
+                        shutil.copyfileobj(f, self.wfile, 256 * 1024)
+                except (BrokenPipeError, ConnectionResetError, OSError):
+                    pass
+
+            def _screen_stream(self) -> None:
+                from web import remote_desktop
+
+                qs = parse_qs(urlparse(self.path).query)
+                fps = float((qs.get("fps") or [remote_desktop.DEFAULT_FPS])[0])
+                quality = int((qs.get("q") or [remote_desktop.DEFAULT_QUALITY])[0])
+                self.send_response(200)
+                self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=jarvisframe")
+                self.send_header("Cache-Control", "no-cache")
+                self.end_headers()
+                client = self.client_address[0]
+                remote_desktop.stream_started(client)
+                try:
+                    for jpg in remote_desktop.frames(fps, quality):
+                        self.wfile.write(
+                            _FRAME_HEAD + str(len(jpg)).encode() + b"\r\n\r\n" + jpg + b"\r\n"
+                        )
+                        self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError, OSError):
+                    pass
+                finally:
+                    remote_desktop.stream_stopped(client)
+
+            def _upload(self) -> None:
+                name = parse_qs(urlparse(self.path).query).get("name", [""])[0]
+                try:
+                    length = int(self.headers.get("Content-Length", 0))
+                    saved = phone_files.save_upload(self.rfile, length, name)
+                except ValueError as exc:
+                    self.close_connection = True  # okunmamis govde kalmis olabilir
+                    self._json(400, {"error": str(exc)})
+                    return
+                except OSError as exc:
+                    self.close_connection = True
+                    self._json(500, {"error": f"kaydedilemedi: {exc}"})
+                    return
+                server._append(server.outbox, f"[TELEFON DOSYA] Telefondan dosya geldi: {saved}")
+                BUS.push("transcript", {"who": "sys", "text": f"Telefondan dosya: {saved.name}",
+                                        "ts": time.time()})
+                self._json(200, {"status": "kaydedildi", "name": saved.name})
 
             def _sse(self) -> None:
                 self.send_response(200)
@@ -250,15 +421,37 @@ class ConsoleServer:
                     self._json(401, {"error": "gecersiz veya eksik key"})
                     return
                 path = urlparse(self.path).path
-                data = self._read_body()
+                if path == "/api/files/upload":
+                    self._upload()
+                    return
+                if path.startswith(("/api/el/", "/api/kitaplik")):
+                    from web import el_api
+                    try:
+                        el_api.handle_post(self, server, path)
+                    except _BodyTooLarge:
+                        self.close_connection = True
+                        self._json(413, {"error": "govde cok buyuk"})
+                    return
+                try:
+                    data = self._read_body()
+                except _BodyTooLarge:
+                    self.close_connection = True  # okunmamis govde kaldi
+                    self._json(413, {"error": "govde cok buyuk"})
+                    return
                 if path == "/api/say":
                     text = str(data.get("text", "")).strip()
                     if not text:
                         self._json(400, {"error": "text bos"})
                         return
-                    server._append(server.outbox, f"[TELEFON] {text}")
-                    BUS.push("transcript", {"who": "user", "text": text, "ts": time.time()})
-                    self._json(200, {"status": "iletildi"})
+                    source = str(data.get("source", "TELEFON")).strip().upper()
+                    prefix = _SAY_SOURCES.get(source)
+                    if prefix is None:
+                        self._json(400, {"error": f"bilinmeyen source: {source}"})
+                        return
+                    server._append(server.outbox, f"{prefix} {text}")
+                    BUS.push("transcript", {"who": "user", "text": text, "ts": time.time(),
+                                            "source": source.lower()})
+                    self._json(200, {"status": "iletildi", "source": source.lower()})
                     return
                 if path == "/api/task":
                     task = str(data.get("task", "")).strip()
@@ -285,7 +478,8 @@ class ConsoleServer:
                     return
                 if path == "/api/control":
                     action = str(data.get("action", "")).strip().lower()
-                    if action not in ("mic_on", "mic_off", "away_on", "away_off", "wake_on", "wake_off"):
+                    if action not in ("mic_on", "mic_off", "away_on", "away_off", "wake_on", "wake_off",
+                                      "interrupt"):
                         self._json(400, {"error": f"bilinmeyen action: {action}"})
                         return
                     result = {"status": "uygulandi", "action": action}
@@ -308,6 +502,27 @@ class ConsoleServer:
                         BUS.push("control_state", {"wake": action == "wake_on"})
                     self._json(200, result)
                     return
+                if path == "/api/remote/input":
+                    if not server.remote_desktop:
+                        self._json(403, {"error": "uzaktan kontrol kapali (.env: JARVIS_REMOTE_DESKTOP=1)"})
+                        return
+                    from web.remote_desktop import handle_input
+                    self._json(200, handle_input(data))
+                    return
+                if path == "/api/phone-result":
+                    req_id = str(data.get("id", "")).strip()
+                    if not req_id:
+                        self._json(400, {"error": "id bos"})
+                        return
+                    if data.get("ok"):
+                        reply = {"status": "ok", "result": data.get("result")}
+                    else:
+                        reply = {"error": str(data.get("error") or "telefonda basarisiz")}
+                    if not PHONE.resolve(req_id, reply):
+                        self._json(404, {"error": "istek bulunamadi (zaman asimina ugramis olabilir)"})
+                        return
+                    self._json(200, {"status": "alindi"})
+                    return
                 if path == "/api/confirm":
                     conf_id = str(data.get("id", "")).strip()
                     approve = bool(data.get("approve"))
@@ -326,6 +541,10 @@ class ConsoleServer:
                     return
                 if path == "/api/team/council/turn":
                     code, payload = server._team_council_turn(data)
+                    self._json(code, payload)
+                    return
+                if path == "/api/team/council/next":
+                    code, payload = server._team_council_next(data)
                     self._json(code, payload)
                     return
                 if path == "/api/okul/push":
@@ -460,6 +679,25 @@ class ConsoleServer:
                                     "ts": time.time()})
         return 200, {"persona": key, "final": final, **out}
 
+    def _team_council_next(self, data: dict) -> tuple[int, dict]:
+        """POST /api/team/council/next - toplantida sozu kime verecegini secer (sabit sira yok)."""
+        from agents import stark_team
+
+        topic = str(data.get("topic", "")).strip()[: stark_team.MAX_TEXT]
+        members = data.get("members")
+        if not topic:
+            return 400, {"error": "topic bos"}
+        if not isinstance(members, list) or not members:
+            return 400, {"error": "members bos"}
+        last = str(data.get("last") or "").strip().lower() or None
+        try:
+            out = stark_team.run_sync(stark_team.next_speaker(
+                topic, data.get("transcript"), [str(m).lower() for m in members], last))
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"/api/team/council/next: {exc!r}")
+            return 504, {"error": "konusmaci secilemedi"}
+        return 200, out
+
     def _okul_pull(self) -> dict:
         """JARVIS'in okul'a iletecegi bekleyen degisiklikleri dondurur ve kuyrugu bosaltir."""
         if self.okul_outbox_path is None:
@@ -491,6 +729,40 @@ class ConsoleServer:
         ip = _lan_ip() if self.bind == "0.0.0.0" else self.bind
         tok = f"?key={'***' if masked else self.token}" if self.token else ""
         return f"http://{ip}:{self.port}{tok}"
+
+
+def _tailscale_ip() -> str:
+    """Tailscale arayuzunun IPv4'u (100.64.0.0/10); yoksa bos."""
+    import ipaddress
+
+    try:
+        import psutil
+
+        net = ipaddress.ip_network("100.64.0.0/10")
+        for addrs in psutil.net_if_addrs().values():
+            for a in addrs:
+                if a.family == socket.AF_INET and ipaddress.ip_address(a.address) in net:
+                    return a.address
+    except Exception:  # noqa: BLE001
+        pass
+    return ""
+
+
+def pair_link(host: str, port: int, token: str) -> str:
+    from urllib.parse import urlencode
+
+    return "jarvis://pair?" + urlencode({"host": host, "port": port, "key": token})
+
+
+def _qr_svg(text: str) -> str:
+    """QR kodu satir ici SVG (qrcode paketi; yoksa bos)."""
+    try:
+        import qrcode
+        import qrcode.image.svg
+    except ImportError:
+        return ""
+    img = qrcode.make(text, image_factory=qrcode.image.svg.SvgPathImage, box_size=12, border=2)
+    return img.to_string(encoding="unicode")
 
 
 def _lan_ip() -> str:

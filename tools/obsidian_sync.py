@@ -172,3 +172,61 @@ def append_conversation(role: str, text: str) -> Path | None:
     except OSError as exc:
         logger.debug(f"Obsidian konusma yazma hatasi: {exc}")
         return None
+
+
+_MANAGED_START = "<!-- jarvis:start -->"
+_MANAGED_END = "<!-- jarvis:end -->"
+
+
+def write_managed_doc(
+    title: str,
+    content: str,
+    subfolder: str,
+    tags: list[str] | None = None,
+    source: str = "JARVIS",
+) -> Path | None:
+    """JARVIS'in yonettigi bolumu gunceller, kullanicinin elle yazdiklarini korur.
+
+    Dosya yoksa frontmatter + baslik + isaretli bolum yazilir. Varsa yalnizca
+    `<!-- jarvis:start -->` ... `<!-- jarvis:end -->` arasi degisir; isaret yoksa
+    (kullanici silmis) bolum dosyanin sonuna eklenir. Kitaplik notlari bunu kullanir.
+    """
+    body = (content or "").strip()
+    base = vault_dir()
+    if not body or base is None:
+        return None
+    block = f"{_MANAGED_START}\n{body}\n{_MANAGED_END}"
+    try:
+        folder = base / subfolder
+        folder.mkdir(parents=True, exist_ok=True)
+        f = folder / f"{_slug(title)}.md"
+        if f.is_file():
+            old = f.read_text(encoding="utf-8")
+            i, j = old.find(_MANAGED_START), old.find(_MANAGED_END)
+            if i != -1 and j > i:
+                new = old[:i] + block + old[j + len(_MANAGED_END):]
+            else:
+                new = old.rstrip() + "\n\n" + block + "\n"
+        else:
+            now = datetime.now().astimezone()
+            tag_list = ["jarvis", subfolder.lower(), *(t.strip() for t in (tags or []) if t.strip())]
+            new = "\n".join([
+                "---",
+                f"title: {title.strip()}",
+                f"created: {now.isoformat(timespec='seconds')}",
+                f"tags: [{', '.join(dict.fromkeys(tag_list))}]",
+                f"source: {source}",
+                "---",
+                "",
+                f"# {title.strip()}",
+                "",
+                block,
+                "",
+                "## Kendi notlarım",
+                "",
+            ])
+        f.write_text(new, encoding="utf-8")
+        return f
+    except OSError as exc:
+        logger.debug(f"Obsidian yonetilen belge yazma hatasi: {exc}")
+        return None

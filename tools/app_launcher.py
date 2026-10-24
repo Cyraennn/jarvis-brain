@@ -347,6 +347,19 @@ def _browser_type_settings() -> tuple[bool, float, float]:
         return True, 0.07, 2.4
 
 
+def resolve_url(target: str) -> tuple[str, str]:
+    """Kisayol / tam URL / alan adi / arama sorgusunu (url, adres cubuguna yazilacak metin) yapar."""
+    low = _normalize(target)
+    if low in _SITE_SHORTCUTS:
+        url = _SITE_SHORTCUTS[low]
+        return url, url.split("://", 1)[-1].removeprefix("www.")
+    if target.lower().startswith(("http://", "https://")):
+        return target, target
+    if " " not in target and "." in target:
+        return "https://" + target, target
+    return "https://www.google.com/search?q=" + quote_plus(target), target   # arama sorgusu
+
+
 def open_website(target: str) -> dict[str, Any]:
     """Bir web sitesini varsayilan tarayicida acar. URL, alan adi veya arama sorgusu kabul eder.
 
@@ -356,19 +369,7 @@ def open_website(target: str) -> dict[str, Any]:
     if not target:
         return {"error": "Adres bos."}
 
-    low = _normalize(target)
-    if low in _SITE_SHORTCUTS:
-        url = _SITE_SHORTCUTS[low]
-        to_type = url.split("://", 1)[-1].removeprefix("www.")
-    elif target.lower().startswith(("http://", "https://")):
-        url = target
-        to_type = target
-    elif " " not in target and "." in target:
-        url = "https://" + target
-        to_type = target
-    else:  # arama sorgusu
-        url = "https://www.google.com/search?q=" + quote_plus(target)
-        to_type = target
+    url, to_type = resolve_url(target)
 
     type_mode, per_char, open_delay = _browser_type_settings()
     if type_mode and _IS_WIN:
@@ -418,39 +419,49 @@ def _find_chromium_browser() -> str | None:
     return None
 
 
-def open_gesture_hud() -> dict[str, Any]:
-    """El-jesti kontrollu 3D HUD'u (webcam + jest kontrolu) kendi penceresinde acar.
+def open_console_app(path: str, params: dict[str, str] | None = None,
+                     size: str = "1440,900") -> dict[str, Any]:
+    """Web konsolundaki bir sayfayi (`/hud`, `/el` ...) kendi penceresinde acar.
 
-    Web konsolu (`web_console_enabled`) uzerinden `/hud` sayfasini, mumkunse
-    Chrome/Edge'in app-mode'unda (adres cubugu/sekmesi olmayan, siyah-zemin
-    tam ekrana yakin bir pencere) acar; bulunamazsa varsayilan tarayicida
-    normal bir sekme olarak acilir.
+    Mumkunse Chrome/Edge'in app-mode'unda (adres cubugu/sekmesi olmayan pencere);
+    bulunamazsa varsayilan tarayicida normal bir sekme olarak acilir.
     """
+    from urllib.parse import urlencode
+
     from config.settings import get_settings
 
     cfg = get_settings()
     if not cfg.web_console_enabled:
         return {"error": "Web konsolu kapali (ayar: web_console_enabled)."}
 
-    url = f"http://127.0.0.1:{cfg.web_console_port}/hud"
+    query = dict(params or {})
     if cfg.web_console_token:
-        url += f"?key={cfg.web_console_token}"
+        query["key"] = cfg.web_console_token
+    url = f"http://127.0.0.1:{cfg.web_console_port}{path}"
+    if query:
+        url += "?" + urlencode(query)
+    shown = url.replace(cfg.web_console_token, "***") if cfg.web_console_token else url
 
     browser = _find_chromium_browser()
     if browser:
         try:
             subprocess.Popen(
-                [browser, f"--app={url}", "--window-size=1440,900", "--new-window"],
+                [browser, f"--app={url}", f"--window-size={size}", "--new-window"],
                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             )
-            return {"status": "acildi", "mode": "pencere", "url": url}
+            return {"status": "acildi", "mode": "pencere", "url": shown}
         except OSError as exc:
-            logger.warning(f"Jest HUD penceresi acilamadi ({browser}): {exc!r}")
+            logger.warning(f"Konsol penceresi acilamadi ({browser}): {exc!r}")
 
     import webbrowser
 
     webbrowser.open(url, new=1)
-    return {"status": "acildi", "mode": "tarayici sekmesi", "url": url}
+    return {"status": "acildi", "mode": "tarayici sekmesi", "url": shown}
+
+
+def open_gesture_hud() -> dict[str, Any]:
+    """El-jesti kontrollu 3D HUD'u (webcam + jest kontrolu) kendi penceresinde acar."""
+    return open_console_app("/hud")
 
 
 class StarkTeamWindow:

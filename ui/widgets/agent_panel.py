@@ -18,16 +18,25 @@ from PySide6.QtWidgets import (
 from ui import theme
 from ui.strings import AUTONOMY_LABELS, DEPARTMENT_TITLES, TASK_STATUS_LABELS, tr_upper
 
-_STATUS_COLOR = {
-    "idle": theme.TEXT_FAINT, "queued": theme.WARN, "routing": theme.ACCENT, "running": theme.ACCENT,
-    "tool": theme.ACCENT, "awaiting_approval": theme.WARN, "done": theme.GOOD, "failed": theme.BAD,
-    "blocked": theme.MYSTIC, "cancelled": theme.TEXT_FAINT,
-}
-_STATUS = {k: (_STATUS_COLOR[k], TASK_STATUS_LABELS[k]) for k in _STATUS_COLOR}
-_AUTONOMY_COLOR = {
-    "fully_autonomous": theme.ACCENT, "human_assisted": theme.GOLD, "human_led": theme.MYSTIC,
-}
-_AUTONOMY = {k: (_AUTONOMY_COLOR[k], AUTONOMY_LABELS[k]) for k in _AUTONOMY_COLOR}
+# Kisilik paleti degisince yerinde guncellenir (refresh_palette_colors)
+_STATUS: dict[str, tuple[str, str]] = {}
+_AUTONOMY: dict[str, tuple[str, str]] = {}
+
+
+def refresh_palette_colors() -> None:
+    status_color = {
+        "idle": theme.TEXT_FAINT, "queued": theme.WARN, "routing": theme.ACCENT, "running": theme.ACCENT,
+        "tool": theme.ACCENT, "awaiting_approval": theme.WARN, "done": theme.GOOD, "failed": theme.BAD,
+        "blocked": theme.MYSTIC, "cancelled": theme.TEXT_FAINT,
+    }
+    autonomy_color = {
+        "fully_autonomous": theme.ACCENT, "human_assisted": theme.GOLD, "human_led": theme.MYSTIC,
+    }
+    _STATUS.update({k: (c, TASK_STATUS_LABELS[k]) for k, c in status_color.items()})
+    _AUTONOMY.update({k: (c, AUTONOMY_LABELS[k]) for k, c in autonomy_color.items()})
+
+
+refresh_palette_colors()
 _DEP_TITLE = {k: tr_upper(v) for k, v in DEPARTMENT_TITLES.items()}
 
 
@@ -112,6 +121,13 @@ class AgentPanel(QWidget):
                 child.setToolTip(0, f"{alabel}")
                 top.addChild(child)
                 self._items[name] = child
+
+    def refresh_theme(self) -> None:
+        """Kisilik paleti degisti: departman basliklari yeni vurgu rengini alir."""
+        refresh_palette_colors()
+        accent = QColor(theme.ACCENT)
+        for i in range(self._tree.topLevelItemCount()):
+            self._tree.topLevelItem(i).setForeground(0, accent)
 
     def set_agent_status(self, name: str, status: str) -> None:
         item = self._items.get(name)

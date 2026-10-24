@@ -255,29 +255,55 @@ def spotify_control(action: str) -> dict[str, Any]:
         return _guard(action, exc)
 
 
-def spotify_now_playing() -> dict[str, Any]:
-    """Spotify'da su an ne caldigini soyler: sarki, sanatci, cihaz, ilerleme, calip calmadigi."""
+def spotify_playback_state() -> dict[str, Any]:
+    """Ham oynatma durumu (arayuzdeki Spotify karti icin): `spotify_now_playing` alanlari +
+    kapak gorseli ve milisaniye cinsinden ilerleme. Bir sey calmiyorsa `active` False."""
     if not spotify_enabled():
         return _not_configured()
     try:
         pb = _client().current_playback()
         if not pb or not pb.get("item"):
-            return {"ok": True, "playing": False, "message": "Su an Spotify'da bir sey calmiyor."}
+            return {"ok": True, "active": False, "playing": False}
         item = pb["item"]
-        pos, dur = (pb.get("progress_ms") or 0) // 1000, (item.get("duration_ms") or 0) // 1000
+        album = item.get("album") or {}
+        images = album.get("images") or []
         return {
             "ok": True,
+            "active": True,
             "playing": bool(pb.get("is_playing")),
             "track": item.get("name"),
             "artist": _artists(item),
-            "album": (item.get("album") or {}).get("name"),
+            "album": album.get("name"),
             "device": (pb.get("device") or {}).get("name"),
             "volume": (pb.get("device") or {}).get("volume_percent"),
-            "progress": f"{pos // 60}:{pos % 60:02d} / {dur // 60}:{dur % 60:02d}",
             "shuffle": pb.get("shuffle_state"),
+            "progress_ms": int(pb.get("progress_ms") or 0),
+            "duration_ms": int(item.get("duration_ms") or 0),
+            "image": (images[0] or {}).get("url", "") if images else "",
         }
     except Exception as exc:  # noqa: BLE001
         return _guard("now_playing", exc)
+
+
+def spotify_now_playing() -> dict[str, Any]:
+    """Spotify'da su an ne caldigini soyler: sarki, sanatci, cihaz, ilerleme, calip calmadigi."""
+    st = spotify_playback_state()
+    if "error" in st:
+        return st
+    if not st["active"]:
+        return {"ok": True, "playing": False, "message": "Su an Spotify'da bir sey calmiyor."}
+    pos, dur = st["progress_ms"] // 1000, st["duration_ms"] // 1000
+    return {
+        "ok": True,
+        "playing": st["playing"],
+        "track": st["track"],
+        "artist": st["artist"],
+        "album": st["album"],
+        "device": st["device"],
+        "volume": st["volume"],
+        "progress": f"{pos // 60}:{pos % 60:02d} / {dur // 60}:{dur % 60:02d}",
+        "shuffle": st["shuffle"],
+    }
 
 
 def spotify_queue(query: str) -> dict[str, Any]:

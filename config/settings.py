@@ -73,8 +73,13 @@ class Settings(BaseModel):
     api_version: str = "v1alpha"
     voice_name: str = "Puck"
     language_code: str = "tr-TR"
+    # Kisilik modlari (core/personas.py): HUD'daki EKIPLER kartindan secilir.
+    friday_voice: str = "Kore"
+    ultron_voice: str = "Charon"
+    ultron_fx: bool = True  # ULTRON sesine robotik/metalik efekt (core/voice_fx.py)
 
     system_prompt_path: Path = RESOURCE_DIR / "prompts" / "system_prompt.txt"
+    persona_prompt_dir: Path = RESOURCE_DIR / "prompts" / "personas"
     football_prompt_path: Path = RESOURCE_DIR / "prompts" / "football_analyst.md"
     data_dir: Path = APP_DIR / "data"
     log_file: Path = APP_DIR / "data" / "brain.log"
@@ -87,9 +92,18 @@ class Settings(BaseModel):
     # Masaustu / pencere davranisi
     always_on_top: bool = True
     minimize_to_tray: bool = True
-    # Arayuz: "hud" = sinematik JARVIS HUD, "classic" = eski panel yerlesimi
+    # Arayuz: "hud" = Komuta HUD (kartlar + radyal graf), "classic" = eski panel yerlesimi
     ui_style: str = "hud"
     hud_weather_location: str = "İzmir"
+    # Acilis animasyonu: "orb" = Zoey OS orb'u ortaya suzulerek gelir (ui/hud/orb_view.py),
+    # "3d" = 3B zirh (ui/hud/boot3d.py, web3d/), "classic" = halka animasyonu.
+    # Sayfa derlenmemisse ya da QtWebEngine yoksa kendiliginden "classic" oynar.
+    boot_style: str = "orb"
+    # 3B acilis bittikten sonra zirh kac saniye ekranda kalsin (0 = Esc / "ARAYÜZE GEÇ" bekler)
+    boot_hold_s: float = 3.0
+    # Icerik paneli (tools/panel_tools.py): belge aranan/acilan klasorler, `;` ile ayrilir.
+    # Bos = Belgeler + Masaustu + Indirilenler.
+    docs_dirs: str = ""
 
     # Acilista alkis sesi cal
     startup_sound: bool = True
@@ -242,11 +256,23 @@ class Settings(BaseModel):
     # /ekip sayfasi: Stark Ekibi yanitlari edge-tts ile seslendirilir (kapaliysa tarayici sesi)
     team_tts_enabled: bool = True
 
+    # --- El Kontrolu + Kitaplik (/el) ---
+    user_name: str = "Sezai"                 # yuz HUD etiketi ("SEZAI · TANINDI")
+    vision_model: str = "gemini-3.5-flash"   # raf/kitap okuma modeli (lite yazida zayif); sonra ajan zinciri
+    welcome_voice: str = "tr-TR-AhmetNeural"  # yuz kilidi karsilama sesi (edge-tts)
+    welcome_text: str = "Yüz tanındı. Hoş geldiniz efendim, tam yetki verildi."
+
     # --- Uzaktan ses (server modu): motor "network", mikrofon/hoparlor baska bir
     # makinede (run_server.py + remote_client). "local" = bugunku PyAudio davranisi.
     audio_mode: str = "local"               # "local" | "network"
     remote_audio_port: int = 8771
     remote_audio_token: str = ""            # bos ise sadece localhost'a izin verilir
+    # run_ui: telefon uygulamasi 8771'e baglaninca konusma telefona gecer (token bossa web token'i)
+    phone_audio_enabled: bool = True
+    # telefondan PC ekranini izleme + fare/klavye (web/remote_desktop.py); bilincli olarak varsayilan kapali
+    remote_desktop_enabled: bool = False
+    # modele HIC verilmeyen arac gruplari (tools/tool_declarations.py::TOOL_GROUPS), orn. ["adb", "mcp_browser"]
+    tool_groups_disabled: list[str] = Field(default_factory=list)
     remote_confirm_timeout: float = 120.0   # web onayi bu surede gelmezse REDDEDILIR
 
     # --- Proaktif (hatirlatici + rutinler) ---
@@ -319,12 +345,26 @@ class Settings(BaseModel):
             )
         return value.strip()
 
-    def load_system_prompt(self) -> str:
+    def load_system_prompt(self, persona: str = "jarvis") -> str:
         try:
             text = self.system_prompt_path.read_text(encoding="utf-8").strip()
             text = text or _FALLBACK_PROMPT
         except FileNotFoundError:
             text = _FALLBACK_PROMPT
+
+        # kimlik + KARAKTER kisilige gore degisir; YETENEKLER herkes icin ortak
+        identity = ""
+        for key in dict.fromkeys((persona or "jarvis", "jarvis")):
+            try:
+                identity = (self.persona_prompt_dir / f"{key}.md").read_text(
+                    encoding="utf-8"
+                ).strip()
+            except FileNotFoundError:
+                continue
+            if identity:
+                break
+        if identity:
+            text = f"{identity}\n\n{text}"
 
         try:
             football = self.football_prompt_path.read_text(encoding="utf-8").strip()
@@ -339,6 +379,13 @@ class Settings(BaseModel):
     def agent_model_chain(self) -> list[str]:
         """Birincil model + benzersiz yedekler."""
         chain = [self.agents_model, *self.agents_model_fallbacks]
+        seen: set[str] = set()
+        return [m for m in chain if m and not (m in seen or seen.add(m))]
+
+    @property
+    def vision_model_chain(self) -> list[str]:
+        """Raf taramasi icin model zinciri: JARVIS_VISION_MODEL once, sonra ajan zinciri."""
+        chain = [self.vision_model, *self.agent_model_chain]
         seen: set[str] = set()
         return [m for m in chain if m and not (m in seen or seen.add(m))]
 
@@ -368,6 +415,11 @@ def get_settings() -> Settings:
         gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
         model=os.getenv("GEMINI_MODEL", Settings.model_fields["model"].default),
         voice_name=os.getenv("JARVIS_VOICE", Settings.model_fields["voice_name"].default),
+        friday_voice=os.getenv("JARVIS_FRIDAY_VOICE", "").strip()
+        or Settings.model_fields["friday_voice"].default,
+        ultron_voice=os.getenv("JARVIS_ULTRON_VOICE", "").strip()
+        or Settings.model_fields["ultron_voice"].default,
+        ultron_fx=_env_bool("JARVIS_ULTRON_FX", True),
         log_level=os.getenv("LOG_LEVEL", "INFO"),
         webcam_enabled=_env_bool("WEBCAM_ENABLED", False),
         webcam_index=_env_int("WEBCAM_INDEX", 0),
@@ -397,6 +449,9 @@ def get_settings() -> Settings:
         minimize_to_tray=_env_bool("JARVIS_MINIMIZE_TO_TRAY", True),
         ui_style=(os.getenv("JARVIS_UI_STYLE", "hud").strip().lower() or "hud"),
         hud_weather_location=os.getenv("JARVIS_HUD_WEATHER", "İzmir").strip() or "İzmir",
+        boot_style=(os.getenv("JARVIS_BOOT_STYLE", "orb").strip().lower() or "orb"),
+        boot_hold_s=float(os.getenv("JARVIS_BOOT_HOLD_S", "3") or 3),
+        docs_dirs=os.getenv("JARVIS_DOCS_DIRS", "").strip(),
         startup_sound=_env_bool("JARVIS_STARTUP_SOUND", True),
         agents_enabled=_env_bool("JARVIS_AGENTS_ENABLED", True),
         agents_model=os.getenv("JARVIS_AGENTS_MODEL", Settings.model_fields["agents_model"].default),
@@ -482,9 +537,18 @@ def get_settings() -> Settings:
         web_console_bind=os.getenv("JARVIS_WEB_BIND", "0.0.0.0"),
         web_console_token=os.getenv("JARVIS_WEB_TOKEN", ""),
         team_tts_enabled=_env_bool("JARVIS_TEAM_TTS", True),
+        user_name=os.getenv("JARVIS_USER_NAME", "").strip() or Settings.model_fields["user_name"].default,
+        vision_model=os.getenv("JARVIS_VISION_MODEL", "").strip() or Settings.model_fields["vision_model"].default,
+        welcome_voice=os.getenv("JARVIS_WELCOME_VOICE", "").strip()
+        or Settings.model_fields["welcome_voice"].default,
+        welcome_text=os.getenv("JARVIS_WELCOME_TEXT", "").strip()
+        or Settings.model_fields["welcome_text"].default,
         audio_mode=os.getenv("JARVIS_AUDIO_MODE", Settings.model_fields["audio_mode"].default),
         remote_audio_port=_env_int("JARVIS_REMOTE_AUDIO_PORT", 8771),
         remote_audio_token=os.getenv("JARVIS_REMOTE_AUDIO_TOKEN", ""),
+        phone_audio_enabled=_env_bool("JARVIS_PHONE_AUDIO", True),
+        remote_desktop_enabled=_env_bool("JARVIS_REMOTE_DESKTOP", False),
+        tool_groups_disabled=[g.strip() for g in os.getenv("JARVIS_TOOLS_OFF", "").split(",") if g.strip()],
         remote_confirm_timeout=float(
             _env_int("JARVIS_REMOTE_CONFIRM_TIMEOUT", 120)
         ),

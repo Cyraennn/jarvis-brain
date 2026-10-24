@@ -1,0 +1,150 @@
+/* Zoey OS (zoeyos.com) hero gorunumu: saf siyah zemin, turuncu/macenta isima, Onest + JetBrains Mono. */
+@font-face { font-family: "Onest"; src: url("/fonts/Onest-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Onest"; src: url("/fonts/Onest-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Onest"; src: url("/fonts/Onest-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Onest"; src: url("/fonts/Onest-Black.ttf") format("truetype"); font-weight: 900; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("/fonts/JetBrainsMono.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+:root {
+  --bg: #000;
+  --o: #1e8fff;
+  --accent: #4cb4ff;
+  --hc-accent: #4cb4ff;
+  --tx: #fffffff0;
+  --tx-2: #ffffff9e;
+  --tx-3: #ffffff57;
+  --glass-bg: linear-gradient(165deg, #ffffff1a 0%, #ffffff09 30%, #ffffff03 58%, #ffffff0d 100%), #10101661;
+  --font-sans: "Onest", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --ease-out: cubic-bezier(.2, .9, .3, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  overflow: hidden;
+  user-select: none;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--tx-2);
+  -webkit-font-smoothing: antialiased;
+}
+
+.orb-page { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.orb-canvas { position: absolute !important; inset: 0; z-index: 1; }
+/* bloom isimasi sayfa kenarinda kesilmesin: kenarlar siyaha erir */
+.orb-page::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  box-shadow: inset 0 0 70px 36px var(--bg);
+}
+
+/* --- kose isimalari --- */
+.corner-glow {
+  position: absolute; z-index: 0; width: 350px; height: 350px; border-radius: 50%;
+  pointer-events: none; opacity: 0; animation: corner-fade 2s .8s forwards;
+}
+.corner-glow-tl { top: -100px; left: -100px; background: radial-gradient(circle, color-mix(in srgb, var(--o) 6%, transparent) 0%, #0000 70%); }
+.corner-glow-tr { top: -100px; right: -100px; background: radial-gradient(circle, color-mix(in srgb, var(--o) 5%, transparent) 0%, #0000 70%); }
+@keyframes corner-fade { to { opacity: 1; } }
+
+/* --- yetenek seridi --- */
+.ticker-wrap {
+  position: absolute; z-index: 0; left: 0; right: 0; bottom: 196px; overflow: hidden;
+  opacity: 0; animation: text-reveal .8s cubic-bezier(.16, 1, .3, 1) .6s forwards;
+  -webkit-mask-image: linear-gradient(90deg, #0000 0%, #000 15% 85%, #0000 100%);
+  mask-image: linear-gradient(90deg, #0000 0%, #000 15% 85%, #0000 100%);
+}
+.ticker-track { display: inline-flex; white-space: nowrap; will-change: transform; animation: ticker-scroll 40s linear infinite; }
+.ticker-track span {
+  flex-shrink: 0; margin-right: 3.5rem; font-family: var(--font-sans); font-weight: 600;
+  font-size: clamp(1rem, 2.2vw, 1.4rem); letter-spacing: .15em; text-transform: uppercase;
+  color: #ffffff2e; white-space: nowrap;
+}
+@keyframes ticker-scroll { 0% { transform: translate(0); } to { transform: translate(-50%); } }
+@keyframes text-reveal { to { opacity: 1; transform: translateY(0); } }
+
+/* --- orb alti arayuz --- */
+.hc-root {
+  position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; height: 176px;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+  padding: 0 16px 14px; pointer-events: none;
+}
+
+.hc-bubble {
+  width: min(560px, 94%); height: 3em; margin: 0 auto 14px; overflow: hidden;
+  text-align: center; font-size: .9rem; line-height: 1.5; color: var(--tx-2);
+  text-shadow: 0 2px 12px #000000f2, 0 0 24px #000000b3;
+  opacity: 0; transition: opacity .4s var(--ease-out);
+}
+.hc-bubble:not(:empty) { opacity: 1; }
+.hc-root[data-state=speaking] .hc-bubble { color: var(--tx); }
+
+.hc-hud {
+  display: flex; flex-direction: column; align-items: center; gap: 14px; width: min(400px, 100%);
+  opacity: 0; animation: hc-in .8s var(--ease-out) 1.35s forwards;
+}
+@keyframes hc-in { 0% { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+.hc-voice {
+  display: flex; align-items: center; justify-content: center; gap: .6rem; min-width: 13.5rem;
+  padding: .6rem 1.2rem; border: 1px solid #ffffff14; border-radius: 999px;
+  background: var(--glass-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px #ffffff24, 0 4px 16px #0006;
+  color: inherit; font: inherit; cursor: pointer; pointer-events: auto;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.hc-voice:hover { transform: translateY(-2px); box-shadow: inset 0 1px #ffffff24, 0 10px 28px #0000008c; }
+.hc-voice:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--o) 28%, transparent); }
+
+.hc-say-hi {
+  max-width: 12rem; overflow: hidden; white-space: nowrap;
+  font-family: var(--font-sans); font-size: .92rem; font-weight: 700; letter-spacing: -.005em;
+  color: var(--tx);
+  transition: max-width .45s var(--ease-out), opacity .25s ease;
+}
+.hc-root[data-state=speaking] .hc-say-hi { max-width: 0; opacity: 0; }
+
+.hc-wave { --amp: 0; display: flex; align-items: center; gap: 5px; height: 30px; }
+.hc-wave span {
+  display: block; width: 3.5px; height: var(--h); border-radius: 2px;
+  background: var(--hc-accent); box-shadow: 0 0 8px color-mix(in srgb, var(--hc-accent) 45%, transparent);
+  opacity: .9; will-change: transform;
+  animation: hc-wave-breathe 1.6s ease-in-out infinite; animation-delay: calc(var(--i) * .14s);
+}
+.hc-wave span.xtra { display: none; }
+.hc-root[data-state=speaking] .hc-wave span.xtra {
+  display: block; animation: hc-bar-in .25s var(--ease-out) backwards; animation-delay: calc(var(--i) * 18ms);
+}
+.hc-root[data-driven=true] .hc-wave span { opacity: .95; animation: none; transition: transform 90ms linear; }
+.hc-voice:hover .hc-wave span { opacity: 1; box-shadow: 0 0 14px color-mix(in srgb, var(--hc-accent) 70%, transparent); }
+@keyframes hc-wave-breathe { 0%, to { opacity: .6; transform: scaleY(.45); } 50% { opacity: .95; transform: scaleY(.8); } }
+@keyframes hc-bar-in { 0% { opacity: 0; transform: scaleY(.1); } }
+
+.hc-status {
+  min-height: 1.7em; font-family: var(--font-mono); font-size: .64rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--o);
+}
+.hc-root[data-state=speaking] .hc-status { color: var(--hc-accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track, .hc-wave span, .corner-glow, .hc-hud, .ticker-wrap { animation: none !important; opacity: 1; }
+}
+
+/* --- kisilik efektleri (data-persona: Qt setTheme) --- */
+:root[data-persona=friday] .corner-glow { width: 520px; height: 520px; filter: brightness(1.8); }
+:root[data-persona=ultron] .orb-page::before {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: repeating-linear-gradient(0deg, #0000 0 2px, #00000059 2px 3px);
+}
+:root[data-persona=ultron] .hc-status,
+:root[data-persona=ultron] .hc-bubble { animation: ultron-glitch 7s steps(1) infinite; }
+@keyframes ultron-glitch {
+  0%, 93%, 100% { transform: none; text-shadow: none; }
+  94% { transform: translateX(-3px); text-shadow: 2px 0 #00e6ff, -2px 0 var(--o); }
+  95% { transform: translateX(4px) skewX(-8deg); text-shadow: -3px 0 #00e6ff, 3px 0 var(--o); }
+  96% { transform: translateX(-1px); text-shadow: 1px 0 #00e6ff; }
+}

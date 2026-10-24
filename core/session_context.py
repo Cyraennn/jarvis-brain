@@ -75,7 +75,28 @@ def build_context(settings: Any, now: datetime | None = None) -> str:
                              + "\n".join(tail))
     except Exception as exc:  # noqa: BLE001 - baglam eksik olabilir, oturum yine acilir
         logger.debug(f"Oturum baglami okunamadi: {exc!r}")
+    shelf = _bookshelf_part(settings)
+    if shelf:
+        parts.append(shelf)
     if len(parts) > 1:
         parts.append("Yukaridaki ozet ve satirlar ARKA PLAN bilgisidir: kullanici sormadikca "
                      "tekrarlama, selamlasirken okuma; yalnizca kaldiginiz yeri bilmek icin kullan.")
     return "OTURUM BAGLAMI\n" + "\n\n".join(parts)
+
+
+def _bookshelf_part(settings: Any) -> str:
+    """Kullanicinin kitapligindan kisa liste (asil kaynak kitaplik_listele araci)."""
+    try:
+        path = Path(settings.data_dir) / "kitaplik.json"
+        if not path.is_file():
+            return ""
+        from core.bookshelf_store import BookshelfStore
+
+        summary = BookshelfStore(path).prompt_summary(limit=40)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug(f"Kitaplik baglami okunamadi: {exc}")
+        return ""
+    if not summary:
+        return ""
+    return ("KULLANICININ KITAPLIGI (oneri yalnizca buradan; guncel liste icin kitaplik_listele):\n"
+            + summary)

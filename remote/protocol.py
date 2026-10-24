@@ -53,6 +53,7 @@ CLIENT_FUNCTIONS: dict[str, float | None] = {
     "tools.app_launcher.open_website": 90,
     "tools.app_launcher.open_path": None,
     "tools.app_launcher.open_gesture_hud": None,
+    "tools.app_launcher.open_console_app": None,   # El Kontrolu (/el) penceresi
     # klavye / fare / pencere
     "tools.keyboard_input.type_text": 180,
     "tools.keyboard_input.type_in_search": 120,

@@ -18,7 +18,13 @@ def _obj(properties: dict[str, types.Schema], required: list[str] | None = None)
     return types.Schema(type=_OBJ, properties=properties, required=required or [])
 
 
-def build_declarations() -> list[types.FunctionDeclaration]:
+def build_declarations(disabled: "set[str] | frozenset[str] | None" = None) -> list[types.FunctionDeclaration]:
+    """Modele verilecek araclar. `disabled`: kapatilan grup adlari (bkz. TOOL_GROUPS, env JARVIS_TOOLS_OFF)."""
+    off = set(disabled or ())
+    return [*_core_declarations(), *(d for g, fn in TOOL_GROUPS.items() if g not in off for d in fn())]
+
+
+def _core_declarations() -> list[types.FunctionDeclaration]:
     return [
         types.FunctionDeclaration(
             name="get_current_datetime",
@@ -413,12 +419,134 @@ def build_declarations() -> list[types.FunctionDeclaration]:
                 ["path"],
             ),
         ),
-        *_new_declarations(),
-        *_adb_declarations(),
-        *_okul_declarations(),
-        *_comms_declarations(),
-        *_transit_declarations(),
-        *_mcp_browser_declarations(),
+    ]
+
+
+def _panel_declarations() -> list[types.FunctionDeclaration]:
+    """Icerik paneli: video, Wikipedia, belge, site, Spotify, haber, grafik, hava ve bilgi karti
+    JARVIS arayuzunun ICINDE acilir."""
+    n = types.FunctionDeclaration
+    return [
+        n(name="show_video",
+          description=(
+              "Bir YouTube videosunu JARVIS arayuzunun icindeki panelde oynatir. Kullanici '... videosunu ac', "
+              "'... fragmanini goster', 'su YouTube linkini ac' dediginde kullan. Videoyu arac kendisi arar ve "
+              "dogrular; video kimligi ya da link UYDURMA. Hata donerse video acilmamistir."
+          ),
+          parameters=_obj({"query": types.Schema(
+              type=_STR, description="Aranacak video (orn. 'Interstellar fragman') ya da kullanicinin verdigi YouTube linki")},
+              ["query"])),
+        n(name="show_wikipedia",
+          description=(
+              "Bir kisi, yer, kurum ya da kavramin Wikipedia sayfasini JARVIS arayuzunun icindeki panelde acar "
+              "ve gercek ozetini dondurur. '... kimdir', '... nedir', 'Wikipedia'da ac' gibi isteklerde kullan. "
+              "Konu hakkinda YALNIZCA donen 'summary' metnindekileri soyle."
+          ),
+          parameters=_obj({"title": types.Schema(type=_STR, description="Sayfa basligi, orn. 'Albert Einstein', 'Izmir'")},
+                          ["title"])),
+        n(name="show_document",
+          description=(
+              "Bilgisayardaki bir belgeyi (PDF, .txt, .md) JARVIS arayuzunun icindeki panelde acar. 'CV'mi ac', "
+              "'kira sozlesmesini goster', 'su PDF'i ac' gibi isteklerde kullan. Dosya adiyla arar; birden fazla "
+              "belge uyarsa 'matches' listesi doner ve panel ACILMAZ: adlarini sayip sor, sonra secilenin "
+              "'path' degeriyle yeniden cagir. Dosya yolu UYDURMA."
+          ),
+          parameters=_obj({"query": types.Schema(
+              type=_STR, description="Dosya adindan kelimeler (orn. 'kira sozlesmesi') ya da 'matches' icindeki tam yol")},
+              ["query"])),
+        n(name="show_website",
+          description=(
+              "Bir web sitesini JARVIS arayuzunun icindeki panelde acar (ayri tarayici penceresi ACMAZ). "
+              "Tam URL, alan adi ('github.com'), kisayol ('gmail') veya arama sorgusu kabul eder. Kullanici "
+              "acikca 'tarayicida ac' demedikce site acmak icin open_website yerine bunu kullan. Bilgi, haber, "
+              "fiyat ya da hava sormak icin arama sayfasi ACMA: show_news / show_market / show_weather / show_info."
+          ),
+          parameters=_obj({"target": types.Schema(type=_STR, description="URL, alan adi, kisayol ya da arama metni")},
+                          ["target"])),
+        n(name="show_spotify",
+          description=(
+              "Spotify 'su an caliyor' kartini JARVIS arayuzunun icinde gosterir (kapak, sarki, onceki/duraklat/"
+              "sonraki). 'Spotify'i goster', 'ne caliyor goster' gibi isteklerde kullan. spotify_play zaten "
+              "karti kendiliginden acar."
+          )),
+        n(name="show_news",
+          description=(
+              "Guncel haber basliklarini JARVIS arayuzunun icindeki panelde gosterir ve basliklari dondurur. "
+              "'Haberleri goster', 'gundemde ne var', 'ekonomi / spor / teknoloji haberleri' gibi isteklerde "
+              "kullan; arama sayfasi ACMA. Paneli acinca donen basliklardan 3-4 tanesini kisaca anlat; "
+              "basliklarda olmayan ayrinti UYDURMA."
+          ),
+          parameters=_obj({"topic": types.Schema(
+              type=_STR, description="Konu (orn. 'ekonomi', 'Fenerbahce', 'yapay zeka'); gundem icin bos birak")})),
+        n(name="show_market",
+          description=(
+              "Borsa endeksi, hisse, doviz, altin ya da kripto fiyat GRAFIGINI JARVIS arayuzunun icindeki "
+              "panelde gosterir ve rakamlari dondurur. 'Borsayi goster', 'dolar ne durumda', 'THY hissesi', "
+              "'bitcoin grafigi' gibi isteklerde kullan. Sembolu arac kendisi bulur; sembol ya da fiyat "
+              "UYDURMA. Paneli acinca fiyati, donem degisimini ve en yuksek/dusugu kisaca anlat."
+          ),
+          parameters=_obj({
+              "query": types.Schema(type=_STR, description="Varlik adi: 'borsa', 'dolar', 'euro', 'altin', 'bitcoin', 'Turk Hava Yollari'..."),
+              "period": types.Schema(type=_STR, description="Donem: 1g, 1h (hafta), 1ay (varsayilan), 3ay, 1y, 5y"),
+          }, ["query"])),
+        n(name="show_weather",
+          description=(
+              "Hava durumunu (simdi + 3 gunluk tahmin) JARVIS arayuzunun icindeki panelde gosterir ve veriyi "
+              "dondurur. 'Hava nasil', 'yarin yagmur var mi', '... havasi' gibi isteklerde get_weather yerine "
+              "bunu kullan ve kisaca anlat."
+          ),
+          parameters=_obj({"location": types.Schema(type=_STR, description="Sehir; bos birakilirsa kullanicinin sehri")})),
+        n(name="show_map",
+          description=(
+              "Izmir'in 3B haritasini JARVIS arayuzunun icindeki panelde ve telefon uygulamasinda acar; bir yer verilirse kamera oraya "
+              "('telefonumda haritayi ac' icin de bunu kullan, adb degil) "
+              "suzulur. 'Izmir haritasini ac', 'Alsancak'i goster', 'Kordon'a git', 'haritada Bornova' gibi "
+              "isteklerde kullan. Panel aciksa yeniden cagirmak yalnizca kamerayi tasir. Yeri arac kendisi "
+              "bulur (yalnizca Izmir ili icinde); koordinat UYDURMA. Bulunamazsa soyle."
+          ),
+          parameters=_obj({"place": types.Schema(
+              type=_STR, description="Izmir'de semt, mahalle, cadde ya da yer adi (orn. 'Alsancak', 'Saat Kulesi'); tum sehir icin bos")})),
+        n(name="show_route",
+          description=(
+              "Izmir'de iki yer arasindaki rotayi JARVIS'in 3B haritasinda cizer, kamerayi rotaya yaklastirir "
+              "('buradan', 'bulundugum yerden' denirse origin='konumum': telefonun GPS'i kullanilir) "
+              "ve mesafe/sureyi dondurur. 'Buca'dan Alsancak'a rota', 'Konak'tan Kordon'a yurume yolu', "
+              "'haritada ... yolunu goster' gibi isteklerde kullan. Toplu tasima (otobus, metro, ESHOT) "
+              "sorulursa plan_route kullan. Baslangic soylenmediyse UYDURMA, kullaniciya sor. Yerleri ve "
+              "yolu arac bulur; mesafe/sure uydurma, cizildi deme: yalnizca arac basariyla donerse soyle."
+          ),
+          parameters=_obj({
+              "origin": types.Schema(type=_STR, description="Baslangic yeri (orn. 'Buca Egitim Fakultesi')"),
+              "destination": types.Schema(type=_STR, description="Varis yeri (orn. 'Alsancak')"),
+              "mode": types.Schema(type=_STR, description="araba (varsayilan), yuruyus ya da bisiklet"),
+          }, ["origin", "destination"])),
+        n(name="map_control",
+          description=(
+              "Acik 3B haritanin kamerasini yonetir: 'yakinlastir', 'biraz daha yaklas', 'uzaklastir', "
+              "'haritayi dondur', 'Izmir geneline don'. Harita kapaliysa Izmir haritasini acar. Belirli bir "
+              "yere gitmek icin show_map kullan."
+          ),
+          parameters=_obj({"action": types.Schema(
+              type=_STR, description="zoom_in (yakinlastir), zoom_out (uzaklastir), rotate (dondur), reset (Izmir geneli)")},
+              ["action"])),
+        n(name="show_info",
+          description=(
+              "Kendi hazirladigin yazili icerigi JARVIS arayuzunun icindeki panelde gosterir: tarif, adim "
+              "listesi, karsilastirma tablosu, ders/arastirma ozeti, plan. Kullanici bir seyi 'goster', "
+              "'yaz', 'listele', 'tablo yap' dediginde ya da cevap ekranda gorulunce daha anlasilir "
+              "olacaksa kullan; arama sayfasi ACMA. Govde sade Markdown: '## baslik', '- madde', "
+              "'**kalin**', tablo. Emin olmadigin bilgiyi yazma; gerekirse once web_search ile dogrula. "
+              "Paneli acinca icerigi kisaca sesli ozetle, tamamini okuma."
+          ),
+          parameters=_obj({
+              "title": types.Schema(type=_STR, description="Kart basligi (kisa)"),
+              "body": types.Schema(type=_STR, description="Markdown govde (en fazla ~6000 karakter)"),
+          }, ["title", "body"])),
+        n(name="close_panel",
+          description=(
+              "JARVIS arayuzundeki icerik panelini (video, haber, grafik, harita, bilgi karti, belge, site, Spotify) kapatir. "
+              "'Kapat', 'videoyu kapat', 'paneli kapat' dediginde kullan."
+          )),
     ]
 
 
@@ -595,7 +723,8 @@ def _adb_declarations() -> list[types.FunctionDeclaration]:
           )),
         n(name="adb_open",
           description=(
-              "Android cihaz(lar)da bir uygulamayi veya URL/deep link'i acar. "
+              "ADB ile (USB/kablosuz hata ayiklama) Android cihazda bir uygulamayi veya URL/deep link'i acar. "
+              "Telefon uygulamasi bagliyken telefonda uygulama acmak icin open_phone_app, harita icin show_map kullan. "
               "'https://...' veya 'scheme://...' => VIEW intent; 'com.paket/.Activity' "
               "=> belirli aktivite; duz paket adi ('com.spotify.music') => uygulamayi "
               "baslatir. device_id bos ise tum cihazlar."
@@ -870,5 +999,140 @@ def _transit_declarations() -> list[types.FunctionDeclaration]:
     ]
 
 
-def get_tools() -> list[types.Tool]:
-    return [types.Tool(function_declarations=build_declarations())]
+def _phone_declarations() -> list[types.FunctionDeclaration]:
+    """Telefon uygulamasi (C:\\dev\\jarvis-android): eylemler web/phone_link.py kanaliyla telefona gider."""
+    n = types.FunctionDeclaration
+    _who = types.Schema(type=_STR, description="Rehberdeki kisi adi ya da telefon numarasi (orn. 'Annem', '0532...')")
+    return [
+        n(name="phone_call",
+          description=(
+              "Kullanicinin TELEFONUNDAN arama baslatir ('annemi ara', 'Ahmet'i ara'). Telefon rehberden kisiyi bulur "
+              "ve ekranda onay ister. Telefon uygulamasi bagli degilse hata doner; aradim deme, yalnizca arac "
+              "basariyla donerse soyle."
+          ),
+          parameters=_obj({"contact": _who}, ["contact"])),
+        n(name="send_sms",
+          description="Telefondan SMS gonderir; telefonda onay karti cikar. Mesaj metnini kullanicinin soyledigi gibi yaz.",
+          parameters=_obj({"contact": _who, "text": types.Schema(type=_STR, description="Mesaj metni")},
+                          ["contact", "text"])),
+        n(name="set_alarm",
+          description="Telefonda alarm kurar ('yarin 7'de uyandir', 'alarm 06:45').",
+          parameters=_obj({"time": types.Schema(type=_STR, description="SS:DD, 24 saat (orn. '07:30')"),
+                           "label": types.Schema(type=_STR, description="Alarm etiketi (istege bagli)")}, ["time"])),
+        n(name="set_timer",
+          description="Telefonda geri sayim baslatir ('10 dakikalik zamanlayici kur').",
+          parameters=_obj({"minutes": types.Schema(type=_NUM, description="Dakika (0.5 = 30 sn)"),
+                           "label": types.Schema(type=_STR)}, ["minutes"])),
+        n(name="open_phone_app",
+          description="Telefonda bir uygulamayi acar ('telefonda WhatsApp'i ac', 'kamerayi ac'). PC'de acmak icin open_application.",
+          parameters=_obj({"app": types.Schema(type=_STR, description="Uygulama adi")}, ["app"])),
+        n(name="phone_location",
+          description=(
+              "Kullanicinin telefonunun GPS konumunu verir ('neredeyim'). Rota icin ayrica cagirma: show_route'a "
+              "origin='konumum' ver."
+          )),
+        n(name="phone_status",
+          description="Telefonun pil yuzdesi, sarj durumu ve ag bilgisi ('telefonumun sarji kac')."),
+        n(name="ring_phone",
+          description="'Telefonumu bul': telefon sessizde olsa da yuksek sesle calar."),
+        n(name="send_file_to_phone",
+          description=(
+              "PC'deki bir dosyayi kullanicinin telefonuna gonderir ('bu PDF'i telefonuma at'). Tam dosya yolu gerekir; "
+              "bilmiyorsan once find_files ile bul. Telefondan gelen dosyalar Downloads\\JARVIS klasorune duser."
+          ),
+          parameters=_obj({"path": types.Schema(type=_STR, description="PC'deki dosyanin tam yolu")}, ["path"])),
+    ]
+
+
+def _el_declarations() -> list[types.FunctionDeclaration]:
+    """El Kontrolu (/el): kamera + el jestleri + efektler (tools/el_tools.py)."""
+    n = types.FunctionDeclaration
+    return [
+        n(name="el_kontrolu_ac",
+          description="El Kontrolu'nu acar: kamera ile el jestleri, efektler (ates, muhur, gezegen, simsek), "
+                      "yuz HUD'u ve kitaplik. 'el kontrolunu ac', 'ellerimle yonetecegim' gibi isteklerde.",
+          parameters=_obj({"demo": types.Schema(type=_BOOL, description="Kamerasiz demo (sentetik eller)")})),
+        n(name="el_kontrolu_kapat", description="El Kontrolu'nu kapatir ('el kontrolunu kapat')."),
+        n(name="el_gezegen",
+          description="El Kontrolu'nde parmak uclarindaki parcacik gezegenini degistirir: 'Mars yap', "
+                      "'Jupiter'e cevir'. Secenekler: Saturn, Dunya, Mars, Jupiter, Ay, Gunes.",
+          parameters=_obj({"ad": types.Schema(type=_STR, description="Gezegen adi")}, ["ad"])),
+    ]
+
+
+def _kitaplik_declarations() -> list[types.FunctionDeclaration]:
+    """Kullanicinin fiziksel kitapligi (core/bookshelf_store.py, tools/el_tools.py)."""
+    n = types.FunctionDeclaration
+    kitap = types.Schema(type=_STR, description="Kitap adi; bossa El Kontrolu'nde acik kitap")
+    return [
+        n(name="kitaplik_listele",
+          description="Kullanicinin kendi kitapligini listeler. 'Kitapligimda ne var', 'raftan bir kitap oner', "
+                      "'okudugum kitaplar' gibi sorularda MUTLAKA once bunu cagir; oneriyi YALNIZCA bu listeden yap.",
+          parameters=_obj({"durum": types.Schema(type=_STR, description="okunacak | okunuyor | bitti"),
+                           "sorgu": types.Schema(type=_STR, description="Ad/yazar aramasi")})),
+        n(name="kitaplik_tara",
+          description="Kameradaki kitapligi tarar ve kitap sirtlarini haritalar ('kitapligimi tara'). "
+                      "El Kontrolu kapaliysa acar."),
+        n(name="kitaplik_ekle",
+          description="Kitapliga kitap ekler ('kitapligima Davranis'i ekle'). Kapak ve Jarvis'in sayfalari "
+                      "arka planda dolar.",
+          parameters=_obj({"ad": types.Schema(type=_STR), "yazar": types.Schema(type=_STR)}, ["ad"])),
+        n(name="kitap_adlandir",
+          description="El Kontrolu'nde acik olan, adi okunamamis kitaba ad verir: 'bu kitabin adi Davranis'. "
+                      "Cagirmadan once kisaca 'Tamamdir efendim, ekliyorum' de.",
+          parameters=_obj({"ad": types.Schema(type=_STR), "yazar": types.Schema(type=_STR)}, ["ad"])),
+        n(name="kitap_not_ekle",
+          description="Bir kitaba not ya da alinti ekler: 'Mulksuzler'e not ekle: ...', acik kitapta 'not al: ...', "
+                      "'alinti ekle: ...'. Kitap kayitli degilse eklenir. Alinti metnini kullanici soyler; sen uretme.",
+          parameters=_obj({"metin": types.Schema(type=_STR), "kitap": kitap,
+                           "tur": types.Schema(type=_STR, description="not | alinti"),
+                           "sayfa": types.Schema(type=_INT)}, ["metin"])),
+        n(name="kitap_durum",
+          description="Okuma durumunu/sayfasini kaydeder: 'Tahila Karsi'yi bitirdim', 'Oblomov'da 120. sayfadayim'.",
+          parameters=_obj({"kitap": kitap,
+                           "durum": types.Schema(type=_STR, description="okunacak | okunuyor | bitti"),
+                           "sayfa": types.Schema(type=_INT)})),
+        n(name="kitap_defter_doldur",
+          description="Jarvis'in kitap defterini yazar (ozet, ana fikirler, yazar, temalar, neden okumali, "
+                      "rafindan benzerler): 'Davranis'in sayfalarini doldur'.",
+          parameters=_obj({"kitap": kitap, "yeniden": types.Schema(type=_BOOL, description="Var olani yeniden yaz")})),
+        n(name="calibre_esitle",
+          description="Kullanicinin Calibre e-kitap kutuphanesini kitapliga aktarir/gunceller "
+                      "('Calibre'yi esitle', 'e-kitaplarimi ekle')."),
+        n(name="kitap_tani",
+          description="Kullanicinin kameraya gosterdigi / elinde tuttugu kitabi tanir ve kitapliga ekler "
+                      "('elimdeki kitabi tani', 'bu kitabi ekle', 'bu hangi kitap'). Raf taramasi DEGIL."),
+        n(name="kitap_ac",
+          description="Kitabin e-kitap dosyasini Calibre kutuphanesinden acar ('Dune'u ac', 'bu kitabi oku'). "
+                      "Kitap yalnizca fiziksel ise bunu soyle.",
+          parameters=_obj({"kitap": kitap,
+                           "format": types.Schema(type=_STR, description="EPUB | PDF | ... (istege bagli)")})),
+        n(name="kitap_ozetle",
+          description="Kitabin Jarvis ozetini getirir; sonra kendi sesinle kisaca oku. 'Bunu ozetle' (acik kitap).",
+          parameters=_obj({"kitap": kitap})),
+    ]
+
+
+# Kapatilabilir arac gruplari (cekirdek her zaman acik). Gemini Live araclari oturum basinda sabitlenir;
+# az kullanilan gruplari kapatmak modelin yanlis arac secmesini azaltir: .env -> JARVIS_TOOLS_OFF=adb,mcp_browser
+TOOL_GROUPS = {
+    "new": _new_declarations,
+    "adb": _adb_declarations,
+    "okul": _okul_declarations,
+    "comms": _comms_declarations,
+    "transit": _transit_declarations,
+    "mcp_browser": _mcp_browser_declarations,
+    "panel": _panel_declarations,
+    "phone": _phone_declarations,
+    "el": _el_declarations,
+    "kitaplik": _kitaplik_declarations,
+}
+
+
+def disabled_tool_names(disabled: "set[str] | frozenset[str] | None") -> set[str]:
+    """Kapali gruplardaki arac adlari (ToolRunner bunlari calistirmaz)."""
+    return {d.name for g in (disabled or ()) if g in TOOL_GROUPS for d in TOOL_GROUPS[g]()}
+
+
+def get_tools(disabled: "set[str] | frozenset[str] | None" = None) -> list[types.Tool]:
+    return [types.Tool(function_declarations=build_declarations(disabled))]

@@ -28,17 +28,26 @@ from PySide6.QtWidgets import QToolTip, QWidget
 from ui import theme
 from ui.strings import DEPARTMENT_TITLES, tr_upper
 
-_MODE_COLOR = {
-    "idle": QColor(theme.ACCENT_DIM),
-    "listening": QColor(theme.ACCENT),
-    "speaking": QColor(theme.GOLD),
-}
+# Kisilik paleti degisince yerinde guncellenir (command_graph ayni sozlugu kullanir).
+_MODE_COLOR: dict[str, QColor] = {}
 _ACTIVE = {"queued", "routing", "running", "tool", "awaiting_approval"}
-_AUTONOMY_COLOR = {
-    "fully_autonomous": QColor(theme.ACCENT),
-    "human_assisted": QColor(theme.GOLD),
-    "human_led": QColor(theme.MYSTIC),
-}
+_AUTONOMY_COLOR: dict[str, QColor] = {}
+
+
+def refresh_palette_colors() -> None:
+    _MODE_COLOR.update({
+        "idle": QColor(theme.ACCENT_DIM),
+        "listening": QColor(theme.ACCENT),
+        "speaking": QColor(theme.GOLD),
+    })
+    _AUTONOMY_COLOR.update({
+        "fully_autonomous": QColor(theme.ACCENT),
+        "human_assisted": QColor(theme.GOLD),
+        "human_led": QColor(theme.MYSTIC),
+    })
+
+
+refresh_palette_colors()
 
 
 def _rgba(c: QColor, a: int) -> QColor:
@@ -86,12 +95,7 @@ class BrainGraph(QWidget):
         self._t = 0.0
 
         # Paint sirasinda string'den QColor uretmemek icin bir kez hazirlanan renkler
-        self._k = SimpleNamespace(
-            **{name: QColor(getattr(theme, name)) for name in (
-                "GRID", "ACCENT", "ACCENT_DIM", "BORDER_LIGHT", "MYSTIC", "TEXT", "TEXT_DIM", "BG_CARD",
-            )},
-            WHITE=QColor("#ffffff"),
-        )
+        self._k = self._palette()
         # Statik katman (izgara/halkalar/kose isaretleri) boyut degismedikce bir kez cizilir
         self._static: QPixmap | None = None
         self._static_key: tuple | None = None
@@ -105,7 +109,23 @@ class BrainGraph(QWidget):
         self._timer.timeout.connect(self._tick)
         self._timer.start()
 
+    @staticmethod
+    def _palette() -> SimpleNamespace:
+        return SimpleNamespace(
+            **{name: QColor(getattr(theme, name)) for name in (
+                "GRID", "ACCENT", "ACCENT_DIM", "BORDER_LIGHT", "MYSTIC", "TEXT", "TEXT_DIM", "BG_CARD",
+            )},
+            WHITE=QColor("#ffffff"),
+        )
+
     # ------------------------------------------------------------------ API
+    def refresh_theme(self) -> None:
+        """Kisilik paleti degisti: hazir renkleri ve statik katmani yeniden kur."""
+        refresh_palette_colors()
+        self._k = self._palette()
+        self._static = None
+        self.update()
+
     def set_agents(self, agents: list) -> None:
         """AgentSpec listesi (department + autonomy alanlariyla)."""
         by_dept: dict[str, list] = {}

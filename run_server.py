@@ -115,6 +115,9 @@ def _make_on_control(engine: BrainEngine, loop: asyncio.AbstractEventLoop):
             loop.call_soon_threadsafe(engine.set_output_muted, False)
             logger.info("Uzak mod KAPALI (web konsolundan).")
             return {"away": False}
+        if action == "interrupt":  # El Kontrolu ✊: konusmayi kes
+            loop.call_soon_threadsafe(engine.interrupt_speaking)
+            return {"interrupted": True}
         return {"error": "bilinmeyen"}
 
     return _on_web_control

@@ -15,6 +15,7 @@ from typing import Callable
 from loguru import logger
 
 from config.settings import Settings
+from core.audio_transport import AudioTransport, LocalAudioTransport, SwitchableAudioTransport
 from core.brain_engine import BrainEngine
 from core.bridge_listener import BridgeListener
 from core.events import EngineObserver
@@ -45,6 +46,7 @@ class EngineWorker(threading.Thread):
         self._engine: BrainEngine | None = None
         self._telegram: TelegramHandler | None = None
         self._ready = threading.Event()
+        self._audio_server = None  # telefon sesi (net/audio_server.py), _build_audio kurar
 
     # ------------------------------------------------------------------ thread
     def run(self) -> None:
@@ -52,6 +54,7 @@ class EngineWorker(threading.Thread):
         asyncio.set_event_loop(self._loop)
         self._engine = BrainEngine(
             self._settings,
+            audio_transport=self._build_audio(),
             observer=self._observer,
             webcam=self._webcam,
             bridge=self._bridge,
@@ -78,8 +81,41 @@ class EngineWorker(threading.Thread):
             if self._on_finished is not None:
                 self._on_finished(error)
 
+    def _build_audio(self) -> AudioTransport | None:
+        """Telefon sesi aciksa PC <-> telefon gecisli transport; degilse motorun varsayilani."""
+        s = self._settings
+        if not s.phone_audio_enabled or s.audio_mode != "local":
+            return None
+        from net.audio_server import NetworkAudioServer
+
+        token = s.remote_audio_token or s.web_console_token
+        self._audio_server = NetworkAudioServer(port=s.remote_audio_port, bind=s.web_console_bind, token=token)
+        try:
+            local: AudioTransport | None = LocalAudioTransport(s)
+        except Exception as exc:  # noqa: BLE001 - PyAudio yoksa telefon yine calisir
+            logger.warning(f"PC ses motoru baslatilamadi, yalnizca telefon sesi: {exc}")
+            local = None
+        return SwitchableAudioTransport(
+            local, self._audio_server,
+            receive_rate=s.audio.receive_sample_rate, sample_width=s.audio.sample_width,
+        )
+
     async def _run_all(self) -> None:
-        """Motor + (varsa) Telegram kolu ayni dongude; motor bitince kol da durur."""
+        """Motor + (varsa) Telegram kolu ve telefon ses sunucusu ayni dongude; motor bitince hepsi durur."""
+        assert self._engine is not None
+        audio_task = (
+            asyncio.create_task(self._audio_server.run(), name="phone_audio_server")
+            if self._audio_server is not None else None
+        )
+        try:
+            await self._run_engine()
+        finally:
+            if audio_task is not None:
+                audio_task.cancel()
+                with contextlib.suppress(Exception, asyncio.CancelledError):
+                    await audio_task
+
+    async def _run_engine(self) -> None:
         assert self._engine is not None
         if self._telegram is None:
             await self._engine.run()
@@ -120,6 +156,10 @@ class EngineWorker(threading.Thread):
         if self._engine is not None:
             self._call(lambda: self._engine.set_output_muted(muted))
 
+    def interrupt_speaking(self) -> None:
+        if self._engine is not None:
+            self._call(self._engine.interrupt_speaking)
+
     def retry_audio(self) -> None:
         if self._engine is not None:
             self._call(self._engine.retry_audio)
@@ -135,3 +175,7 @@ class EngineWorker(threading.Thread):
     def inject_bridge_message(self, text: str) -> None:
         if self._engine is not None:
             self._call(lambda: self._engine.inject_bridge_message(text))
+
+    def set_persona(self, key: str) -> None:
+        if self._engine is not None:
+            self._call(lambda: self._engine.set_persona(key))

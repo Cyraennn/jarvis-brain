@@ -209,13 +209,86 @@ def test_council_turn_sees_previous_speakers(monkeypatch):
         tts=False))
     assert out["text"] == "Pepper'a katılıyorum." and out["audio"] is None
     assert "P.E.P.P.E.R.: Yazılım öğren." in seen[0][1] and "yok say" not in seen[0][1]
-    assert "Sıra sende" in seen[0][1]
+    assert "Söz sende" in seen[0][1]
+    assert "İltifat etme" in seen[0][1]   # is odakli: birbirini ovmek yok
 
     seen.clear()
     _scripted(monkeypatch, "gemini", ["Özet."], seen)
     asyncio.run(stark_team.council_turn("friday", "konu", [], final=True, tts=False))
-    assert "KAPANIŞ" in seen[0][1]
+    assert "KAPANIŞ" in seen[0][1] and "İltifat etme" in seen[0][1]
     assert asyncio.run(stark_team.council_turn("jarvis", "konu", []))["error"]
+
+
+# ------------------------------------------------------------------ sirasiz toplanti
+def _pick(monkeypatch, reply):
+    prompts = []
+
+    async def fake(prompt):
+        prompts.append(prompt)
+        if isinstance(reply, Exception):
+            raise reply
+        return reply
+
+    monkeypatch.setattr(stark_team, "_pick", fake)
+    return prompts
+
+
+def test_next_speaker_follows_the_model_but_never_the_last_speaker(monkeypatch):
+    said = [{"persona": "pepper", "text": "Homer, bütçe ne kadar?"}]
+    prompts = _pick(monkeypatch, "homer | Pepper ona soru sordu")
+    out = asyncio.run(stark_team.next_speaker("konu", said, ["pepper", "homer", "karen"], "pepper"))
+    assert out == {"next": "homer", "reason": "Pepper ona soru sordu"}
+    assert "- pepper" not in prompts[0]            # son konusan aday listesinde yok
+    assert "karen (K.A.R.E.N.)" in prompts[0] and "[henüz konuşmadı]" in prompts[0]
+
+    _pick(monkeypatch, "P.E.P.P.E.R. | yine o")      # model son konusani secerse
+    out = asyncio.run(stark_team.next_speaker("konu", said, ["pepper", "homer", "karen"], "pepper"))
+    assert out["next"] == "homer"                    # konusmamis ilk uyeye dusulur
+
+
+def test_next_speaker_ends_and_survives_errors(monkeypatch):
+    said = [{"persona": "pepper", "text": "a"}, {"persona": "homer", "text": "b"}]
+    _pick(monkeypatch, "BİTTİ | yanıtlandı")
+    out = asyncio.run(stark_team.next_speaker("konu", said, ["pepper", "homer"], "homer"))
+    assert out == {"next": None, "reason": "yanıtlandı"}
+
+    _pick(monkeypatch, "BİTTİ | erken")               # kimse konusmadan bitirilemez
+    assert asyncio.run(stark_team.next_speaker("konu", [], ["pepper", "homer"]))["next"] == "pepper"
+
+    _pick(monkeypatch, RuntimeError("kota"))
+    out = asyncio.run(stark_team.next_speaker("konu", said[:1], ["pepper", "homer", "jarvis"], "pepper"))
+    assert out["next"] == "homer"                    # jarvis (canli) toplantiya alinmaz
+    assert asyncio.run(stark_team.next_speaker("konu", [], ["pepper"], "pepper"))["next"] is None
+
+
+# ------------------------------------------------------------------ anlasilir ses
+def test_voices_are_native_turkish_without_extreme_tuning():
+    for p in stark_team.PERSONAS.values():
+        if not p.voice:
+            continue
+        assert p.voice in ("tr-TR-AhmetNeural", "tr-TR-EmelNeural"), p.name
+        assert abs(int(p.pitch.removesuffix("Hz"))) <= 16, p.name
+        assert -8 <= int(p.rate.removesuffix("%")) <= 10, p.name
+
+
+def test_names_are_spoken_not_spelled(monkeypatch):
+    assert stark_team.spoken("J.A.R.V.I.S. ve F.R.I.D.A.Y., DUM-E ile") == "Carvis ve Frayday, Dami ile"
+    got = {}
+
+    async def fake_synth(text, voice, *, rate, pitch):
+        got.update(text=text, voice=voice)
+        return b"mp3"
+
+    import core.tts
+    monkeypatch.setattr(core.tts, "synthesize", fake_synth)
+    url = asyncio.run(stark_team._voice("karen", "E.D.I.T.H. haklı.", True))
+    assert got == {"text": "Edit haklı.", "voice": "tr-TR-EmelNeural"} and url.startswith("data:audio/mpeg")
+
+
+def test_speakable_drops_emoji():
+    from core.tts import speakable
+
+    assert speakable("Tamam 🚀 efendim ✅") == "Tamam efendim"
 
 
 # ------------------------------------------------------------------ HTTP
@@ -298,6 +371,32 @@ def test_council_turn_endpoint(server, monkeypatch):
                       {"persona": "homer", "topic": "t", "transcript": [{"persona": "pepper", "text": "a"}],
                        "final": True})
     assert code == 200 and json.loads(body)["text"] == "homer:1:True"
+
+
+def test_council_next_endpoint(server, monkeypatch):
+    _, port, _ = server
+    assert _req(port, "/api/team/council/next", {"topic": "t", "members": ["homer"]}, key="")[0] == 401
+    assert _req(port, "/api/team/council/next", {"topic": "", "members": ["homer"]})[0] == 400
+    assert _req(port, "/api/team/council/next", {"topic": "t", "members": []})[0] == 400
+
+    async def fake_next(topic, transcript, members, last):
+        return {"next": members[-1], "reason": f"{len(transcript)}:{last}"}
+
+    monkeypatch.setattr(stark_team, "next_speaker", fake_next)
+    code, body = _req(port, "/api/team/council/next",
+                      {"topic": "t", "members": ["Pepper", "HOMER"], "last": "pepper",
+                       "transcript": [{"persona": "pepper", "text": "a"}]})
+    assert code == 200 and json.loads(body) == {"next": "homer", "reason": "1:pepper"}
+
+
+def test_team_page_is_a_stage(server):
+    _, port, _ = server
+    _, html = _req(port, "/ekip")
+    assert "three" not in html                                       # 3B yok: sahne / podcast
+    assert 'id="spot"' in html and 'id="strip"' in html             # ortada konusan, altta uyeler
+    assert ".say(" in html and "onboundary" in html                 # karaoke: kelimeler sesle akar
+    assert "/api/team/council/next" in html                          # sirasiz soz
+    assert "await speak(" in html                                    # sesler ust uste binmez
 
 
 def test_jarvis_question_goes_to_live_brain(server):

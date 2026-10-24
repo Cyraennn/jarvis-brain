@@ -21,6 +21,7 @@ import contextlib
 import inspect
 import json
 import random
+import threading
 import uuid
 from typing import Any, Awaitable, Callable
 
@@ -47,6 +48,18 @@ def backoff_delay(attempt: int, base: float = 1.0, cap: float = 30.0) -> float:
     return delay + random.uniform(0, delay * 0.25)
 
 
+def _accepts_cancel(handler: Callable[..., Any]) -> bool:
+    """Onay isleyicisi 3. parametre (iptal sinyali) alabiliyor mu? Eski 2'li isleyiciler bozulmasin."""
+    try:
+        params = list(inspect.signature(handler).parameters.values())
+    except (TypeError, ValueError):
+        return False
+    if any(p.kind is p.VAR_POSITIONAL for p in params):
+        return True
+    positional = [p for p in params if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+    return len(positional) >= 3
+
+
 class JarvisClient:
     def __init__(
         self,
@@ -65,6 +78,8 @@ class JarvisClient:
         self._handlers: dict[str, Handler] = {}
         self._listeners: dict[str, list[EventListener]] = {}
         self._confirm: ConfirmHandler | None = None
+        # acik onay pencereleri: id -> iptal sinyali (karar baska cihazda verilirse set edilir)
+        self._open_confirms: dict[str, threading.Event] = {}
         self._ws: ClientConnection | None = None
         self._send_lock = asyncio.Lock()
         self._stop = asyncio.Event()
@@ -215,6 +230,10 @@ class JarvisClient:
         elif kind == "event":
             return asyncio.create_task(self._emit(str(msg.get("kind")), msg.get("data"), msg))
         elif kind in ("stream_control", "confirm_resolved"):
+            if kind == "confirm_resolved":
+                cancel = self._open_confirms.get(str(msg.get("id")))
+                if cancel is not None:
+                    cancel.set()  # telefon/web cevap verdi -> buradaki pencere kapansin
             return asyncio.create_task(self._emit(kind, msg))
         elif kind == "error":
             logger.warning(f"Sunucu hatasi: {msg.get('error')}")
@@ -251,14 +270,23 @@ class JarvisClient:
         if handler is None:
             return
         prompt, source = str(msg.get("prompt") or ""), str(msg.get("source") or "")
+        conf_id = str(msg.get("id"))
+        cancel = threading.Event()
+        self._open_confirms[conf_id] = cancel
+        args: tuple[Any, ...] = (prompt, source, cancel) if _accepts_cancel(handler) else (prompt, source)
         try:
             if inspect.iscoroutinefunction(handler):
-                approved = await handler(prompt, source)
+                approved = await handler(*args)
             else:
-                approved = await asyncio.to_thread(handler, prompt, source)
+                approved = await asyncio.to_thread(handler, *args)
         except Exception:  # noqa: BLE001
             logger.exception("Onay penceresi hatasi -> REDDEDILDI")
             approved = False
+        finally:
+            self._open_confirms.pop(conf_id, None)
+        if cancel.is_set():
+            logger.info(f"Onay baska cihazda yanitlandi, tekrar sorulmadi (id={conf_id})")
+            return
         await self.send({"type": "confirm_response", "id": msg.get("id"), "approved": bool(approved)})
 
     async def _emit(self, kind: str, data: Any, raw: dict[str, Any] | None = None) -> None:

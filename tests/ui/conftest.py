@@ -47,6 +47,22 @@ def qapp():
     return app
 
 
+@pytest.fixture(autouse=True)
+def _jarvis_theme(monkeypatch):
+    """Her test JARVIS temasiyla baslar ve biter: gercek data/persona.json okunmaz, bir testin
+    kisilik gecisi (global palet + uygulama QSS'i) sonraki testlere sizmaz."""
+    from core import personas
+    from ui import theme
+
+    monkeypatch.setattr(personas, "load_active", lambda settings: personas.get(settings, "jarvis"))
+    yield
+    if theme.PERSONA != "jarvis":
+        theme.apply_palette("jarvis")
+        app = QApplication.instance()
+        if app is not None:
+            app.setStyleSheet(theme.QSS)
+
+
 @pytest.fixture()
 def fake_webcam():
     return FakeWebcam()

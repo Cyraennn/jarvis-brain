@@ -32,7 +32,13 @@ from tools.adb_tool import (
     adb_shell,
     adb_unlock_device,
 )
-from tools.app_launcher import open_application, open_gesture_hud, open_path, open_website
+from tools.app_launcher import (  # noqa: F401 - open_console_app: uzak modda vekillenir (el_tools)
+    open_application,
+    open_console_app,
+    open_gesture_hud,
+    open_path,
+    open_website,
+)
 from tools.basic_tools import (
     get_current_datetime,
     get_system_status,
@@ -84,6 +90,21 @@ from tools.maintenance import (
     empty_recycle_bin,
     plan_cleanup,
 )
+from tools.panel_tools import (
+    close_panel,
+    show_document,
+    map_control,
+    show_info,
+    show_map,
+    show_route,
+    show_market,
+    show_news,
+    show_spotify,
+    show_video,
+    show_weather,
+    show_website,
+    show_wikipedia,
+)
 from tools.okul_tool import (
     okul_add_exam,
     okul_add_task,
@@ -131,6 +152,17 @@ from tools.telegram_tool import (
     reply_to_telegram_message,
     send_telegram_message,
 )
+from tools.phone_tools import (
+    open_phone_app,
+    phone_call,
+    phone_location,
+    phone_status,
+    ring_phone,
+    send_file_to_phone,
+    send_sms,
+    set_alarm,
+    set_timer,
+)
 from tools.transit_tool import (
     eshot_approaching_buses,
     eshot_find_stop,
@@ -152,6 +184,8 @@ ConfirmFn = Callable[[str], bool]
 ExitFn = Callable[[], None]
 TypingFn = Callable[[bool], None]
 ScreenFn = Callable[[], None]
+# Icerik paneli: arayuz gosterebildiyse True doner (bkz. core/events.py::on_panel)
+PanelFn = Callable[[dict[str, Any]], bool]
 
 BRIDGE_INBOX = APP_DIR / "bridge" / "inbox.txt"
 
@@ -183,6 +217,27 @@ def _dispatch_to_agent(agent: str, task: str) -> dict[str, Any]:
 
 # --------------------------------------------------------------------- runner
 
+# Telefon uygulamasi bagliyken ADB'nin "telefonda ac" araclari yerine uygulama araclari kullanilir:
+# model "telefonumda haritayi ac" deyince ADB'ye gitmesin (adb_shell gibi acik ADB istekleri serbest).
+_PHONE_APP_ALTERNATIVES = {
+    "adb_open": "open_phone_app (uygulama) ya da show_map / show_* (panel telefonda da acilir)",
+    "adb_list_devices": "telefon uygulamasi zaten bagli; phone_status ile pil/ag durumuna bakilabilir",
+    "adb_play_media": "open_phone_app ya da Spotify araclari",
+    "adb_unlock_device": "telefon uygulamasi bagliyken kilit acmaya gerek yok",
+}
+
+
+def _phone_app_redirect(name: str) -> "dict[str, Any] | None":
+    if name not in _PHONE_APP_ALTERNATIVES:
+        return None
+    from web.phone_link import PHONE
+
+    if not PHONE.connected:
+        return None
+    return {"error": f"Telefon uygulamasi bagli; ADB yerine bunu kullan: {_PHONE_APP_ALTERNATIVES[name]}. "
+                      "Kullanici acikca USB/ADB isterse adb_shell kullanilabilir."}
+
+
 class ToolRunner:
     def __init__(
         self,
@@ -190,13 +245,21 @@ class ToolRunner:
         on_exit: ExitFn | None = None,
         on_typing: TypingFn | None = None,
         on_look_at_screen: ScreenFn | None = None,
+        on_panel: PanelFn | None = None,
+        disabled_groups: "set[str] | None" = None,
     ) -> None:
+        from tools.tool_declarations import disabled_tool_names
+
+        # JARVIS_TOOLS_OFF ile kapatilan gruplar: model bunlari gormez; yine de cagrilirsa calistirilmaz
+        self._disabled: set[str] = disabled_tool_names(disabled_groups)
         # Onay geri cagrimi: kapatma gibi geri alinamaz islemler icin kullanilir.
         self._confirm: ConfirmFn = confirm or (lambda _prompt: True)
         self._on_exit: ExitFn = on_exit or (lambda: None)
         # Baska pencereye yazarken arayuzun cekilmesi icin bildirim.
         self._on_typing: TypingFn = on_typing or (lambda _active: None)
         self._on_look_at_screen: ScreenFn = on_look_at_screen or (lambda: None)
+        # Dogrulanmis icerigi (video, Wikipedia, belge...) arayuzdeki panele iletir.
+        self._on_panel: PanelFn = on_panel or (lambda _payload: False)
         # En son kapatilan pencere (`describe_window` ciktisi) - "geri ac" icin.
         self._last_closed: dict[str, Any] = {}
         self._registry: dict[str, ToolFn] = {}
@@ -215,6 +278,12 @@ class ToolRunner:
         self.register("open_website", lambda **kw: self._retracted(open_website, **kw))
         self.register("open_path", open_path)
         self.register("open_gesture_hud", open_gesture_hud)
+        from tools import el_tools
+
+        for name in ("el_kontrolu_ac", "el_kontrolu_kapat", "el_gezegen", "kitaplik_listele",
+                     "kitaplik_tara", "kitaplik_ekle", "kitap_adlandir", "kitap_not_ekle",
+                     "kitap_durum", "kitap_defter_doldur", "kitap_ozetle", "calibre_esitle", "kitap_ac", "kitap_tani"):
+            self.register(name, getattr(el_tools, name))
         self.register("type_in_search", lambda **kw: self._retracted(type_in_search, **kw))
         self.register("type_in_browser", type_in_browser)
         self.register("type_text", self._tool_type_text)
@@ -257,7 +326,7 @@ class ToolRunner:
 
         # --- PC guc kullanicisi ---
         self.register("media_control", media_control)
-        self.register("spotify_play", spotify_play)
+        self.register("spotify_play", self._tool_spotify_play)
         self.register("spotify_control", spotify_control)
         self.register("spotify_now_playing", spotify_now_playing)
         self.register("spotify_queue", spotify_queue)
@@ -334,12 +403,32 @@ class ToolRunner:
         self.register("plan_route", lambda **kw: self._retracted(plan_route, **kw))
         self.register("izmirim_kart_balance", izmirim_kart_balance)
 
+        # --- telefon uygulamasi (web/phone_link.py) ---
+        for fn in (phone_call, send_sms, set_alarm, set_timer, open_phone_app, phone_location,
+                   phone_status, ring_phone, send_file_to_phone):
+            self.register(fn.__name__, fn)
+
         # --- MCP gecidi + tarayici ajani ---
         self.register("mcp_servers", mcp_servers)
         self.register("mcp_list_tools", mcp_list_tools)
         self.register("mcp_call", self._tool_mcp_call)
         self.register("browser_task", self._tool_browser_task)
         self.register("browser_open", browser_open)
+
+        # --- icerik paneli: JARVIS arayuzunun icinde acilir ---
+        self.register("show_video", lambda **kw: self._panel(show_video, **kw))
+        self.register("show_wikipedia", lambda **kw: self._panel(show_wikipedia, **kw))
+        self.register("show_document", lambda **kw: self._panel(show_document, **kw))
+        self.register("show_website", lambda **kw: self._panel(show_website, **kw))
+        self.register("show_spotify", lambda **kw: self._panel(show_spotify, **kw))
+        self.register("show_news", lambda **kw: self._panel(show_news, **kw))
+        self.register("show_market", lambda **kw: self._panel(show_market, **kw))
+        self.register("show_weather", lambda **kw: self._panel(show_weather, **kw))
+        self.register("show_map", lambda **kw: self._panel(show_map, **kw))
+        self.register("show_route", lambda **kw: self._panel(show_route, **kw))
+        self.register("map_control", lambda **kw: self._panel(map_control, **kw))
+        self.register("show_info", lambda **kw: self._panel(show_info, **kw))
+        self.register("close_panel", lambda **kw: self._panel(close_panel, **kw))
 
     # --- onay gerektiren araclar -----------------------------------------
     @staticmethod
@@ -569,6 +658,42 @@ class ToolRunner:
         task = f"Baslangic adresi: {start_url}\n{goal}" if start_url else goal
         return _dispatch_to_agent("web_operatoru", task)
 
+    # --- icerik paneli ----------------------------------------------------
+    def _panel(self, fn: Callable[..., dict[str, Any]], **kwargs: Any) -> dict[str, Any]:
+        """Panel aracini calistirir; dogrulanmis "panel" yukunu arayuze iletir ve modele
+        giden yanittan cikarir. Arayuz paneli yoksa icerik varsayilan uygulamada acilir."""
+        result = fn(**kwargs)
+        if not isinstance(result, dict):
+            return result
+        payload = result.pop("panel", None)
+        if not payload or "error" in result:
+            return result
+        try:
+            shown = bool(self._on_panel(payload))
+        except Exception:  # noqa: BLE001 - arayuz hatasi araci cokertemez
+            logger.exception("Icerik paneli gosterilemedi")
+            shown = False
+        # Yalnizca harici karsiligi olan turler tarayiciya/uygulamaya duser; haber, grafik, hava ve
+        # bilgi kartinin verisi zaten yanitta: arayuz yoksa model onu sesli aktarir.
+        if not shown and payload.get("kind") in ("video", "wiki", "web", "doc"):
+            target = payload.get("path") or payload.get("url") or ""
+            opened = open_path(target) if payload.get("path") else open_website(target)
+            if "error" in opened:
+                return {"error": f"Arayuz paneli yok ve harici acilamadi: {opened['error']}"}
+            result["status"] = "arayuz paneli yok; varsayilan uygulamada acildi"
+        elif not shown:
+            result["status"] = "arayuz paneli yok (arayuzsuz mod)"
+        return result
+
+    def _tool_spotify_play(self, query: str = "", kind: str = "track", device: str = "") -> dict[str, Any]:
+        result = spotify_play(query=query, kind=kind, device=device)
+        if isinstance(result, dict) and result.get("ok"):
+            try:  # calan sarki arayuzdeki Spotify kartinda gorunsun
+                self._on_panel({"kind": "spotify", "title": "Spotify", "subtitle": str(result.get("device") or "")})
+            except Exception:  # noqa: BLE001
+                logger.exception("Spotify karti gosterilemedi")
+        return result
+
     def _tool_exit_application(self) -> dict[str, Any]:
         if not self._confirm("JARVIS uygulamasini tamamen kapatayim mi?"):
             return {"status": "iptal edildi", "reason": "kullanici onay vermedi"}
@@ -590,8 +715,11 @@ class ToolRunner:
         args: dict[str, Any] = dict(call.args or {})
         fn = self._registry.get(name)
 
-        if fn is None:
+        if fn is None or name in self._disabled:
             return self._response(call, {"error": f"Bilinmeyen arac: {name}"})
+        redirect = _phone_app_redirect(name)
+        if redirect is not None:
+            return self._response(call, redirect)
 
         started = time.monotonic()
         try:

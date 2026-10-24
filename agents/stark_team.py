@@ -25,7 +25,8 @@ Provider = Literal["live", "gemini", "openrouter", "claude", "search", "memory"]
 _SPOKEN = (
     " Yanıtın sesli okunacak: Türkçe yaz ve Türkçe karakterleri (ç, ğ, ı, İ, ö, ş, ü) mutlaka "
     "doğru kullan; 2-4 kısa cümle; markdown, madde işareti, emoji ve link kullanma. "
-    "Kullanıcının adı Sezai; ona 'efendim' diye hitap edebilirsin."
+    "Kullanıcının adı Sezai; ona 'efendim' diye hitap edebilirsin. İltifat etme, kimseyi övme; "
+    "doğrudan işe yarayan bilgiyi ver."
 )
 
 
@@ -63,47 +64,47 @@ PERSONAS: dict[str, Persona] = {p.key: p for p in [
     _p("friday", "F.R.I.D.A.Y.", "gemini-flash-lite-latest", "gemini",
        "Kendi modeli olmayan 25 departman ajanını arka planda yürüten ana model.",
        "J.A.R.V.I.S.'in halefisin; pratik, hızlı ve hafif esprili bir operasyon asistanısın.",
-       "en-US-EmmaMultilingualNeural", "#ff8fd0"),
+       "tr-TR-EmelNeural", "#ff8fd0"),
     _p("dume", "DUM-E", "gemini-3.5-flash-lite", "gemini",
        "Gemini zincirinde ilk yedek; F.R.I.D.A.Y. çalışmazsa yardıma koşan robot kol.",
        "Stark'ın atölyedeki sakar ama çok istekli robot kolusun; heyecanlı ve sevimli konuşursun.",
-       "tr-TR-AhmetNeural", "#9aa7b4", pitch="+25Hz", rate="+12%"),
+       "tr-TR-AhmetNeural", "#9aa7b4", pitch="+12Hz", rate="+6%"),
     _p("u", "U", "gemini-3.5-flash", "gemini",
        "Gemini zincirinde ikinci yedek robot kol.",
        "Stark'ın atölyedeki sakin ve titiz robot kolusun; kısa ve net konuşursun.",
-       "fr-FR-RemyMultilingualNeural", "#7fb0c8", pitch="+10Hz"),
+       "tr-TR-AhmetNeural", "#7fb0c8", pitch="-4Hz", rate="+3%"),
     _p("butterfingers", "Butterfingers", "gemini-3.6-flash", "gemini",
        "Gemini zincirinin en sonundaki yedek robot kol.",
        "Stark'ın elinden her şey düşen robot kolusun; kendinle dalga geçen sakar bir tavrın var.",
-       "it-IT-GiuseppeMultilingualNeural", "#c8a27f", pitch="+20Hz", rate="+15%"),
+       "tr-TR-AhmetNeural", "#c8a27f", pitch="+8Hz", rate="+10%"),
     _p("edith", "E.D.I.T.H.", "Google Search + Gemini", "search",
        "İnternette güncel bilgiyi kaynaklarıyla bulan arama katmanı.",
        "Tüm ağlara erişimi olan gözlük sistemisin; arama sonuçlarını tarihleriyle, kendinden emin özetlersin.",
-       "fr-FR-VivienneMultilingualNeural", "#ffb84d"),
+       "tr-TR-EmelNeural", "#ffb84d", pitch="-8Hz", rate="+6%"),
     _p("vision", "Vision", "gemini-embedding-001 (GBrain)", "memory",
        "GBrain bilgi bankasındaki notları anlamına göre bulan hafıza katmanı.",
        "J.A.R.V.I.S.'in kodundan doğdun; sakin, bilge ve düşünceli konuşursun.",
-       "de-DE-FlorianMultilingualNeural", "#ffd84d"),
+       "tr-TR-AhmetNeural", "#ffd84d", pitch="-10Hz", rate="-8%"),
     _p("veronica", "V.E.R.O.N.I.C.A.", "claude-opus-5-5", "claude",
        "Yalnızca ağır işlerde (kod, sistem) çağrılan en güçlü ve ücretli model.",
        "Hulkbuster destek sistemisin; ağır problemleri çözen güçlü, net ve kararlı bir uzmansın.",
-       "de-DE-SeraphinaMultilingualNeural", "#ff5c72", paid=True),
+       "tr-TR-EmelNeural", "#ff5c72", pitch="-12Hz", rate="-6%", paid=True),
     _p("pepper", "P.E.P.P.E.R.", "qwen/qwen3.8-27b:free", "openrouter",
        "Görevleri doğru ajana dağıtan yönlendirici.",
        "Stark Industries'i yöneten Pepper gibi düzenli, sıcak ve kararlısın; işleri doğru kişiye yönlendirirsin.",
-       "en-US-AvaMultilingualNeural", "#ff9a4d"),
+       "tr-TR-EmelNeural", "#ff9a4d", pitch="-4Hz", rate="-3%"),
     _p("homer", "H.O.M.E.R.", "nvidia/nemotron-3-ultra-550b-a55b:free", "openrouter",
        "Uzun doküman ve web özetlerini yapan araştırma modeli.",
        "Stark'ın araştırma yapay zekâsısın; meraklı, analitik ve bilgilisin.",
-       "en-US-AndrewMultilingualNeural", "#4dff9a"),
+       "tr-TR-AhmetNeural", "#4dff9a"),
     _p("karen", "K.A.R.E.N.", "nvidia/nemotron-3-super-120b-a12b:free", "openrouter",
        "İşleri adım adım planlayan planlayıcı model.",
        "Örümcek Adam kostümündeki yardımcı yapay zekâsın; nazik, cesaretlendirici ve adım adım yol gösterirsin.",
-       "tr-TR-EmelNeural", "#b47cff"),
+       "tr-TR-EmelNeural", "#b47cff", pitch="+6Hz", rate="+4%"),
     _p("legion", "Iron Legion", "openrouter/free", "openrouter",
        "O an boşta olan herhangi bir ücretsiz modeli devreye sokan son OpenRouter yedeği.",
        "Stark'ın otomatik zırh ordususun; kısa, resmi ve askeri bir üslupla konuşursun.",
-       "en-US-BrianMultilingualNeural", "#8c96ff", pitch="-12Hz", rate="-5%"),
+       "tr-TR-AhmetNeural", "#8c96ff", pitch="-16Hz", rate="-4%"),
 ]}
 
 MAX_TEXT = 2000
@@ -377,6 +378,21 @@ async def ask(key: str, text: str, history: Any = None, *, consult: bool = False
     return out
 
 
+# Turkce ses kisaltmalari harf harf okumasin: adlar Turkce okunusuyla seslendirilir
+SPOKEN_NAMES = {
+    "J.A.R.V.I.S.": "Carvis", "F.R.I.D.A.Y.": "Frayday", "E.D.I.T.H.": "Edit",
+    "V.E.R.O.N.I.C.A.": "Veronika", "P.E.P.P.E.R.": "Peppır", "H.O.M.E.R.": "Homır",
+    "K.A.R.E.N.": "Karen", "DUM-E": "Dami", "Iron Legion": "Ayrın Licın",
+    "Butterfingers": "Batırfingırs", "JARVIS": "Carvis", "FRIDAY": "Frayday",
+}
+_SPOKEN_RE = re.compile("|".join(re.escape(k) for k in sorted(SPOKEN_NAMES, key=len, reverse=True)))
+
+
+def spoken(text: str) -> str:
+    """Seslendirilecek metinde persona adlarini okunuslariyla degistirir."""
+    return _SPOKEN_RE.sub(lambda m: SPOKEN_NAMES[m.group(0)], text or "")
+
+
 async def _voice(key: str, text: str, tts: bool) -> str | None:
     import base64
 
@@ -385,7 +401,7 @@ async def _voice(key: str, text: str, tts: bool) -> str | None:
     p = PERSONAS.get(key)
     if not (tts and p is not None and p.voice and text):
         return None
-    audio = await synthesize(text, p.voice, rate=p.rate, pitch=p.pitch)
+    audio = await synthesize(spoken(text), p.voice, rate=p.rate, pitch=p.pitch)
     return "data:audio/mpeg;base64," + base64.b64encode(audio).decode("ascii") if audio else None
 
 
@@ -405,6 +421,81 @@ async def answer(key: str, text: str, history: Any = None, *, tts: bool = True,
 
 # --------------------------------------------------------------------- toplanti masasi
 MAX_TRANSCRIPT = 16
+WORK_RULES = (
+    "İltifat etme, kimseyi övme, teşekkür etme; 'harika fikir', 'çok güzel söyledin' gibi "
+    "ifadeler kullanma. Somut konuş: karar, adım, risk, süre ya da rakam. Biri yanlışsa adıyla "
+    "düzelt; katılıyorsan bunu tek kısa cümleyle geç ve yeni bilgi ekle. Yeni bilgin yoksa "
+    "bunu kısaca söyle."
+)
+_DONE = {"bitti", "tamam", "yok"}
+
+
+def _said_lines(transcript: Any) -> list[str]:
+    said: list[str] = []
+    for t in transcript if isinstance(transcript, list) else []:
+        who = PERSONAS.get(str(t.get("persona", ""))) if isinstance(t, dict) else None
+        body = str(t.get("text", "")).strip()[:800] if isinstance(t, dict) else ""
+        if who and body:
+            said.append(f"{who.name}: {body}")
+    return said[-MAX_TRANSCRIPT:]
+
+
+async def _pick(prompt: str) -> str:
+    """Konusmaci secici modelden tek satir yanit (ucuz Gemini zinciri)."""
+    from google.genai import types
+
+    from agents.genai_util import generate_with_retry
+    from config.settings import get_settings
+    from tools.quick_tools import _genai
+
+    client, _ = _genai()
+    resp = await generate_with_retry(
+        client, model=get_settings().agent_model_chain, contents=prompt, attempts=2,
+        config=types.GenerateContentConfig(temperature=0.2),
+    )
+    text = (getattr(resp, "text", None) or "").strip()
+    return text.splitlines()[0] if text else ""
+
+
+async def next_speaker(topic: str, transcript: Any, members: Any, last: str | None = None) -> dict[str, Any]:
+    """Toplantida sozu kime verecegini secer (sabit sira yok). Donus: {next, reason}. Hata firlatmaz.
+
+    Son konusan secilmez; soru yanitlandiysa (ve en az bir kisi konustuysa) next=None. Model
+    hata verirse ya da gecersiz bir ad donerse henuz konusmamis ilk uyeye dusulur.
+    """
+    seats = [k for k in (members if isinstance(members, list) else [])
+             if k in PERSONAS and PERSONAS[k].provider != "live"]
+    spoke = {str(t.get("persona", "")) for t in (transcript if isinstance(transcript, list) else [])
+             if isinstance(t, dict)}
+    pool = [k for k in seats if k != last]
+    if not pool:
+        return {"next": None, "reason": "konuşacak üye yok"}
+    fallback = next((k for k in pool if k not in spoke), pool[0])
+    said = _said_lines(transcript)
+    roster = "\n".join(f"- {k} ({PERSONAS[k].name}): {PERSONAS[k].role}"
+                       + ("" if k in spoke else " [henüz konuşmadı]") for k in pool)
+    prompt = (
+        f"Bir ekip toplantısını yönetiyorsun. Sezai'nin sorusu: {topic.strip()[:MAX_TEXT]}\n\n"
+        "Şimdiye kadar söylenenler:\n" + ("\n".join(said) or "(henüz kimse konuşmadı)") + "\n\n"
+        f"Söz alabilecek üyeler:\n{roster}\n\n"
+        "Sıradaki sözü kime vereceğini seç. Öncelik: adıyla soru sorulan ya da itiraz edilen üye; "
+        "konunun bu aşamasında uzmanlığı gereken üye; ilgiliyse henüz konuşmamış üye. Sabit bir "
+        "sıra izleme. Soru yeterince yanıtlandıysa ve yeni katkı beklemiyorsan BİTTİ yaz.\n"
+        "Yanıtın tek satır olsun: anahtar | kısa gerekçe   ya da   BİTTİ | gerekçe"
+    )
+    try:
+        line = await _pick(prompt)
+    except Exception as exc:  # noqa: BLE001 - toplanti durmasin
+        logger.info(f"[ekip] konusmaci secilemedi ({exc!r}); konusmamis uyeye geciliyor.")
+        return {"next": fallback, "reason": "seçici yanıt vermedi"}
+    name, _, reason = line.partition("|")
+    name, reason = name.strip(" -*`'\".:"), reason.strip()
+    if said and name.replace("İ", "I").replace("ı", "i").lower() in _DONE:
+        return {"next": None, "reason": reason or "konu kapandı"}
+    key = resolve(name)
+    if key not in pool:
+        return {"next": fallback, "reason": reason or "geçersiz seçim"}
+    return {"next": key, "reason": reason}
 
 
 async def council_turn(key: str, topic: str, transcript: Any = None, *, final: bool = False,
@@ -417,13 +508,7 @@ async def council_turn(key: str, topic: str, transcript: Any = None, *, final: b
     p = PERSONAS.get(key)
     if p is None or p.provider == "live":
         return {"text": "", "model": None, "error": f"{key} toplantiya katilamaz", "audio": None}
-    said: list[str] = []
-    for t in transcript if isinstance(transcript, list) else []:
-        who = PERSONAS.get(str(t.get("persona", ""))) if isinstance(t, dict) else None
-        body = str(t.get("text", "")).strip()[:800] if isinstance(t, dict) else ""
-        if who and body:
-            said.append(f"{who.name}: {body}")
-    said = said[-MAX_TRANSCRIPT:]
+    said = _said_lines(transcript)
     topic = topic.strip()[:MAX_TEXT]
 
     if p.provider in ("search", "memory"):
@@ -431,13 +516,14 @@ async def council_turn(key: str, topic: str, transcript: Any = None, *, final: b
     elif final:
         prompt = (f"[EKİP TOPLANTISI - KAPANIŞ] Sezai'nin sorusu: {topic}\n\nToplantıda söylenenler:\n"
                   + "\n".join(said)
-                  + "\n\nToplantıyı sen kapatıyorsun: görüşleri kısaca özetle, ortak noktayı ve "
-                    "Sezai için net bir öneriyi söyle. 3-4 cümle.")
+                  + "\n\nToplantıyı sen kapatıyorsun: alınan kararı ve Sezai'nin atacağı somut "
+                    "sonraki adımları söyle; açık kalan bir risk varsa belirt. " + WORK_RULES
+                  + " 3-4 cümle.")
     else:
         prompt = (f"[EKİP TOPLANTISI] Sezai'nin sorusu: {topic}\n\nŞimdiye kadar söylenenler:\n"
                   + ("\n".join(said) or "(ilk söz sende)")
-                  + "\n\nSıra sende. Diğerlerinin söylediklerine adlarıyla atıfta bulun; katıl, "
-                    "itiraz et ya da yeni bir şey ekle. Söylenenleri tekrar etme. 2-3 cümle.")
+                  + "\n\nSöz sende. Konuya kendi uzmanlığından katkı ver. " + WORK_RULES
+                  + " Söylenenleri tekrar etme. 2-3 cümle.")
     out = await _ask_once(p, prompt, [])
     out["audio"] = await _voice(key, out.get("text", ""), tts)
     return out

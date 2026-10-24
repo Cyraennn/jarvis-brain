@@ -203,3 +203,111 @@ class NetworkAudioServerLike:
     @property
     def client_connected(self) -> bool:  # pragma: no cover
         raise NotImplementedError
+
+
+class SwitchableAudioTransport(AudioTransport):
+    """PC mikrofonu/hoparloru ile telefon (ag) arasinda canli gecis yapar.
+
+    `run_ui.py` icin: telefon uygulamasi `net/audio_server.py`'ye baglaninca konusma
+    telefona tasinir, kopunca PC'ye doner. Yonu her parcada `_choose_route()` belirler.
+    PC ses cihazi acilamazsa (`local=None` ya da open hatasi) yalnizca telefon calisir.
+
+    Telefona giden ses aninda gonderilir ama motor eko engellemesini hoparlorun
+    calma suresine gore zamanlar (`_playback_active`). Bu yuzden telefona yazarken
+    gercek zamanli hizda beklenir; telefonda sadece kisa bir tampon (`_PHONE_LEAD`) birikir.
+    """
+
+    _PHONE_LEAD = 0.25       # telefonun onunde tutulan ses (sn): titremeye karsi tampon
+    _POLL = 0.2              # telefon mikrofonu sessizken yon degisimini bu aralikla kontrol et
+
+    def __init__(
+        self,
+        local: AudioTransport | None,
+        server: "NetworkAudioServerLike",
+        *,
+        receive_rate: int = 24000,
+        sample_width: int = 2,
+    ) -> None:
+        self._local = local
+        self._server = server
+        self._local_ok = False
+        self._bytes_per_sec = receive_rate * sample_width
+        self._play_until = 0.0
+        self._route = "pc"
+
+    # ------------------------------------------------------------------ yon
+    @property
+    def route(self) -> str:
+        return self._route
+
+    def _choose_route(self) -> str:
+        """Sesin su an nereden gelip nereye gidecegi: "phone" ya da "pc"."""
+        if self._server.client_connected:
+            return "phone"
+        return "pc" if self._local_ok else "phone"
+
+    def _current(self) -> str:
+        route = self._choose_route()
+        if route != self._route:
+            logger.info(f"Ses yonu degisti: {self._route} -> {route}")
+            self._route = route
+            self._play_until = 0.0
+        return route
+
+    # ------------------------------------------------------------ yasam dongusu
+    @property
+    def is_open(self) -> bool:
+        return True  # telefon her an baglanabilir; PC cihazi olmasa da motor dinlemeye devam eder
+
+    def open(self, attempts: int = 6, delay: float = 2.0) -> None:
+        if self._local is None:
+            logger.info("PC ses cihazi kullanilmiyor - yalnizca telefon sesi.")
+            return
+        try:
+            self._local.open(attempts=attempts, delay=delay)
+            self._local_ok = True
+        except RuntimeError as exc:
+            self._local_ok = False
+            logger.warning(f"PC ses cihazi acilamadi, telefon sesi bekleniyor: {exc}")
+
+    def close(self) -> None:
+        if self._local is not None:
+            self._local.close()
+        self._local_ok = False
+
+    def reopen(self, attempts: int = 3, delay: float = 1.0) -> None:
+        if self._local is None:
+            return
+        try:
+            self._local.reopen(attempts=attempts, delay=delay)
+            self._local_ok = True
+        except RuntimeError:
+            self._local_ok = False
+            raise
+
+    def shutdown(self) -> None:
+        if self._local is not None:
+            self._local.shutdown()
+        self._local_ok = False
+
+    # -------------------------------------------------------------- ses akisi
+    async def read_chunk(self, chunk_size: int) -> bytes:
+        while True:
+            if self._current() == "pc" and self._local is not None:
+                return await self._local.read_chunk(chunk_size)
+            try:
+                return await asyncio.wait_for(self._server.read_mic_chunk(), self._POLL)
+            except asyncio.TimeoutError:
+                continue  # telefon sustu ya da koptu: yonu yeniden kontrol et
+
+    async def write_chunk(self, data: bytes) -> None:
+        if self._current() == "pc" and self._local is not None:
+            await self._local.write_chunk(data)
+            return
+        await self._server.send_speaker_chunk(data)
+        # gercek zamanli hiz: motor bu parca "calindi" sanmadan once telefonun yetismesini bekle
+        now = time.monotonic()
+        self._play_until = max(self._play_until, now) + len(data) / self._bytes_per_sec
+        wait = self._play_until - now - self._PHONE_LEAD
+        if wait > 0:
+            await asyncio.sleep(wait)

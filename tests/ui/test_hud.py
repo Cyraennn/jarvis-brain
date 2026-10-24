@@ -1,4 +1,4 @@
-"""Sinematik HUD: kartlar, acilis animasyonu, tam ekran, gorus/konusma kartlari."""
+"""Komuta HUD: kartlar, acilis animasyonu, tam ekran, gorus/konusma kartlari."""
 import sys
 from datetime import datetime
 from types import SimpleNamespace
@@ -160,3 +160,181 @@ def test_team_chip_toggles_stark_team_window(hud, monkeypatch):
     FakeTeam.open_ = False
     hud._watch_stark_team()
     assert not btn.isChecked()
+
+
+def test_mini_calendar_marks_today(qapp):
+    from datetime import date
+
+    from ui.hud.stat_cards import ClockCard, MiniCalendar
+
+    cal = MiniCalendar()
+    cal.set_date(date(2026, 10, 12))            # Pazartesi, ayin 3. haftasi
+    assert cal.today_cell() == (2, 0)
+    assert cal.weeks[0][:3] == [0, 0, 0] and cal.weeks[0][3] == 1
+    card = ClockCard("")
+    card.tick(datetime(2026, 9, 25, 20, 46, 7))
+    assert card.calendar.today == date(2026, 9, 25)
+
+
+def test_meter_bar_color_follows_thresholds(qapp):
+    from ui import theme
+    from ui.hud.stat_cards import MeterBar
+
+    bar = MeterBar("CPU")
+    assert bar.bar_color() == theme.ACCENT       # deger yok
+    for value, color in ((40, theme.ACCENT), (75, theme.GOLD), (95, theme.BAD)):
+        bar.set_value(value)
+        assert bar.bar_color() == color
+
+
+def test_routine_rows_list_reminders_before_routines():
+    from ui.hud.stat_cards import routine_rows
+
+    now = datetime(2026, 10, 12, 8, 0)
+    routines = [{"name": "Günlük Brifing", "schedule": "her gun 09:00", "enabled": False},
+                {"name": "Yedek", "schedule": "haftalik", "enabled": True}]
+    reminders = [{"text": "Toplantı", "fire_at": "2026-10-12T14:30:00+03:00"},
+                 {"text": "Ödev", "fire_at": "2026-10-15T10:00:00+03:00"}]
+    assert routine_rows(routines, reminders, now) == [
+        ("14:30", "Toplantı", "BEKLİYOR", True),
+        ("15.10", "Ödev", "BEKLİYOR", True),
+        ("09:00", "Günlük Brifing", "KAPALI", False),
+        ("—", "Yedek", "AÇIK", True),
+    ]
+
+
+def test_routines_card_shows_rows_or_empty_state(qapp):
+    from ui.hud.stat_cards import RoutinesCard
+
+    card = RoutinesCard(fetch_fn=lambda: ([{"name": "Brifing", "schedule": "her gun 09:00"}], []))
+    assert card.rows == [("09:00", "Brifing", "AÇIK", True)]
+    assert card.empty_label.isHidden() and card.meta_label.text() == "1 kayıt"
+
+    def boom():
+        raise OSError("dosya yok")
+
+    empty = RoutinesCard(fetch_fn=boom)          # okunamayan veri karti cokertmez
+    assert empty.rows == [] and not empty.empty_label.isHidden()
+
+
+def test_quick_command_tile_sends_to_live_session(qapp, hud):
+    from ui.hud.stat_cards import QUICK_COMMANDS
+
+    sent = []
+    hud._quick_card.tiles[1].click()             # motor baglanmadan: sessizce yok sayilir
+    hud.attach_worker(SimpleNamespace(inject_bridge_message=sent.append))
+    before = hud._transcript.bubble_count
+    hud._quick_card.tiles[1].click()
+    assert sent == [QUICK_COMMANDS[1][1]]
+    assert hud._transcript.bubble_count == before + 1
+
+
+def test_ticker_follows_latest_log_line(qapp, hud):
+    hud.show()
+    hud._log.add_event("✓", "get_weather -> tamam")
+    assert "get_weather" in hud._ticker.text()
+
+
+def test_agent_detail_opens_on_selection(qapp, hud):
+    specs = [SimpleNamespace(name="a0", title="Ajan 0", department=SimpleNamespace(value="okul"),
+                             autonomy=SimpleNamespace(value="fully_autonomous"))]
+    hud._on_agents_loaded(specs)
+    detail = hud._parts["detail"]
+    assert detail.isHidden()
+    hud._on_agent_selected("dept:okul")
+    assert detail.isHidden()
+    hud._on_agent_selected("a0")
+    assert not detail.isHidden()
+
+
+def test_task_counter_shows_active_tasks(qapp, hud):
+    hud._on_orch_task(SimpleNamespace(id="t1", agent="a0", status="running", result="", detail=""))
+    hud._on_orch_task(SimpleNamespace(id="t2", agent="a1", status="done", result="ok", detail=""))
+    assert hud._task_count_label.text() == "1"
+    assert "2 toplam" in hud._task_sub_label.text()
+
+
+def test_persona_card_sits_bottom_right_and_switches_via_worker(hud, qapp):
+    from PySide6.QtCore import QPoint
+    from PySide6.QtTest import QTest
+
+    card = hud._persona_card
+    assert card.title_label.text() == "EKİPLER"
+    assert list(card.chips) == ["jarvis", "friday", "ultron"]
+    card.set_active("jarvis")  # gercek data/persona.json'dan bagimsiz
+    hud.show()
+    wait_ms(qapp, 50)
+    assert card.mapTo(hud, QPoint(0, 0)).x() > hud.width() // 2  # sag sutun
+
+    calls = []
+    QTest.mouseClick(card.chips["ultron"], Qt.MouseButton.LeftButton)  # worker yok: cokmez
+    hud._worker = SimpleNamespace(set_persona=calls.append)
+    QTest.mouseClick(card.chips["ultron"], Qt.MouseButton.LeftButton)
+    assert calls == ["ultron"]
+    assert card.active == "jarvis"  # motor onaylayana kadar degismez
+
+    hud._observer.persona.emit("ultron")
+    wait_ms(qapp, 20)
+    assert card.active == "ultron" and card.meta_label.text() == "ULTRON"
+    assert card.chips["ultron"].active and not card.chips["jarvis"].active
+    QTest.mouseClick(card.chips["ultron"], Qt.MouseButton.LeftButton)  # zaten aktif
+    assert calls == ["ultron"]
+    hud._worker = None
+
+
+def test_palettes_recolor_everything_and_drop_the_old_orange():
+    from ui import theme
+
+    seen = set()
+    for key in ("jarvis", "friday", "ultron"):
+        assert theme.apply_palette(key) == key
+        assert "rgba(255, 109, 0" not in theme.QSS and "#ff8c42" not in theme.QSS
+        assert theme.ACCENT in theme.QSS and theme.HUD_TICK == theme.SPEAK == theme.ACCENT
+        assert theme.DEPT_COLORS[0] == theme.ACCENT
+        seen.add(theme.ACCENT)
+    assert len(seen) == 3
+    assert theme.apply_palette("yok") == "jarvis"
+
+
+def test_persona_switch_rethemes_the_whole_hud(hud, qapp):
+    from ui import theme
+    hud.show()
+    wait_ms(qapp, 30)
+    assert hud._brand.text() == "JARVIS_OS" and theme.PERSONA == "jarvis"
+    assert not hud._fx_overlay.isVisible() and not hud._fx_overlay.timer_running
+    hud._caption.setText(theme.branding()["greeting"])
+
+    hud._observer.persona.emit("ultron")
+    wait_ms(qapp, 30)
+    assert hud._brand.text() == "ULTRON_OS"
+    assert hud._tag.text() == "BAĞIMSIZ ZEKÂ"
+    assert "ULTRON" in hud._bridge_input.placeholderText()
+    assert hud._caption.text() == theme.BRANDING["ultron"]["greeting"]   # karsilama da degisti
+    assert hud.windowTitle() == "ULTRON"
+    assert hud._clock_card._tick.name() == theme.ACCENT.lower() == "#ff4d4d"
+    assert qapp.styleSheet() == theme.QSS
+    assert hud._fx_overlay.isVisible() and hud._fx_overlay.timer_running
+
+    hud._fx_overlay._start_glitch()          # glitch: logo kayar, sonra geri doner
+    assert hud._fx_overlay.glitch_active and hud._brand.contentsMargins().left() > 0
+    hud._fx_overlay._stop_glitch()
+    assert hud._brand.contentsMargins().left() == 0 and hud._fx_overlay.timer_running
+
+    hud._observer.persona.emit("friday")
+    wait_ms(qapp, 30)
+    assert hud._brand.text() == "FRIDAY_OS" and theme.EFFECT == "friday"
+    assert not hud._fx_overlay.isVisible() and not hud._fx_overlay.timer_running
+
+    hud._observer.persona.emit("jarvis")
+    wait_ms(qapp, 30)
+    assert hud._brand.text() == "JARVIS_OS" and hud._caption.text() == theme.BRANDING["jarvis"]["greeting"]
+
+
+def test_transcript_uses_the_active_persona_name(qapp):
+    from ui import theme
+    from ui.widgets.transcript_view import TranscriptView
+
+    view = TranscriptView()
+    theme.apply_palette("friday")
+    view.add_assistant("Hallettim.")
+    assert "FRIDAY" in view.toPlainText()

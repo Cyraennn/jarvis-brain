@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QEvent, QRectF, Qt, Signal
-from PySide6.QtGui import QCloseEvent, QColor, QIcon, QPainter, QPen, QPixmap
+from PySide6.QtGui import QCloseEvent, QColor, QIcon, QKeySequence, QPainter, QPen, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSizePolicy,
     QSplitter,
+    QStackedWidget,
     QSystemTrayIcon,
     QToolButton,
     QVBoxLayout,
@@ -30,6 +31,7 @@ from PySide6.QtWidgets import (
 )
 
 from config.settings import ASSETS_DIR, Settings
+from core import personas
 from core.webcam_streamer import WebcamStreamer
 from ui import theme
 from ui.strings import tr_lower
@@ -37,6 +39,7 @@ from ui.engine_worker import EngineWorker
 from ui.qt_observer import QtEngineObserver
 from ui.widgets.agent_panel import AgentPanel
 from ui.widgets.brain_graph import BrainGraph
+from ui.widgets.content_panel import ContentPanel
 from ui.widgets.log_view import LogView
 from ui.widgets.transcript_view import TranscriptView
 from ui.widgets.webcam_view import WebcamView
@@ -50,11 +53,14 @@ _CONN_TEXT = {
     "offline": ("ÇEVRİMDIŞI · yerel model", theme.WARN),
     "offline-voice": ("ÇEVRİMDIŞI · sesli yerel model", theme.WARN),
 }
-_STATE_TEXT = {
-    "idle": ("HAZIR", theme.STATE_IDLE),
-    "listening": ("DİNLİYOR", theme.ACCENT),
-    "speaking": ("KONUŞUYOR", theme.SPEAK),
-}
+def _state_text(state: str) -> tuple[str, str]:
+    """Durum yazisi + rengi; renk kisilik paletinden o an okunur (bkz. theme.apply_palette)."""
+    table = {
+        "idle": ("HAZIR", theme.STATE_IDLE),
+        "listening": ("DİNLİYOR", theme.ACCENT),
+        "speaking": ("KONUŞUYOR", theme.SPEAK),
+    }
+    return table.get(state, (state.upper(), theme.TEXT_DIM))
 _TASK_TERMINAL = {"done", "failed", "blocked", "cancelled"}
 
 _STARTUP_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
@@ -130,7 +136,8 @@ class MainWindow(QMainWindow):
 
         self._icon = _load_app_icon()
         self.setWindowIcon(self._icon)
-        self.setWindowTitle("JARVIS")
+        self.setWindowTitle(theme.branding()["name"])
+        self._last_state = "idle"
         self.resize(1320, 860)
 
         self._build_ui()
@@ -195,6 +202,54 @@ class MainWindow(QMainWindow):
 
         outer.addLayout(body, 1)
         outer.addWidget(self._build_statusbar())
+        QShortcut(QKeySequence(Qt.Key.Key_Escape), self, activated=self._close_panel)
+
+    # ----------------------------------------------------------- icerik paneli
+    def _mount_panel(self, graph: QWidget) -> QStackedWidget:
+        """Merkez gorseli (beyin haritasi / komuta grafi) ile icerik panelini ayni yere koyar;
+        video, Wikipedia, belge, site ve Spotify karti gorselin yerinde acilir."""
+        stack = QStackedWidget()
+        stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        stack.addWidget(graph)
+        self._content_panel = ContentPanel()
+        self._content_panel.closed.connect(self._close_panel)
+        stack.addWidget(self._content_panel)
+        self._center_stack = stack
+        return stack
+
+    def _panel_open(self) -> bool:
+        return self._center_stack.currentWidget() is self._content_panel
+
+    def _on_panel(self, payload: dict) -> None:
+        if payload.get("kind") == "close":
+            self._close_panel()
+            return
+        if payload.get("kind") == "map_control":
+            # Harita aciksa kamera komutu; degilse once Izmir haritasi acilir
+            if self._panel_open() and self._content_panel.map_command(str(payload.get("action", ""))):
+                return
+            if self._panel_open() and self._content_panel.kind == "map":
+                return   # harita henuz yukleniyor
+            from tools.panel_tools import show_map
+
+            payload = show_map("")["panel"]
+        title = _elide(str(payload.get("title", "")), 60)
+        if not self._content_panel.show_content(payload):
+            self._close_panel()
+            self._log.add_event("↗", f"Panel açılamadı, tarayıcıda açıldı: {title}", theme.WARN)
+            return
+        self._center_stack.setCurrentWidget(self._content_panel)
+        self._graph.set_active(False)   # gorunmeyen animasyon bosuna CPU yakmasin
+        self._log.add_event("▣", f"Panel: {title}", theme.ACCENT)
+
+    def _close_panel(self) -> bool:
+        """Icerik panelini kapatip merkez gorsele doner. Panel acik degilse False."""
+        if not self._panel_open():
+            return False
+        self._content_panel.clear()
+        self._center_stack.setCurrentWidget(self._graph)
+        self._graph.set_active(not self.isMinimized())
+        return True
 
     # ----------------------------------------------------------------- ribbon
     def _ribbon_btn(self, glyph: str, tip: str, *, checkable: bool = False) -> QToolButton:
@@ -333,7 +388,7 @@ class MainWindow(QMainWindow):
         self._graph = BrainGraph()
         self._graph.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self._graph.node_clicked.connect(self._on_agent_selected)   # ajan adi ya da "dept:<key>"
-        ga.addWidget(self._graph, 1)
+        ga.addWidget(self._mount_panel(self._graph), 1)
         self._state_line = QLabel("HAZIR")
         self._state_line.setObjectName("stateLine")
         self._state_line.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -482,7 +537,9 @@ class MainWindow(QMainWindow):
         o.confirm_requested.connect(self._on_confirm_requested)
         o.app_exit_requested.connect(self._on_exit_requested)
         o.external_typing.connect(self._on_external_typing)
+        o.panel.connect(self._on_panel)
         o.wake.connect(self._on_wake)
+        o.persona.connect(self._on_persona)
 
         if self._orch_observer is not None:
             self._orch_observer.agents_loaded.connect(self._on_agents_loaded)
@@ -490,6 +547,33 @@ class MainWindow(QMainWindow):
             appr = getattr(self._orch_observer, "approval_requested", None)
             if appr is not None:
                 appr.connect(self._on_approval_requested)
+
+    def _on_persona(self, key: str) -> None:
+        mode = personas.get(self._settings, key)
+        self.apply_persona_theme(mode.key)
+        self._log.add_event("◆", f"{mode.name} devrede — yeni kişilikle bağlanılıyor", mode.color)
+
+    def apply_persona_theme(self, key: str) -> str:
+        """Kisilik paletini uygular: global QSS + `refresh_theme()` olan her widget + baslik.
+
+        HudWindow metinleri, orb'u ve efekt katmanini ekler. Uygulanan anahtari doner.
+        """
+        key = theme.apply_palette(key)
+        app = QApplication.instance()
+        if app is not None:
+            app.setStyleSheet(theme.QSS)
+        for widget in self.findChildren(QWidget):
+            refresh = getattr(widget, "refresh_theme", None)
+            if callable(refresh):
+                refresh()
+        name = theme.branding(key)["name"]
+        if app is not None:
+            app.setApplicationDisplayName(name)   # Windows baslik/gorev cubugu adi
+        self.setWindowTitle(name)
+        tray = getattr(self, "_tray", None)
+        if tray is not None:
+            tray.setToolTip(name)
+        return key
 
     def _on_connection(self, status: str) -> None:
         text, color = _CONN_TEXT.get(status, (status.upper(), theme.TEXT_DIM))
@@ -543,7 +627,8 @@ class MainWindow(QMainWindow):
         BUS.push("control_state", {"wake": checked})  # telefon konsolu dugmesi senkron kalsin
 
     def _on_state(self, state: str) -> None:
-        text, color = _STATE_TEXT.get(state, (state.upper(), theme.TEXT_DIM))
+        self._last_state = state
+        text, color = _state_text(state)
         if state == "idle" and self._wake_asleep:
             text, color = "UYKUDA · 'Hey JARVIS'", theme.TEXT_DIM
         self._state_line.setText(text)
@@ -667,7 +752,9 @@ class MainWindow(QMainWindow):
             watch.stop()
             self._active_dialog = None
 
-        if getattr(request, "expired", False):
+        if getattr(request, "remote_resolved", False):
+            self._log.add_event("📱", "Onay başka cihazdan yanıtlandı.", theme.GOOD)
+        elif getattr(request, "expired", False):
             self._log.add_event("⌛", "Onay zaman aşımına uğradı — reddedildi.", theme.BAD)
         else:
             approved = box.clickedButton() is yes
@@ -812,7 +899,7 @@ class MainWindow(QMainWindow):
         if not QSystemTrayIcon.isSystemTrayAvailable():
             return
         self._tray = QSystemTrayIcon(self._icon, self)
-        self._tray.setToolTip("JARVIS")
+        self._tray.setToolTip(theme.branding()["name"])
         menu = QMenu()
         self._act_visible = menu.addAction("Gizle", self._toggle_visible)
         menu.addSeparator()
@@ -879,8 +966,8 @@ class MainWindow(QMainWindow):
     def changeEvent(self, event) -> None:  # noqa: N802, ANN001
         super().changeEvent(event)
         if event.type() == QEvent.Type.WindowStateChange:
-            # Kucultulmusken beyin haritasi animasyonu bosuna CPU yakmasin
-            self._graph.set_active(not self.isMinimized())
+            # Kucultulmusken (ya da icerik paneli acikken) beyin haritasi animasyonu bosuna CPU yakmasin
+            self._graph.set_active(not self.isMinimized() and not self._panel_open())
 
     def _apply_on_top(self, on: bool) -> None:
         flags = self.windowFlags()
@@ -973,6 +1060,7 @@ class MainWindow(QMainWindow):
             return
         self._shutting_down = True
         self._log.add_event("●", "Kapatılıyor...", theme.WARN)
+        self._content_panel.clear()   # panelde calan video/ses dursun
         for name in ("_mic_btn", "_wake_btn", "_cam_btn", "_screen_btn", "_stop_btn", "_tray_btn",
                      "_top_btn"):
             btn = getattr(self, name, None)

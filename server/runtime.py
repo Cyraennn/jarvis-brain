@@ -33,7 +33,7 @@ from web.event_bus import BUS
 
 _CONTROL_ACTIONS = {"mic_on", "mic_off", "away_on", "away_off",
                     "screen_on", "screen_off", "webcam_on", "webcam_off",
-                    "wake_on", "wake_off"}
+                    "wake_on", "wake_off", "interrupt"}
 SESSION_DOWN_ALERT_S = 300.0   # canli oturum bu kadar suredir kopuksa kritik bildirim
 
 
@@ -237,6 +237,8 @@ class JarvisRuntime:
             engine.set_screen_streaming(action == "screen_on")
         elif action in ("webcam_on", "webcam_off"):
             engine.set_webcam_streaming(action == "webcam_on")
+        elif action == "interrupt":
+            engine.interrupt_speaking()
         BUS.push("control_state", {"mic": not engine.mic_muted, "away": engine.output_muted,
                                    "wake": engine.wake_word_enabled})
         return {"ok": True, "action": action}

@@ -1,4 +1,4 @@
-"""HUD veri kartlari: saat + hava, sistem olcumleri, okul ozeti.
+"""HUD veri kartlari: saat + takvim + hava, sistem olcumleri, okul ozeti, rutinler, hizli komutlar.
 
 Ag isi (hava durumu) QThreadPool'da calisir, sonuc sinyalle GUI thread'ine doner.
 CPU/RAM Windows API'sinden ctypes ile okunur (ek bagimlilik yok); baska platformda "—".
@@ -6,17 +6,19 @@ CPU/RAM Windows API'sinden ctypes ile okunur (ek bagimlilik yok); baska platform
 
 from __future__ import annotations
 
+import calendar
 import ctypes
+import re
 import shutil
 import sys
 import time
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Callable
 
 from PySide6.QtCore import QRectF, QRunnable, QSize, Qt, QThreadPool, QTimer, Signal
 from PySide6.QtGui import QColor, QPainter
-from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QWidget
+from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QWidget
 
 from ui import theme
 from ui.hud.hud_card import HudCard
@@ -33,6 +35,15 @@ _WEATHER_TR = {
     "dolulu firtina": "dolulu fırtına",
 }
 WEATHER_REFRESH_MS = 15 * 60 * 1000
+DAY_INITIALS_TR = ("P", "S", "Ç", "P", "C", "C", "P")
+# Hizli komut dosemeleri: (gorunen ad, canli oturuma gonderilen komut)
+QUICK_COMMANDS = (
+    ("Günlük brifing", "Günlük brifing ver: önemli mailler, bugünün havası ve bekleyen hatırlatıcılar."),
+    ("Mailleri özetle", "Gelen kutumdaki okunmamış önemli mailleri özetle."),
+    ("Bugünkü program", "Bugünkü ders programımı ve yaklaşan sınavlarımı söyle."),
+    ("Sistem durumu", "Bilgisayarın sistem durumunu özetle."),
+)
+ROUTINE_ROWS_MAX = 6
 
 
 def _label(text: str, name: str) -> QLabel:
@@ -63,20 +74,23 @@ class ClockCard(HudCard):
 
     def __init__(self, location: str = "", weather_fn: Callable[[str], dict] | None = None,
                  parent: QWidget | None = None) -> None:
-        super().__init__("ZAMAN", "01", parent=parent)
+        super().__init__("ŞİMDİ", parent=parent)
         self._location = (location or "").strip()
         self._weather_fn = weather_fn
 
         row = QHBoxLayout()
-        row.setSpacing(6)
+        row.setSpacing(0)
         self.time_label = _label("--:--", "hudBig")
         self.sec_label = _label("--", "hudBigSub")
         row.addWidget(self.time_label)
-        row.addWidget(self.sec_label, 0, Qt.AlignmentFlag.AlignBottom)
+        row.addWidget(_label(":", "hudBig"))
+        row.addWidget(self.sec_label)
         row.addStretch(1)
         self.body.addLayout(row)
         self.date_label = _label("", "hudLine")
         self.body.addWidget(self.date_label)
+        self.calendar = MiniCalendar()
+        self.body.addWidget(self.calendar)
         self.weather_label = _label("", "hudLineStrong")
         self.weather_label.setWordWrap(True)
         self.body.addWidget(self.weather_label)
@@ -103,6 +117,8 @@ class ClockCard(HudCard):
         self.time_label.setText(now.strftime("%H:%M"))
         self.sec_label.setText(now.strftime("%S"))
         self.date_label.setText(f"{now.day} {MONTHS_TR[now.month - 1]} {now.year} · {DAYS_TR[now.weekday()]}")
+        if self.calendar.today != now.date():
+            self.calendar.set_date(now.date())
 
     def refresh_weather(self) -> None:
         if not self._location:
@@ -115,6 +131,61 @@ class ClockCard(HudCard):
 
     def _on_weather(self, data: dict) -> None:
         self.weather_label.setText(format_weather(data, self._location))
+
+
+class MiniCalendar(QWidget):
+    """Ay izgarasi (Pazartesi baslar); bugun vurgu rengiyle dolu kare."""
+
+    HEAD_H = 16
+    ROW_H = 19
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.today: date | None = None
+        self.weeks: list[list[int]] = []
+        self.set_date(date.today())
+
+    def set_date(self, today: date) -> None:
+        self.today = today
+        self.weeks = calendar.monthcalendar(today.year, today.month)
+        self.setFixedHeight(self.HEAD_H + self.ROW_H * len(self.weeks))
+        self.update()
+
+    def today_cell(self) -> tuple[int, int]:
+        """Bugunun (satir, sutun) konumu."""
+        for r, week in enumerate(self.weeks):
+            if self.today.day in week:
+                return r, week.index(self.today.day)
+        return 0, 0
+
+    def sizeHint(self) -> QSize:  # noqa: N802
+        return QSize(200, self.HEAD_H + self.ROW_H * len(self.weeks))
+
+    def paintEvent(self, event) -> None:  # noqa: N802, ANN001
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        cw = self.width() / 7.0
+        f = p.font()
+        f.setPointSize(7)
+        f.setBold(True)
+        p.setFont(f)
+        p.setPen(QColor(theme.TEXT_FAINT))
+        for c, ch in enumerate(DAY_INITIALS_TR):
+            p.drawText(QRectF(c * cw, 0, cw, self.HEAD_H), Qt.AlignmentFlag.AlignCenter, ch)
+        cell, ink = QColor(theme.BG_INPUT), QColor(theme.ACCENT_INK)
+        accent, dim = QColor(theme.ACCENT), QColor(theme.TEXT_DIM)
+        today = self.today_cell()
+        for r, week in enumerate(self.weeks):
+            for c, day in enumerate(week):
+                if not day:
+                    continue
+                rect = QRectF(c * cw + 1, self.HEAD_H + r * self.ROW_H + 1, cw - 2, self.ROW_H - 2)
+                p.setPen(Qt.PenStyle.NoPen)
+                p.setBrush(accent if (r, c) == today else cell)
+                p.drawRoundedRect(rect, 2, 2)
+                p.setPen(ink if (r, c) == today else dim)
+                p.drawText(rect, Qt.AlignmentFlag.AlignCenter, str(day))
+        p.end()
 
 
 def format_weather(data: dict[str, Any], location: str = "") -> str:
@@ -192,49 +263,48 @@ class SystemProbe:
 
 
 class MeterBar(QWidget):
-    """Etiket | parcali cubuk | yuzde. Yuksek degerde renk altina, kritikte kirmiziya doner."""
-
-    SEGMENTS = 18
+    """Etiket solda, yuzde sagda, altinda ince cubuk. Yuksek degerde altina, kritikte kirmiziya doner."""
 
     def __init__(self, label: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.label = label
         self.value: float | None = None
-        self.setMinimumHeight(18)
+        self.setMinimumHeight(26)
 
     def sizeHint(self) -> QSize:  # noqa: N802
-        return QSize(200, 18)
+        return QSize(200, 26)
 
     def set_value(self, value: float | None) -> None:
         self.value = value
         self.update()
 
+    def bar_color(self) -> str:
+        if self.value is not None and self.value >= 90:
+            return theme.BAD
+        if self.value is not None and self.value >= 70:
+            return theme.GOLD
+        return theme.ACCENT
+
     def paintEvent(self, event) -> None:  # noqa: N802, ANN001
         p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         w, h = self.width(), self.height()
         f = p.font()
         f.setPointSize(8)
         f.setBold(True)
         p.setFont(f)
-        p.setPen(QColor(theme.GOLD))
-        p.drawText(QRectF(0, 0, 44, h), Qt.AlignmentFlag.AlignVCenter, self.label)
-        val_txt = "—" if self.value is None else f"%{self.value:.0f}"
         p.setPen(QColor(theme.TEXT))
-        p.drawText(QRectF(w - 40, 0, 40, h), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight, val_txt)
-
-        x0, x1 = 48.0, w - 46.0
-        seg_w = (x1 - x0) / self.SEGMENTS
-        lit = 0 if self.value is None else round(self.value / 100.0 * self.SEGMENTS)
-        color = QColor(theme.ACCENT)
-        if self.value is not None and self.value >= 90:
-            color = QColor(theme.BAD)
-        elif self.value is not None and self.value >= 70:
-            color = QColor(theme.GOLD)
-        off = QColor(theme.BORDER_LIGHT)
+        p.drawText(QRectF(0, 0, w / 2, h - 7), Qt.AlignmentFlag.AlignVCenter, self.label)
+        val_txt = "—" if self.value is None else f"%{self.value:.0f}"
+        p.setPen(QColor(theme.TEXT_DIM))
+        p.drawText(QRectF(w / 2, 0, w / 2, h - 7),
+                   Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight, val_txt)
         p.setPen(Qt.PenStyle.NoPen)
-        for i in range(self.SEGMENTS):
-            p.setBrush(color if i < lit else off)
-            p.drawRect(QRectF(x0 + i * seg_w + 1, h / 2 - 4, max(1.0, seg_w - 2), 8))
+        p.setBrush(QColor(theme.BORDER))
+        p.drawRoundedRect(QRectF(0, h - 5, w, 2.5), 1.2, 1.2)
+        if self.value:
+            p.setBrush(QColor(self.bar_color()))
+            p.drawRoundedRect(QRectF(0, h - 5, max(3.0, w * min(100.0, self.value) / 100.0), 2.5), 1.2, 1.2)
         p.end()
 
 
@@ -242,7 +312,7 @@ class SystemCard(HudCard):
     INTERVAL_MS = 2000
 
     def __init__(self, model_name: str = "", parent: QWidget | None = None) -> None:
-        super().__init__("SİSTEM", "02", parent=parent)
+        super().__init__("SİSTEM", parent=parent)
         self._probe = SystemProbe()
         self._started = time.monotonic()
         self.cpu_bar = MeterBar("CPU")
@@ -283,7 +353,7 @@ class OkulCard(HudCard):
     INTERVAL_MS = 60_000
 
     def __init__(self, status_fn: Callable[[], dict] | None = None, parent: QWidget | None = None) -> None:
-        super().__init__("OKUL", "03", collapsible=True, parent=parent)
+        super().__init__("OKUL", collapsible=True, parent=parent)
         self._status_fn = status_fn
         self.lines: list[QLabel] = []
         grid = QGridLayout()
@@ -333,3 +403,95 @@ def summarize_okul(data: dict[str, Any]) -> tuple[str, str, str]:
     prog = data.get("bugunku_program") or []
     today = f"{len(prog)} ders · ilk {prog[0].get('baslangic', '?')}" if prog else "bugün ders yok"
     return exam, hw, today
+
+
+# =================================================================== rutinler
+def routine_rows(routines: list[dict[str, Any]], reminders: list[dict[str, Any]],
+                 now: datetime | None = None) -> list[tuple[str, str, str, bool]]:
+    """(saat, ad, durum, vurgulu) satirlari: once bekleyen hatirlaticilar, sonra rutinler."""
+    today = (now or datetime.now()).date()
+    rows: list[tuple[str, str, str, bool]] = []
+    for r in reminders:
+        try:
+            at = datetime.fromisoformat(str(r.get("fire_at", "")))
+            when = at.strftime("%H:%M") if at.date() == today else at.strftime("%d.%m")
+        except ValueError:
+            when = "—"
+        rows.append((when, str(r.get("text", "?")), "BEKLİYOR", True))
+    for r in routines:
+        m = re.search(r"\d{1,2}:\d{2}", str(r.get("schedule", "")))
+        on = bool(r.get("enabled", True))
+        rows.append((m.group(0) if m else "—", str(r.get("name", "?")), "AÇIK" if on else "KAPALI", on))
+    return rows[:ROUTINE_ROWS_MAX]
+
+
+def _fetch_schedule() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    from tools.scheduler_tools import list_reminders, list_routines
+
+    return list_routines().get("routines", []), list_reminders().get("reminders", [])
+
+
+class RoutinesCard(HudCard):
+    INTERVAL_MS = 60_000
+
+    def __init__(self, fetch_fn: Callable[[], tuple[list, list]] | None = None,
+                 parent: QWidget | None = None) -> None:
+        super().__init__("RUTİNLER", collapsible=True, parent=parent)
+        self._fetch_fn = fetch_fn or _fetch_schedule
+        self.rows: list[tuple[str, str, str, bool]] = []
+        self._grid = QGridLayout()
+        self._grid.setHorizontalSpacing(8)
+        self._grid.setVerticalSpacing(5)
+        self._grid.setColumnStretch(1, 1)
+        self.body.addLayout(self._grid)
+        self.empty_label = _label("tanımlı rutin yok", "hudLine")
+        self.body.addWidget(self.empty_label)
+        self._timer = QTimer(self)
+        self._timer.setInterval(self.INTERVAL_MS)
+        self._timer.timeout.connect(self.refresh)
+        self._timer.start()
+        self.refresh()
+
+    def refresh(self) -> None:
+        try:
+            routines, reminders = self._fetch_fn()
+        except Exception:  # noqa: BLE001 - veri dosyasi yok/bozuk: kart bos kalir
+            routines, reminders = [], []
+        self.rows = routine_rows(routines, reminders)
+        while self._grid.count():
+            item = self._grid.takeAt(0)
+            if item.widget() is not None:
+                item.widget().deleteLater()
+        for i, (when, name, state, on) in enumerate(self.rows):
+            self._grid.addWidget(_label(when, "routineTime"), i, 0)
+            lbl = _label(name, "routineName")
+            lbl.setToolTip(name)
+            lbl.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)   # dar kartta kirpilir
+            self._grid.addWidget(lbl, i, 1)
+            self._grid.addWidget(_label(state, "routineStateOn" if on else "routineState"), i, 2)
+        self.empty_label.setVisible(not self.rows)
+        self.set_meta(f"{len(self.rows)} kayıt" if self.rows else "")
+
+
+# ============================================================== hizli komutlar
+class QuickCommandsCard(HudCard):
+    """2x2 hazir komut dosemesi; tiklaninca komut metnini `command` sinyaliyle yayar."""
+
+    command = Signal(str)
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__("HIZLI KOMUTLAR", parent=parent)
+        grid = QGridLayout()
+        grid.setSpacing(6)
+        self.tiles: list[QPushButton] = []
+        for i, (title, prompt) in enumerate(QUICK_COMMANDS):
+            tile = QPushButton(f"▶ {title}")
+            tile.setObjectName("quickTile")
+            tile.setToolTip(prompt)
+            tile.setCursor(Qt.CursorShape.PointingHandCursor)
+            tile.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+            tile.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
+            tile.clicked.connect(lambda _=False, text=prompt: self.command.emit(text))
+            grid.addWidget(tile, i // 2, i % 2)
+            self.tiles.append(tile)
+        self.body.addLayout(grid)

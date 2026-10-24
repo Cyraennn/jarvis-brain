@@ -71,6 +71,10 @@ class WebEngineObserver(EngineObserver):
     def on_exit_request(self) -> None:
         BUS.push("exit_request", True)
 
+    def on_panel(self, payload: dict) -> bool:
+        BUS.push("panel", {"kind": payload.get("kind", ""), "title": payload.get("title", "")})
+        return False   # masaustu arayuzu yok: arac icerigi varsayilan uygulamada acar
+
 
 class WebOrchestratorObserver(OrchestratorObserver):
     """`QtOrchestratorObserver` ile ayni BUS olaylarini yayinlar, Qt sinyali olmadan."""

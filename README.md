@@ -26,7 +26,9 @@ copy .env.example .env                              # ve GEMINI_API_KEY doldur
 ```bash
 python run_ui.py
 ```
-Ses-reaktif HUD kuresi + canli webcam + transkript + sistem/arac logu + kontroller
+"Komuta" paneli: ortada sese tepki veren parcacik cekirdegi + departman/ajan halkalari,
+solda saat-takvim / okul / sistem / ajan kartlari, sagda canli gorus / gorevler / hizli
+komutlar / rutinler / gunluk + kontroller
 (mikrofon sustur, kamera ac/kapa, kopru mesaji enjekte et, durdur).
 
 Pencere her zaman ustte durur, kapatinca sistem tepsisine kuculur (tepsi sag-tik:
@@ -45,6 +47,29 @@ build_windows.bat
 ```
 Cikti: `dist/JARVIS/JARVIS.exe`. Ilk calistirmadan once `dist/JARVIS/` icine
 `.env` (GEMINI_API_KEY) koyun. `data/`, `bridge/`, log dosyalari exe'nin yaninda olusur.
+
+## 3B Zirh Acilisi (`web3d/`)
+
+Arayuz acilirken mavi bir hologram zirh Arc Reactor'dan baslayarak olusur (govde -> bacaklar -> kollar -> kask),
+360 derece doner ve etkilesimli kalir (surukle: dondur, tekerlek: yakinlastir). Esc / Enter /
+"ARAYÜZE GEÇ" ile kapanir; **F9** ya da JEST dugmesinin menusu yeniden acar.
+
+```bash
+cd web3d
+npm install
+npm run dev      # tarayicida gelistirme: http://127.0.0.1:5183
+npm run build    # cikti: ../assets/web3d (JARVIS bunu oynatir)
+```
+
+- Yigin: React + three + React Three Fiber + drei + postprocessing (Bloom) + GSAP + Tailwind. Zirh ozel
+  hologram shader'lariyla cizilir (`web3d/src/scene/materials.ts`); isik ya da ortam haritasi yoktur.
+- Zirh prosedureldir; `web3d/public/models/armor.glb` koyup yeniden derlersen o model kullanilir.
+- Ana pencerenin ortasinda Zoey OS (zoeyos.com) tarzi parcacik orb'u durur: `web3d/src/orb/`
+  (`?view=orb`), Qt tarafi `ui/hud/orb_view.py`. Sesle nefes alir, arac calisirken hizlanir; alttaki
+  dalga hapina tiklamak mikrofonu acar/kapatir. Sayfa acilamazsa klasik komuta grafi gelir.
+- `.env`: `JARVIS_BOOT_STYLE=3d` acilista zirhi oynatir (F9 her zaman acar), `classic` eski halka animasyonuna doner; `JARVIS_BOOT_HOLD_S` zirhin
+  ekranda kalma suresi (0 = sen kapatana kadar).
+- QtWebEngine (PySide6-WebEngine) ya da derlenmis sayfa yoksa kendiliginden klasik acilis oynar.
 
 ## Cok-Ajanli Sistem (Orkestrator)
 
@@ -81,20 +106,23 @@ limit daha genistir; kalici kullanim icin AI Studio `AIza...` anahtari onerilir.
 jarvis-brain/
 ├── config/settings.py        # API key, ses modeli, tum konfigurasyon (pydantic)
 ├── core/
-│   ├── brain_engine.py       # Gemini Live baglantisi + 6 paralel asenkron gorev
+│   ├── brain_engine.py       # Gemini Live baglantisi + 7 paralel asenkron gorev
 │   ├── webcam_streamer.py    # Thread-safe latest-frame JPEG yakalayici
 │   └── bridge_listener.py    # bridge/outbox.txt izleyici -> canli oturuma enjeksiyon
 ├── tools/
 │   ├── tool_declarations.py  # Gemini Function Declaration tanimlari
-│   └── tool_runner.py        # Executor uzerinde tikamadan calisan dispatcher
+│   ├── tool_runner.py        # Executor uzerinde tikamadan calisan dispatcher
+│   └── panel_tools.py        # Icerik paneli: video / Wikipedia / belge / haber / piyasa / hava
 ├── prompts/system_prompt.txt # Karakter + ana talimatlar
 ├── ui/
 │   ├── app.py                # QApplication + motor iscisi + sinyal baglantilari
 │   ├── main_window.py        # orb + webcam + transkript + log + kontroller
 │   ├── engine_worker.py      # BrainEngine'i ayri thread + asyncio dongusunde calistirir
 │   ├── qt_observer.py        # EngineObserver -> Qt sinyal koprusu
-│   ├── theme.py              # HUD renk paleti + QSS
-│   └── widgets/              # orb.py, webcam_view.py, transcript_view.py, log_view.py
+│   ├── theme.py              # renk paleti (mint) + QSS
+│   ├── hud/                  # Komuta HUD: hud_window.py, command_graph.py, stat_cards.py, hud_card.py
+│   └── widgets/              # orb.py, webcam_view.py, transcript_view.py, log_view.py,
+│                             # content_panel.py, panel_views.py, panel_web.py (icerik paneli)
 ├── bridge/                   # Harici ajan dosya koprusu (outbox / inbox)
 ├── main.py                   # Sessiz mod asenkron giris noktasi
 ├── run_ui.py                 # Masaustu arayuzu giris noktasi
@@ -102,7 +130,7 @@ jarvis-brain/
 └── .env.example
 ```
 
-## 6 Paralel Gorev (`asyncio.TaskGroup`)
+## 7 Paralel Gorev (`asyncio.TaskGroup`)
 | Gorev | Islevi |
 |-------|--------|
 | `_send_realtime` | `out_queue` -> canli oturum (mikrofon + webcam Blob paketleri) |
@@ -250,7 +278,11 @@ koordinatla dogru alana tikla, sonra yaz),
 (Android ADB Control "Ultron" modulu - USB + WiFi bagli telefon(lar)i yonetir;
 `device_id` verilmezse BAGLI TUM CIHAZLARA uygulanir),
 `okul_status` / `okul_next_exams` / `okul_today_tasks` / `okul_schedule` / `okul_gpa` /
-`okul_search_notes` / `okul_add_task` / `okul_add_exam` (BÖTE Ders Merkezi koprusu).
+`okul_search_notes` / `okul_add_task` / `okul_add_exam` (BÖTE Ders Merkezi koprusu),
+`show_video` / `show_wikipedia` / `show_document` / `show_website` / `show_spotify` /
+`show_news` / `show_market` / `show_weather` / `show_info` / `close_panel` (icerik paneli:
+video, sayfa, belge, haber basliklari, fiyat grafigi, hava durumu ve JARVIS'in yazdigi bilgi
+karti arayuzun ICINDE acilir; haber Google Haberler RSS, piyasa Yahoo Finance - anahtarsiz).
 
 Kapatma onayi arayuzde modal bir pencereyle sorulur; `confirm_before_close=false`
 (env `JARVIS_CONFIRM_CLOSE=false`) ile devre disi birakilabilir. Harf harf yazma

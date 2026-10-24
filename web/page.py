@@ -76,8 +76,24 @@ background:var(--card);color:var(--cyan);font-size:19px;display:flex;align-items
 .icon.call{background:#3ff5b022;border-color:var(--good);color:var(--good)}
 @keyframes pulse{50%{opacity:.5}}
 .empty{color:var(--dim);font-size:12px}
+.lib-tools{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.lib-tools input{flex:1;min-width:120px;background:var(--card);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:7px 9px;font:inherit}
+.book{border:1px solid var(--border);border-radius:10px;padding:8px 10px;margin:6px 0;background:var(--card)}
+.book .h{display:flex;gap:8px;align-items:center;cursor:pointer}
+.book .h img{width:30px;height:44px;object-fit:cover;border-radius:3px;background:#0003}
+.book .t{font-weight:600}.book .a{color:var(--dim);font-size:12px}
+.book .st{margin-left:auto;font-size:11px;color:var(--dim);white-space:nowrap}
+.book .ed{margin-top:8px;display:grid;gap:6px}
+.book .ed .row{display:flex;gap:6px;flex-wrap:wrap}
+.book .ed input,.book .ed select,.book .ed textarea{background:#0006;border:1px solid var(--border);color:var(--text);
+  border-radius:7px;padding:6px 8px;font:inherit;flex:1;min-width:90px}
+.book .ed button,.lib-tools button{background:var(--card);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+.book .note{font-size:12px;color:var(--text);opacity:.85;padding:3px 0;border-top:1px dashed var(--border)}
+.book .note b{color:var(--dim);cursor:pointer;margin-left:6px}
 </style></head><body>
-<header><span class="logo">J A R V I S</span><span class="pill" id="conn">baglaniyor</span><a class="pill" style="margin-left:0;text-decoration:none;color:var(--cyan)" href="/ekip" onclick="location.href='/ekip?key='+encodeURIComponent(KEY);return false;">EKiP</a></header>
+<header><span class="logo">J A R V I S</span><span class="pill" id="conn">baglaniyor</span><a class="pill" style="margin-left:0;text-decoration:none;color:var(--cyan)" href="/ekip" onclick="location.href='/ekip?key='+encodeURIComponent(KEY);return false;">EKiP</a><a class="pill" style="margin-left:0;text-decoration:none;color:var(--cyan)" href="/el" onclick="location.href='/el?key='+encodeURIComponent(KEY);return false;" title="El Kontrolu (kamera + jestler)">&#9995; EL</a></header>
 <div class="wrap">
   <div class="sec" id="confirmSec" style="display:none;border-color:var(--bad)">
     <h2 style="color:var(--bad)">ONAY BEKLIYOR</h2><div id="confirms"></div></div>
@@ -90,6 +106,18 @@ background:var(--card);color:var(--cyan);font-size:19px;display:flex;align-items
   </div><div class="empty" id="callHint" style="margin-top:8px">Telefon gorusmesini ac: mikrofon surekli dinler, JARVIS telefonda sesli yanit verir.</div></div>
   <div class="sec"><h2>KONUSMA</h2><div id="log"><div class="empty">Henuz mesaj yok. Asagidan yaz veya mikrofona bas.</div></div></div>
   <div class="sec"><h2>HIZLI</h2><div class="quick" id="quick"></div></div>
+  <div class="sec"><h2>KITAPLIK</h2>
+    <div class="lib-tools">
+      <input id="libQ" placeholder="Ara..." autocomplete="off">
+      <button id="libPhoto">&#128247; Raf fotografindan ekle</button>
+      <button id="libCal">&#128218; Calibre</button>
+      <input type="file" id="libFile" accept="image/*" multiple style="display:none">
+      <input type="file" id="libCover" accept="image/*" style="display:none">
+    </div>
+    <div class="lib-tools"><input id="libAd" placeholder="Kitap adi"><input id="libYazar" placeholder="Yazar">
+      <button id="libAdd">Ekle</button></div>
+    <div class="empty" id="libInfo"></div>
+    <div id="lib"><div class="empty">yukleniyor...</div></div></div>
   <div class="sec"><h2>HATIRLATICILAR</h2><div id="rems"><div class="empty">yok</div></div></div>
   <div class="sec"><h2>DEPARTMAN & AJANLAR</h2><div class="grid" id="agents"><div class="empty">yukleniyor...</div></div></div>
 </div>
@@ -197,6 +225,7 @@ function speak(text){
 // ================= SSE canli akis =================
 function connectSSE(){const ev=new EventSource('/api/events?key='+encodeURIComponent(KEY));
   ev.onmessage=e=>{try{const evt=JSON.parse(e.data);
+    if(evt.kind==='kitaplik.degisti'){libLoad();}
     if(evt.kind==='transcript'){
       const m=evt.data;
       addMsg(m.who==='user'?'SEN':(m.who==='sys'?'SISTEM':'JARVIS'),m.text,
@@ -273,6 +302,72 @@ q('#tWake').onclick=()=>{
     .catch(()=>addMsg('SISTEM','uyandirma kelimesi degistirilemedi','sys'));
 };
 
+
+// ================= KITAPLIK =================
+let LIB=[], libOpen=null, coverFor=null;
+const DUR={okunacak:'Okunacak',okunuyor:'Okunuyor',bitti:'Bitti'};
+function libLoad(){api('/api/kitaplik').then(s=>{LIB=(s&&s.books)||[];libRender();}).catch(()=>{});}
+function libRender(){
+  const el=q('#lib'),f=(q('#libQ').value||'').toLocaleLowerCase('tr-TR');
+  const named=LIB.filter(b=>b.ad).sort((a,b)=>(a.ad||'').localeCompare(b.ad||'','tr'));
+  const list=named.filter(b=>!f||(b.ad+' '+(b.yazar||'')).toLocaleLowerCase('tr-TR').includes(f));
+  const unnamed=LIB.length-named.length;
+  q('#libInfo').textContent=named.length+' kitap'+(unnamed?' · '+unnamed+' adsiz raf kutusu (El Kontrolu > K)':'');
+  el.innerHTML=list.length?'':'<div class="empty">kitap yok - ekleyin ya da raf fotografi yukleyin</div>';
+  for(const b of list.slice(0,200)){
+    const d=document.createElement('div');d.className='book';
+    const cov=b.kapak?'<img src="/api/kitaplik/kapak/'+encodeURIComponent(b.id)+'?key='+encodeURIComponent(KEY)+'&v='+encodeURIComponent(b.kapak)+'">':'<img>';
+    d.innerHTML='<div class="h">'+cov+'<div><div class="t">'+esc(b.ad)+'</div><div class="a">'+esc(b.yazar||'')+
+      ((b.calibre&&b.calibre.formatlar&&b.calibre.formatlar.length)?' · e-kitap':'')+'</div></div><span class="st">'+
+      esc(DUR[b.durum]||'')+(b.sayfa?' · s.'+b.sayfa:'')+(b.notlar&&b.notlar.length?' · '+b.notlar.length+' not':'')+'</span></div>';
+    d.querySelector('.h').onclick=()=>{libOpen=libOpen===b.id?null:b.id;libRender();};
+    if(libOpen===b.id)d.appendChild(libEditor(b));
+    el.appendChild(d);}
+}
+function libEditor(b){
+  const e=document.createElement('div');e.className='ed';
+  const dfl=b.defter;
+  e.innerHTML='<div class="row"><select class="du">'+Object.keys(DUR).map(k=>'<option value="'+k+'"'+(b.durum===k?' selected':'')+'>'+DUR[k]+'</option>').join('')+
+    '</select><input class="sa" type="number" min="0" placeholder="Sayfa" value="'+(b.sayfa||'')+'"><button class="sv">Kaydet</button></div>'+
+    '<div class="row"><input class="nt" placeholder="Not ya da alinti..."><button class="an">+ Not</button><button class="aq">+ Alinti</button></div>'+
+    '<div class="row"><button class="jd">'+(dfl?'Jarvis yeniden yazsin':'Jarvis doldursun')+'</button><button class="cv">Kapak yukle</button><button class="rm">Sil</button></div>'+
+    '<div class="empty dz">'+(dfl?(dfl.bilinmiyor?'Jarvis bu kitabi tanimiyor.':esc(dfl.ozet||'')):'Henuz Jarvis ozeti yok.')+'</div>';
+  const notes=[...(b.notlar||[]).map((n,i)=>['not',i,n.metin]),...(b.alintilar||[]).map((n,i)=>['alinti',i,'“'+n.metin+'”'])];
+  for(const [tur,i,m] of notes){const n=document.createElement('div');n.className='note';n.innerHTML=esc(m)+'<b title="sil">&#10005;</b>';
+    n.querySelector('b').onclick=()=>libOp({islem:'not_sil',id:b.id,tur,index:i});e.appendChild(n);}
+  e.querySelector('.sv').onclick=()=>libOp({islem:'guncelle',id:b.id,durum:e.querySelector('.du').value,sayfa:e.querySelector('.sa').value});
+  const addNote=tur=>{const v=e.querySelector('.nt').value.trim();if(v)libOp({islem:tur,id:b.id,metin:v});};
+  e.querySelector('.an').onclick=()=>addNote('not');e.querySelector('.aq').onclick=()=>addNote('alinti');
+  e.querySelector('.jd').onclick=()=>{e.querySelector('.dz').textContent='Jarvis yaziyor...';
+    api('/api/kitaplik/defter',{id:b.id,force:!!dfl}).then(r=>{if(r.error)throw r.error;libLoad();}).catch(x=>{e.querySelector('.dz').textContent='Yazilamadi: '+x;});};
+  e.querySelector('.cv').onclick=()=>{coverFor=b.id;q('#libCover').click();};
+  e.querySelector('.rm').onclick=()=>{if(confirm(b.ad+' silinsin mi?'))libOp({islem:'sil',id:b.id});};
+  return e;
+}
+function libOp(body){return api('/api/kitaplik/kitap',body).then(r=>{if(r.error)addMsg('SISTEM',r.error,'sys');libLoad();});}
+function rawPost(path,file){return fetch(path+(path.includes('?')?'&':'?')+'key='+encodeURIComponent(KEY),
+  {method:'POST',headers:{'Content-Type':file.type||'image/jpeg'},body:file}).then(r=>r.json());}
+// telefon fotografi buyuk olabilir: 2400 px'e kucult
+function shrink(file){return new Promise(res=>{const img=new Image();img.onload=()=>{const s=Math.min(1,2400/Math.max(img.width,img.height));
+  if(s>=1&&file.size<6e6){res(file);return;}const c=document.createElement('canvas');c.width=img.width*s;c.height=img.height*s;
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>res(b||file),'image/jpeg',0.9);};img.onerror=()=>res(file);
+  img.src=URL.createObjectURL(file);});}
+q('#libQ').addEventListener('input',libRender);
+q('#libAdd').onclick=()=>{const ad=q('#libAd').value.trim();if(!ad)return;
+  libOp({islem:'ekle',ad,yazar:q('#libYazar').value.trim()}).then(()=>{q('#libAd').value='';q('#libYazar').value='';});};
+q('#libPhoto').onclick=()=>q('#libFile').click();
+q('#libFile').onchange=async e=>{const files=[...e.target.files];e.target.value='';
+  for(const [i,f] of files.entries()){q('#libInfo').textContent='Fotograf okunuyor '+(i+1)+'/'+files.length+'...';
+    try{const r=await rawPost('/api/kitaplik/foto',await shrink(f));
+      addMsg('SISTEM',r.error?('Fotograf: '+r.error):('Fotograftan '+r.okunan+' kitap okundu, '+r.eklenen.length+' yeni eklendi'+(r.zaten_vardi.length?' ('+r.zaten_vardi.length+' zaten vardi)':'')),'sys');}
+    catch(x){addMsg('SISTEM','fotograf gonderilemedi','sys');}}
+  libLoad();};
+q('#libCover').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!coverFor)return;
+  const r=await rawPost('/api/kitaplik/kapak?id='+encodeURIComponent(coverFor),await shrink(f)).catch(()=>({error:'gonderilemedi'}));
+  if(r.error)addMsg('SISTEM','Kapak: '+r.error,'sys');libLoad();};
+q('#libCal').onclick=()=>{q('#libInfo').textContent='Calibre esitleniyor...';
+  api('/api/kitaplik/calibre',{}).then(r=>{addMsg('SISTEM',r.error?r.error:('Calibre: '+r.toplam+' e-kitap, '+r.eklenen+' yeni'),'sys');libLoad();});};
+libLoad();
 api('/api/state').then(renderState).catch(()=>{});
 setInterval(()=>api('/api/state').then(renderState).catch(()=>{}),8000);
 connectSSE();

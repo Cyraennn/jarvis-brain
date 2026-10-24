@@ -49,7 +49,7 @@ class TranscriptView(QTextEdit):
         text = text.strip()
         if not text:
             return
-        who = "SEN" if role == "user" else "JARVIS"
+        who = "SEN" if role == "user" else theme.branding()["name"]
         color = theme.USER_COLOR if role == "user" else theme.JARVIS_COLOR
         align = "right" if role == "user" else "left"
         self._append(

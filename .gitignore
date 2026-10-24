@@ -31,3 +31,6 @@ build/
 dist/
 *.spec.bak
 scratch/
+
+# El Kontrolu yerel MediaPipe modelleri (scripts/el_modeli_indir.py ile indirilir)
+web/static/models/

@@ -11,6 +11,7 @@ ve sonucu (evet/hayir) geri dondurur.
 from __future__ import annotations
 
 import threading
+import time
 
 from PySide6.QtCore import QObject, Signal
 
@@ -18,15 +19,18 @@ from core.events import EngineObserver
 from web.event_bus import BUS
 
 
+_PRIVATE_PANEL_KEYS = {"path"}  # doc paneli: PC'deki dosya yolu
+
 class ConfirmRequest:
     """GUI thread'ine tasinan onay istegi; sonuc bir Event ile geri bildirilir."""
 
-    __slots__ = ("prompt", "_event", "result", "expired")
+    __slots__ = ("prompt", "_event", "result", "expired", "remote_resolved")
 
     def __init__(self, prompt: str) -> None:
         self.prompt = prompt
         self.result = False
         self.expired = False   # motor tarafi zaman asimiyla vazgecti (sonuc artik kullanilmaz)
+        self.remote_resolved = False  # karar baska cihazda (telefon/web) verildi
         self._event = threading.Event()
 
     def resolve(self, approved: bool) -> None:
@@ -50,7 +54,9 @@ class QtEngineObserver(QObject, EngineObserver):
     confirm_requested = Signal(object)  # ConfirmRequest
     app_exit_requested = Signal()
     external_typing = Signal(bool)
+    panel = Signal(dict)
     wake = Signal(bool)
+    persona = Signal(str)
 
     def __init__(self, parent: QObject | None = None) -> None:
         QObject.__init__(self, parent)
@@ -97,12 +103,18 @@ class QtEngineObserver(QObject, EngineObserver):
     def on_bridge_message(self, text: str) -> None:
         self._emit("bridge_message", text)
 
-    def confirm(self, prompt: str) -> bool:
+    def confirm(self, prompt: str, cancel: threading.Event | None = None) -> bool:
         request = ConfirmRequest(prompt)
         self._emit("confirm_requested", request)  # kuyruklu -> GUI thread'inde islenir
-        if not request.wait(self._confirm_timeout):
-            request.expired = True  # GUI diyalogu bunu gorup kendini kapatir
-            return False  # zaman asimi => reddet
+        deadline = time.monotonic() + self._confirm_timeout
+        while not request.wait(0.2):
+            if cancel is not None and cancel.is_set():
+                request.remote_resolved = True
+                request.expired = True  # diyalog kendini kapatir; sonuc kullanilmaz
+                return False
+            if time.monotonic() >= deadline:
+                request.expired = True  # GUI diyalogu bunu gorup kendini kapatir
+                return False  # zaman asimi => reddet
         return request.result
 
     def on_exit_request(self) -> None:
@@ -111,6 +123,16 @@ class QtEngineObserver(QObject, EngineObserver):
     def on_external_typing(self, active: bool) -> None:
         self._emit("external_typing", bool(active))
 
+    def on_panel(self, payload: dict) -> bool:
+        self._emit("panel", dict(payload))
+        # Telefon paneli ayni yuku cizer (harita, rota, hava...); yerel dosya yolu agdaki veriyoluna yazilmaz
+        BUS.push("panel", {k: v for k, v in payload.items() if k not in _PRIVATE_PANEL_KEYS})
+        return True
+
     def on_wake(self, awake: bool) -> None:
         self._emit("wake", bool(awake))
         BUS.push("wake", bool(awake))
+
+    def on_persona(self, key: str) -> None:
+        self._emit("persona", key)
+        BUS.push("persona", key)

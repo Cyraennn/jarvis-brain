@@ -33,6 +33,7 @@ from google.genai import types
 from loguru import logger
 
 from config.settings import Settings
+from core import personas, voice_fx
 from core.async_worker import get_worker
 from core.audio_transport import AudioTransport, LocalAudioTransport
 from core.bridge_listener import BridgeListener
@@ -72,8 +73,14 @@ def _is_audio_error(exc: BaseException) -> bool:
     return isinstance(exc, OSError) and isinstance(exc.errno, int) and -10000 <= exc.errno <= -9972
 
 
+class _PersonaSwitch(Exception):
+    """Kisilik degisti: oturum kapatilir, yeni prompt + sesle hemen yeniden baglanilir."""
+
+
 # Kullanicinin PC basinda olmadigi kopru kaynaklari: yanit sonrasi mikrofon penceresi acilmaz.
 _REMOTE_SOURCES = ("[TELEFON]", "[TELEGRAM]", "[WHATSAPP]")
+# El Kontrolu jest komutlari (web /el): kullanici PC basinda, mikrofon bekletilmez.
+_GESTURE_SOURCE = "[EL]"
 # Baglantidan sonra bu kadar surede gelen 1007, kurulum (config) reddi sayilir.
 _SETUP_REJECT_S = 10.0
 # Devam tutamagi, oturum kapandiktan sonra sunucuda sinirli sure gecerlidir.
@@ -93,6 +100,9 @@ class BrainEngine:
     _speaker: Any = None
     _speaker_gate: Any = None
     _speaker_task: "asyncio.Task[None] | None" = None
+    # Kisilik modu; __init__ data/persona.json'dan kurar (None = varsayilan JARVIS)
+    _persona: "personas.PersonaMode | None" = None
+    _fx: Any = None  # ses efekti islemcisi (ULTRON), efektsizse None
 
     def __init__(
         self,
@@ -117,6 +127,8 @@ class BrainEngine:
             on_exit=self._request_exit,
             on_typing=lambda active: self._notify("on_external_typing", active),
             on_look_at_screen=lambda: self.set_screen_streaming(True),
+            on_panel=self._show_panel,
+            disabled_groups=set(getattr(settings, "tool_groups_disabled", ())),
         )
 
         # Android ADB Control (Ultron): bagli telefonlari yonetir. Surec genelinde
@@ -182,6 +194,9 @@ class BrainEngine:
         self._bridge_skip_turns = 0
         self._no_followup = False
         self._turn_tools = False  # acik turda arac cagrildi mi (tur suruyor demek)
+        # interrupt_speaking(): tur bitene kadar gelen ses atilir (yoksa model akisi surer)
+        self._discard_audio = False
+        self._offline_stop = False
 
         self._proactive_audio = bool(settings.proactive_audio)
         self._connect_started = 0.0
@@ -196,7 +211,38 @@ class BrainEngine:
         self._user_transcript = ""
         self._model_transcript = ""
 
+        # Kisilik modu (JARVIS / FRIDAY / ULTRON): prompt + ses baglanti aninda uygulanir
+        self._persona = personas.load_active(settings)
+        self._persona_switch = asyncio.Event()
+        self._fx = voice_fx.make(
+            self._persona.audio_effect, settings.audio.receive_sample_rate
+        )
+
     # ============================================================ dis kontrol
+
+    @property
+    def persona(self) -> str:
+        return self._persona.key if self._persona else personas.DEFAULT_KEY
+
+    def set_persona(self, key: str) -> None:
+        """Kisiligi degistirir. Prompt ve ses yalniz baglanirken uygulandigi icin acik
+        oturum kapatilir; devam tutamagi da birakilir, yoksa eski kisilik surer."""
+        mode = personas.get(self.settings, key)
+        if mode.key == self.persona:
+            return
+        self._persona = mode
+        self._fx = voice_fx.make(mode.audio_effect, self.settings.audio.receive_sample_rate)
+        personas.save_active(self.settings, mode.key)
+        self._drop_resume_handle("kisilik degisti")
+        logger.info(f"Kisilik degisti: {mode.name} (ses {mode.voice_name}).")
+        self._notify("on_persona", mode.key)
+        if self.session is not None:
+            self._persona_switch.set()
+
+    async def _watch_persona_switch(self) -> None:
+        await self._persona_switch.wait()
+        self._persona_switch.clear()
+        raise _PersonaSwitch()
 
     def request_shutdown(self) -> None:
         """Sinyal isleyicilerinden / arayuzden guvenli kapatma tetikler."""
@@ -219,6 +265,26 @@ class BrainEngine:
     def wake_word_enabled(self) -> bool:
         return self._wake_enabled
 
+    def interrupt_speaking(self) -> None:
+        """JARVIS'i konusurken susturur (El Kontrolu ✊, /api/control interrupt).
+
+        Calan ses tamponu bosaltilir ve bu turun geri kalan sesi atilir; bir sonraki tur
+        (turn_complete sonrasi) normal calar. Cevrimdisi TTS dongusu de durur.
+        """
+        loop = getattr(self, "_loop", None)
+        try:
+            running = asyncio.get_running_loop()
+        except RuntimeError:
+            running = None
+        if loop is not None and running is not loop:
+            # baska bir thread'den (HTTP isleyicisi) cagrildi: asyncio kuyruguna guvenli eris
+            loop.call_soon_threadsafe(self.interrupt_speaking)
+            return
+        self._discard_audio = True
+        self._offline_stop = True
+        self._drain_playback()
+        logger.info("JARVIS susturuldu (interrupt).")
+
     def set_output_muted(self, muted: bool) -> None:
         """PC hoparlorunu sustur/ac. Telefondan gorusurken ('uzak mod') kullanilir:
         model yaniti yine uretilir ve transkript telefona akar, ama bu makinede ses calmaz."""
@@ -228,6 +294,11 @@ class BrainEngine:
     @property
     def output_muted(self) -> bool:
         return self._output_muted
+
+    def _tools(self) -> list[types.Tool]:
+        """Modele verilen araclar; JARVIS_TOOLS_OFF ile kapatilan gruplar haric."""
+        off = set(getattr(self.settings, "tool_groups_disabled", ()) or ())
+        return get_tools(off) if off else get_tools()
 
     def retry_audio(self) -> bool:
         """Ses cihazlarini yeniden acmayi dener (arayuzden cagrilir)."""
@@ -388,9 +459,12 @@ class BrainEngine:
         step = int(bytes_per_s * _OFFLINE_TTS_STEP_S)
         self._playback_active.set()  # eko engelleme: kendi sesimizi dinleme
         self._speaking = True
+        self._offline_stop = False
         self._notify("on_state", "speaking")
         try:
             for start in range(0, len(pcm), step):
+                if self._offline_stop:
+                    break
                 part = pcm[start:start + step]
                 self._gate.keep_awake(fresh=False)
                 self._notify("on_output_level", _rms_level(part))
@@ -463,6 +537,7 @@ class BrainEngine:
 
     async def run(self) -> None:
         logger.info("BrainEngine baslatiliyor...")
+        self._loop = asyncio.get_running_loop()
         try:
             self.audio_transport.open()
         except RuntimeError as exc:
@@ -488,11 +563,19 @@ class BrainEngine:
                 except (KeyboardInterrupt, asyncio.CancelledError):
                     raise
                 except BaseExceptionGroup as group:
-                    non_cancel, _ = group.split(
-                        lambda e: not isinstance(e, asyncio.CancelledError)
-                    )
+                    switch, rest = group.split(_PersonaSwitch)
+                    non_cancel = None
+                    if rest is not None:
+                        non_cancel, _ = rest.split(
+                            lambda e: not isinstance(e, asyncio.CancelledError)
+                        )
                     if self._shutdown.is_set():
                         break
+                    if switch is not None and non_cancel is None:
+                        # hata degil: beklemeden yeni kisilikle baglan
+                        attempt = 0
+                        logger.info("Yeni kisilikle yeniden baglaniliyor...")
+                        continue
                     attempt += 1
                     failed = True
                     self._log_exception_group(non_cancel or group)
@@ -538,6 +621,7 @@ class BrainEngine:
 
     async def _connect_and_run(self) -> None:
         self._reset_queues()
+        self._persona_switch.clear()  # baglanmadan once gelen secim zaten uygulanacak
         self._attempt_active = False
         if self._resume_handle and time.monotonic() - self._resume_saved_at > _RESUME_TTL_S:
             self._drop_resume_handle("suresi doldu")
@@ -573,6 +657,9 @@ class BrainEngine:
                     )
                     task_group.create_task(
                         self._watch_bridge_inbox(), name="watch_bridge_inbox"
+                    )
+                    task_group.create_task(
+                        self._watch_persona_switch(), name="watch_persona_switch"
                     )
             finally:
                 self.session = None
@@ -765,7 +852,7 @@ class BrainEngine:
         while True:
             turn = session.receive()
             async for response in turn:
-                if getattr(response, "data", None):
+                if getattr(response, "data", None) and not self._discard_audio:
                     self.audio_in_queue.put_nowait(response.data)
 
                 server_content = getattr(response, "server_content", None)
@@ -799,6 +886,9 @@ class BrainEngine:
             if not self._no_followup and not self._bridge_held():
                 # model konusuyor: bitince kullanici "Hey JARVIS"siz cevap verebilsin
                 self._gate.keep_awake(fresh=False)
+            fx = self._fx
+            if fx is not None:
+                chunk = fx.process(chunk)  # uzunluk degismez (eko zamanlamasi)
             self._notify("on_output_level", _rms_level(chunk))
             if self._output_muted:
                 # Uzak mod: sesi calma ama konusma suresi kadar bekle ki
@@ -885,6 +975,12 @@ class BrainEngine:
         yanit turu bitince (`_release_bridge_hold`) ya da `bridge_hold_s` dolunca kalkar;
         uyandirma kelimesi aciksa "Hey JARVIS" hemen kaldirir.
         """
+        self._discard_audio = False  # yeni istek: onceki susturma bunun yanitini kesmesin
+        if message.lstrip().startswith(_GESTURE_SOURCE):
+            # El jesti: kullanici PC basinda; mikrofonu kapatma, yanittan sonra dinlesin
+            self._no_followup = False
+            self._gate.keep_awake()
+            return
         self._no_followup = message.lstrip().startswith(_REMOTE_SOURCES)
         hold = float(self.settings.bridge_hold_s)
         if hold <= 0:
@@ -940,6 +1036,7 @@ class BrainEngine:
             self._user_transcript = ""
             self._model_transcript = ""
             self._turn_tools = False
+            self._discard_audio = False  # susturulan tur bitti: sonraki yanit calsin
             self._release_bridge_hold()
 
     def _log_conversation(self, role: str, text: str) -> None:
@@ -963,6 +1060,8 @@ class BrainEngine:
             return  # bildirim aynasi - konusma degil
         if low.startswith("[TELEFON]"):
             self._log_conversation("telefon", low.split("]", 1)[1])
+        elif low.startswith(_GESTURE_SOURCE):
+            self._log_conversation("el", low.split("]", 1)[1])
         elif low.startswith("[HATIRLATICI]"):
             self._log_conversation("hatirlatici", low.split("]", 1)[1])
         elif low.startswith("["):
@@ -1014,6 +1113,7 @@ class BrainEngine:
         self._turn_tools = False
         self._bridge_hold_until = 0.0
         self._bridge_skip_turns = 0
+        self._discard_audio = False
 
     def _backoff_delay(self, attempt: int) -> float:
         base = self.settings.reconnect_base_delay
@@ -1026,6 +1126,14 @@ class BrainEngine:
             getattr(self.observer, method)(*args)
         except Exception:  # noqa: BLE001 - gozlemci hatasi motoru cokertemez
             logger.exception(f"Observer hatasi: {method}")
+
+    def _show_panel(self, payload: dict[str, Any]) -> bool:
+        """Icerik panelini arayuze iletir; arayuz gosterebildiyse True."""
+        try:
+            return bool(self.observer.on_panel(payload))
+        except Exception:  # noqa: BLE001 - gozlemci hatasi motoru cokertemez
+            logger.exception("Observer hatasi: on_panel")
+            return False
 
     def _request_exit(self) -> None:
         """Model 'exit_application' araciyla uygulamayi kapatmak istedi."""
@@ -1101,7 +1209,8 @@ class BrainEngine:
             logger.error(f"TaskGroup gorev hatasi: {exc!r}")
 
     def _build_config(self) -> types.LiveConnectConfig:
-        system_prompt = self.settings.load_system_prompt()
+        persona = self._persona or personas.get(self.settings, None)
+        system_prompt = self.settings.load_system_prompt(persona.key)
         if self.settings.session_context_enabled and not self._resume_handle:
             # temiz oturum: tarih/saat + dunun ozeti + bugunku son konusmalar
             from core.session_context import build_context
@@ -1112,11 +1221,11 @@ class BrainEngine:
             system_instruction=types.Content(
                 role="user", parts=[types.Part(text=system_prompt)]
             ),
-            tools=get_tools(),
+            tools=self._tools(),
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                        voice_name=self.settings.voice_name
+                        voice_name=persona.voice_name
                     ),
                 ),
             ),

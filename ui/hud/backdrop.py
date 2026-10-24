@@ -1,27 +1,22 @@
-"""Tam pencere HUD arka plani: uzay zemini, ince izgara, vinyet, yavas yatay tarama cizgisi.
+"""Tam pencere HUD arka plani: saf siyah zemin + ust koselerde vurgu renginde hafif isima (Zoey OS).
 
-Statik katman (zemin + izgara + vinyet) boyut degismedikce bir kez pixmap'e cizilir
-(bkz. `BrainGraph._render_static`); her karede yalnizca tarama cizgisi cizilir.
+Tek katman boyut degismedikce bir kez pixmap'e cizilir (bkz. `BrainGraph._render_static`);
+animasyon yoktur. Kisilik efekti (`theme.EFFECT`) de bu katmana islenir: FRIDAY daha parlak
+isima + ince nokta izgara, ULTRON altta kizil kor + koyu vinyet. ULTRON'un tarama cizgisi
+ve glitch'i ustteki `persona_fx.PersonaOverlay`'dedir.
 """
 
 from __future__ import annotations
 
-import time
-
-from PySide6.QtCore import QPointF, QTimer
-from PySide6.QtGui import QColor, QLinearGradient, QPainter, QPen, QPixmap, QRadialGradient
+from PySide6.QtCore import QPointF
+from PySide6.QtGui import QColor, QPainter, QPixmap, QRadialGradient
 from PySide6.QtWidgets import QWidget
 
 from ui import theme
 
-GRID_STEP = 34
-SCAN_PERIOD_S = 7.0
-
 
 class HudBackdrop(QWidget):
     """Ana pencerenin merkez widget'i; cocuk widget'lar bunun uzerine yerlesir."""
-
-    FRAME_MS = 50   # tarama cizgisi ~20 FPS yeter
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -29,26 +24,14 @@ class HudBackdrop(QWidget):
         self._static: QPixmap | None = None
         self._static_key: tuple | None = None
         self.static_renders = 0
-        self._t0 = time.monotonic()
-        self._timer = QTimer(self)
-        self._timer.setInterval(self.FRAME_MS)
-        self._timer.timeout.connect(self._scan_tick)
-        self._timer.start()
-        self._scan_y = 0.0
 
     def set_active(self, active: bool) -> None:
-        if active:
-            self._timer.start()
-        else:
-            self._timer.stop()
+        """Animasyon yok; pencere durum degisiminde cagrildigi icin korunur."""
 
-    def _scan_tick(self) -> None:
-        phase = ((time.monotonic() - self._t0) % SCAN_PERIOD_S) / SCAN_PERIOD_S
-        old = int(self._scan_y)
-        self._scan_y = phase * self.height()
-        # yalnizca cizginin eski ve yeni seridini yeniden ciz
-        self.update(0, max(0, old - 40), self.width(), 60)
-        self.update(0, max(0, int(self._scan_y) - 40), self.width(), 60)
+    def refresh_theme(self) -> None:
+        """Palet degisti: onbellekteki katmani yeni renk ve efektle yeniden ciz."""
+        self._static = None
+        self.update()
 
     def paintEvent(self, event) -> None:  # noqa: N802, ANN001
         p = QPainter(self)
@@ -59,15 +42,6 @@ class HudBackdrop(QWidget):
             self._static_key = key
             self.static_renders += 1
         p.drawPixmap(0, 0, self._static)
-
-        y = self._scan_y
-        grad = QLinearGradient(QPointF(0, y - 36), QPointF(0, y))
-        c = QColor(theme.ACCENT)
-        grad.setColorAt(0.0, QColor(c.red(), c.green(), c.blue(), 0))
-        grad.setColorAt(1.0, QColor(c.red(), c.green(), c.blue(), 16))
-        p.fillRect(0, int(y - 36), self.width(), 36, grad)
-        p.setPen(QPen(QColor(c.red(), c.green(), c.blue(), 40), 1))
-        p.drawLine(0, int(y), self.width(), int(y))
         p.end()
 
     def _render_static(self, dpr: float) -> QPixmap:
@@ -76,46 +50,33 @@ class HudBackdrop(QWidget):
         pm.setDevicePixelRatio(dpr)
         p = QPainter(pm)
         p.fillRect(0, 0, w, h, QColor(theme.BG_SPACE))
-
-        # merkezden hafif cyan isima
-        glow = QRadialGradient(QPointF(w / 2, h / 2), max(w, h) * 0.6)
-        glow.setColorAt(0.0, QColor(18, 48, 64, 90))
-        glow.setColorAt(1.0, QColor(0, 0, 0, 0))
-        p.fillRect(0, 0, w, h, glow)
-
-        grid = QColor(theme.GRID)
-        grid.setAlpha(70)
-        p.setPen(QPen(grid, 1))
-        for x in range(0, w, GRID_STEP):
-            p.drawLine(x, 0, x, h)
-        for y in range(0, h, GRID_STEP):
-            p.drawLine(0, y, w, y)
-        # izgara kesisimlerinde minik arti isaretleri (her 4 hucrede bir)
-        cross = QColor(theme.ACCENT_DIM)
-        cross.setAlpha(110)
-        p.setPen(QPen(cross, 1))
-        for x in range(0, w, GRID_STEP * 4):
-            for y in range(0, h, GRID_STEP * 4):
-                p.drawLine(x - 3, y, x + 3, y)
-                p.drawLine(x, y - 3, x, y + 3)
-
-        # kenar vinyeti
-        vig = QRadialGradient(QPointF(w / 2, h / 2), max(w, h) * 0.75)
-        vig.setColorAt(0.55, QColor(0, 0, 0, 0))
-        vig.setColorAt(1.0, QColor(0, 0, 0, 170))
-        p.fillRect(0, 0, w, h, vig)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        # Zoey .corner-glow: sol/sag ust koselerde 350 px'lik cok hafif turuncu isima
+        c = QColor(theme.ACCENT_BASE)
+        effect = theme.EFFECT
+        boost = 2.4 if effect == "friday" else 1.0
+        for x, alpha in ((75.0, 15), (w - 75.0, 13)):
+            glow = QRadialGradient(QPointF(x, 75.0), 175.0 * 0.7 * (1.6 if effect == "friday" else 1.0))
+            glow.setColorAt(0.0, QColor(c.red(), c.green(), c.blue(), int(alpha * boost)))
+            glow.setColorAt(1.0, QColor(c.red(), c.green(), c.blue(), 0))
+            p.fillRect(0, 0, w, h, glow)
+        if effect == "friday":
+            dot = QColor(c.red(), c.green(), c.blue(), 22)
+            p.setPen(dot)
+            for y in range(12, h, 24):
+                for x in range(12, w, 24):
+                    p.drawPoint(x, y)
+        elif effect == "ultron":
+            ember = QRadialGradient(QPointF(w / 2.0, h * 1.05), max(w, h) * 0.55)
+            ember.setColorAt(0.0, QColor(c.red(), c.green(), c.blue(), 38))
+            ember.setColorAt(1.0, QColor(c.red(), c.green(), c.blue(), 0))
+            p.fillRect(0, 0, w, h, ember)
+            vignette = QRadialGradient(QPointF(w / 2.0, h / 2.0), max(w, h) * 0.75)
+            vignette.setColorAt(0.6, QColor(0, 0, 0, 0))
+            vignette.setColorAt(1.0, QColor(20, 0, 0, 170))
+            p.fillRect(0, 0, w, h, vignette)
         p.end()
         return pm
 
     def resizeEvent(self, event) -> None:  # noqa: N802, ANN001
         self._static = None
         super().resizeEvent(event)
-
-    def hideEvent(self, event) -> None:  # noqa: N802, ANN001
-        self._timer.stop()
-        super().hideEvent(event)
-
-    def showEvent(self, event) -> None:  # noqa: N802, ANN001
-        self._timer.start()
-        super().showEvent(event)
