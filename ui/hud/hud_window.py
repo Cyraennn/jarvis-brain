@@ -1,12 +1,12 @@
-"""CYRAEN "Komuta" HUD penceresi.
+"""JARVIS "Komuta" HUD penceresi.
 
 Davranis (motor/orkestrator sinyalleri, onay diyaloglari, tepsi, capture-exclusion, dis
 yazmada kenara cekilme...) `MainWindow`'dan aynen miras alinir; burada yalnizca yerlesim
 degisir. `MainWindow` handler'larinin kullandigi oznitelikler (`_graph`, `_log`, `_mic_btn`,
 `_left_sidebar`, `_sb_*`...) ayni adlarla uretilir.
 
-    ┌ ◎ CYRAEN Komuta · ● BAĞLI ─────────────── [ODAK][MİK][KAM][EKRAN]… ┐
-    │ ŞİMDİ      │  ┌ CYRAEN Komuta ────────────┐  │ CANLI GÖRÜŞ        │
+    ┌ ◎ JARVIS Komuta · ● BAĞLI ─────────────── [ODAK][MİK][KAM][EKRAN]… ┐
+    │ ŞİMDİ      │  ┌ JARVIS Komuta ────────────┐  │ CANLI GÖRÜŞ        │
     │ OKUL       │  │  ajan rozet halkasi        │  │ GÖREVLER           │
     │ SİSTEM     │  │  departman halkasi         │  │ HIZLI KOMUTLAR     │
     │ AJANLAR    │  │  parcacik cekirdegi        │  │ RUTİNLER           │
@@ -56,7 +56,7 @@ from ui.widgets.webcam_view import WebcamView
 LEFT_W = 272
 RIGHT_W = 300
 TAG_MIN_W = 1280
-GREETING = theme.BRANDING["cyraen"]["greeting"]   # kisilige gore: theme.branding()["greeting"]
+GREETING = theme.BRANDING["jarvis"]["greeting"]   # kisilige gore: theme.branding()["greeting"]
 THINK_TIMEOUT_MS = 20000   # arac sonucu hic gelmezse orb "dusunme"den ciksin
 
 

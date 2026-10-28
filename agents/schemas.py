@@ -60,8 +60,8 @@ def parse_department(value: object) -> Department | None:
 
 class Autonomy(str, Enum):
     HUMAN_LED = "human_led"           # yalnizca insan baslatir
-    HUMAN_ASSISTED = "human_assisted"  # CYRAEN onerir, insan onaylar
-    FULLY_AUTONOMOUS = "fully_autonomous"  # CYRAEN dogrudan calistirir
+    HUMAN_ASSISTED = "human_assisted"  # JARVIS onerir, insan onaylar
+    FULLY_AUTONOMOUS = "fully_autonomous"  # JARVIS dogrudan calistirir
 
 
 AUTONOMY_BADGE: dict[Autonomy, str] = {
@@ -97,6 +97,7 @@ class AgentSpec(BaseModel):
     # "claude-*" -> Claude, "saglayici/model" bicimi -> OpenRouter, digerleri -> Gemini
     model: str | None = None
     fallback_model: str | None = None
+    fallback_models: list[str] = Field(default_factory=list)  # ek yedekler (sirayla)
     temperature: float = 0.5        # Claude yolunda kullanilmaz (yerine `effort`)
     effort: str | None = None       # Claude: low | medium | high | xhigh | max
     max_steps: int | None = None
@@ -125,7 +126,7 @@ class TaskRequest(BaseModel):
     id: str = Field(default_factory=_new_id)
     agent: str = "auto"
     task: str
-    source: str = "cyraen"
+    source: str = "jarvis"
     context: str = ""
     created_at: str = Field(default_factory=_now)
 

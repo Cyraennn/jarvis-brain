@@ -5,7 +5,7 @@
 //   - Kirpma (drawImage) HAM kutuyla yapilir; isabet testi ekran pikselinde.
 (function (root, factory) {
   if (typeof module !== "undefined" && module.exports) module.exports = factory();
-  else root.CyraenShelfGeom = factory();
+  else root.JarvisShelfGeom = factory();
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 

@@ -2,7 +2,7 @@
 
 `RemoteEngineWorker`, `ui/engine_worker.py::EngineWorker` ile ayni arayuzu sunar (start,
 wait_ready, set_mic_muted, inject_bridge_message, shutdown...). Motor yerine kendi
-thread'inde `CyraenClient` (+ masaustu eylemleri, ekran/kamera, ses) calistirir ve
+thread'inde `JarvisClient` (+ masaustu eylemleri, ekran/kamera, ses) calistirir ve
 sunucudan gelen olaylari mevcut Qt gozlemcilerine (`QtEngineObserver`,
 `QtOrchestratorObserver`) aktarir. Boylece HUD, yerel motordaki gibi davranir.
 """
@@ -18,7 +18,7 @@ from typing import Any
 from loguru import logger
 
 from client.config import ClientConfig
-from client.core import CyraenClient
+from client.core import JarvisClient
 
 
 class _Named(str):
@@ -51,7 +51,7 @@ def _spec(a: dict[str, Any]) -> SimpleNamespace:
     )
 
 
-def bind_observers(client: CyraenClient, engine_obs: Any, orch_obs: Any | None) -> None:
+def bind_observers(client: JarvisClient, engine_obs: Any, orch_obs: Any | None) -> None:
     """Sunucu olaylarini Qt gozlemci metotlarina esler."""
     def transcript(final: bool):
         def _cb(data: Any) -> None:
@@ -100,9 +100,9 @@ def bind_observers(client: CyraenClient, engine_obs: Any, orch_obs: Any | None) 
 
 class RemoteEngineWorker(threading.Thread):
     def __init__(self, cfg: ClientConfig, engine_obs: Any, orch_obs: Any | None = None) -> None:
-        super().__init__(name="cyraen-client", daemon=True)
+        super().__init__(name="jarvis-client", daemon=True)
         self.cfg = cfg
-        self.client = CyraenClient(cfg.ws_url, cfg.token, name=cfg.name, kind=cfg.kind)
+        self.client = JarvisClient(cfg.ws_url, cfg.token, name=cfg.name, kind=cfg.kind)
         bind_observers(self.client, engine_obs, orch_obs)
         self._loop: asyncio.AbstractEventLoop | None = None
         self._ready = threading.Event()
@@ -184,7 +184,7 @@ class RemoteEngineWorker(threading.Thread):
         self._call(lambda: self.client.command(text))
 
 
-async def _gather_until_client_stops(client: CyraenClient, coros: list) -> None:
+async def _gather_until_client_stops(client: JarvisClient, coros: list) -> None:
     tasks = [asyncio.create_task(c) for c in coros]
     try:
         await tasks[0]            # istemci durunca (kapanis / token reddi) digerlerini de durdur

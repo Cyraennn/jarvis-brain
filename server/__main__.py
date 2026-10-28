@@ -1,7 +1,7 @@
-"""CYRAEN sunucusunu baslatir:  python -m server
+"""JARVIS sunucusunu baslatir:  python -m server
 
 Sira:
- 1. .env -> ServerConfig (CYRAEN_TOKEN zorunlu, 0.0.0.0'a baglanma reddedilir)
+ 1. .env -> ServerConfig (JARVIS_TOKEN zorunlu, 0.0.0.0'a baglanma reddedilir)
  2. JSON + donen dosya loglama, Telegram bildirimi
  3. Istemci eylem vekilleri (motor olusturulmadan ONCE)
  4. Mevcut parcalar: BrainEngine (ag-ses), uzak ses sunucusu, orkestrator, web konsolu, zamanlayici
@@ -31,7 +31,7 @@ from server.app import create_app
 from server.config import load_server_config, server_settings
 from server.logging_setup import configure_logging
 from server.observers import ServerEngineObserver
-from server.runtime import CyraenRuntime
+from server.runtime import JarvisRuntime
 from server.telegram import TelegramNotifier
 from ui.orchestrator_worker import OrchestratorWorker
 from ui.scheduler_worker import SchedulerWorker
@@ -53,11 +53,11 @@ async def amain() -> None:
     local_llm.configure(settings)
     notifier = TelegramNotifier(cfg.telegram_bot_token, cfg.telegram_chat_id)
     configure_logging(cfg, notifier, level=settings.log_level)
-    logger.info(f"CYRAEN sunucusu {__version__} basliyor - http://{cfg.bind}:{cfg.port} "
+    logger.info(f"JARVIS sunucusu {__version__} basliyor - http://{cfg.bind}:{cfg.port} "
                 f"(Telegram {'acik' if cfg.telegram_enabled else 'KAPALI - yalnizca log'})")
 
     loop = asyncio.get_running_loop()
-    runtime = CyraenRuntime(settings, cfg, notifier)
+    runtime = JarvisRuntime(settings, cfg, notifier)
     runtime.hub.attach_loop(loop)
     remote_tools.install(runtime.hub)
     FALLBACK_HOOKS.append(runtime.on_fallback)
@@ -129,7 +129,7 @@ async def amain() -> None:
             if w is not None:
                 with contextlib.suppress(Exception):
                     w.shutdown()
-        logger.info("CYRAEN sunucusu durdu.")
+        logger.info("JARVIS sunucusu durdu.")
 
 
 def main() -> None:

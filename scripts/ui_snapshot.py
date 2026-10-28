@@ -1,10 +1,10 @@
 """HUD ekran goruntusu uretici (offscreen; gercek kamera/mikrofon/Gemini gerekmez).
 
-Kullanim (cyraen-brain klasorunden):
+Kullanim (jarvis-brain klasorunden):
     python scripts/ui_snapshot.py [cikti_klasoru]
 
 `scratch/ui/` altina 1320x860 ve 1024x700 PNG'ler yazar (varsayilan HUD; eski yerlesim icin
-CYRAEN_UI_STYLE=classic). Asama oncesi/sonrasi gorsel
+JARVIS_UI_STYLE=classic). Asama oncesi/sonrasi gorsel
 karsilastirma icin kullanilir.
 """
 from __future__ import annotations
@@ -48,7 +48,7 @@ def build_window(app):
     except Exception:  # noqa: BLE001
         base = Settings(gemini_api_key="test")
     settings = base.model_copy(update={"webcam_enabled": False, "always_on_top": False})
-    window_cls = MainWindow if os.getenv("CYRAEN_UI_STYLE", "hud") == "classic" else HudWindow
+    window_cls = MainWindow if os.getenv("JARVIS_UI_STYLE", "hud") == "classic" else HudWindow
     win = window_cls(settings, QtEngineObserver(), _FakeWebcam(), orch_observer=QtOrchestratorObserver())
 
     agents = list(all_agents().values()) if isinstance(all_agents(), dict) else list(all_agents())

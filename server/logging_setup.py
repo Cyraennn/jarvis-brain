@@ -2,7 +2,7 @@
 
 - Dosya: her satir bir JSON nesnesi (loguru `serialize=True`); `logger.bind(event=.., model=..)`
   alanlari `record.extra` altinda gorunur -> `jq 'select(.record.extra.event=="model_fallback")'`.
-- stderr: insan okunur tek satir (systemd -> `journalctl -u cyraen -f`).
+- stderr: insan okunur tek satir (systemd -> `journalctl -u jarvis -f`).
 - CRITICAL seviyesi ayrica Telegram'a gider (tanimliysa).
 - uvicorn'un standart `logging` kayitlari da loguru'ya yonlendirilir (tek format, tek dosya).
 """

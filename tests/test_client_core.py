@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-from client.core import CyraenClient, backoff_delay
+from client.core import JarvisClient, backoff_delay
 from remote.protocol import CLIENT_FUNCTIONS, action_timeout, short_name
 
 
@@ -33,7 +33,7 @@ def test_desktop_registers_every_allowlisted_action():
     cfg = ClientConfig(server_host="100.1.2.3", server_port=8765, token="x", name="pc", kind="desktop",
                        audio=False, audio_port=8771, audio_token="x", desktop=True, vision=False,
                        confirm_mode="deny", web_port=8770, web_token="w")
-    client = CyraenClient("ws://x/ws", "x")
+    client = JarvisClient("ws://x/ws", "x")
     registered = register_desktop_handlers(client, cfg)
     assert set(registered) == set(CLIENT_FUNCTIONS)
     assert set(client.actions) == set(CLIENT_FUNCTIONS)
@@ -54,15 +54,15 @@ def test_client_config_requires_host_and_token(tmp_path, monkeypatch):
     from client.config import load_client_config
 
     env = tmp_path / ".env"
-    env.write_text("CYRAEN_SERVER_HOST=\nCYRAEN_TOKEN=\n", encoding="utf-8")
-    monkeypatch.delenv("CYRAEN_SERVER_HOST", raising=False)
-    monkeypatch.delenv("CYRAEN_TOKEN", raising=False)
+    env.write_text("JARVIS_SERVER_HOST=\nJARVIS_TOKEN=\n", encoding="utf-8")
+    monkeypatch.delenv("JARVIS_SERVER_HOST", raising=False)
+    monkeypatch.delenv("JARVIS_TOKEN", raising=False)
     with pytest.raises(SystemExit):
         load_client_config(env)
-    env.write_text("CYRAEN_SERVER_HOST=cyraen-vps\nCYRAEN_TOKEN=abc\nCYRAEN_CLIENT_NAME=ev-pc\n",
+    env.write_text("JARVIS_SERVER_HOST=jarvis-vps\nJARVIS_TOKEN=abc\nJARVIS_CLIENT_NAME=ev-pc\n",
                    encoding="utf-8")
     cfg = load_client_config(env)
-    assert cfg.ws_url == "ws://cyraen-vps:8765/ws" and cfg.name == "ev-pc"
+    assert cfg.ws_url == "ws://jarvis-vps:8765/ws" and cfg.name == "ev-pc"
     assert cfg.audio_token == "abc" and "key=abc" in cfg.audio_url    # ayri ses token'i yoksa ortak
 
 
@@ -79,14 +79,14 @@ def test_qt_bridge_maps_server_events_to_observers():
             return lambda *a: self.calls.append((name, a)) or True
 
     eng, orch = Rec(), Rec()
-    client = CyraenClient("ws://x/ws", "t")
+    client = JarvisClient("ws://x/ws", "t")
     bind_observers(client, eng, orch)
 
     async def fire():
         await client._emit("snapshot", {"connection": "active", "engine_state": "idle",
                                         "agents": {"a": {"name": "a", "title": "A", "department": "okul",
                                                          "autonomy": "fully_autonomous"}}})
-        await client._emit("transcript_partial", {"who": "cyraen", "text": "Mer"})
+        await client._emit("transcript_partial", {"who": "jarvis", "text": "Mer"})
         await client._emit("transcript", {"who": "user", "text": "selam"})
         await client._emit("tool_result", {"name": "calculate", "ok": True, "detail": "84"})
         await client._emit("task", {"id": "t1", "agent": "a", "status": "running"})
@@ -110,7 +110,7 @@ def test_qt_bridge_maps_server_events_to_observers():
 
 
 def test_decorator_registration():
-    client = CyraenClient("ws://x/ws", "t", name="robot-1", kind="robot")
+    client = JarvisClient("ws://x/ws", "t", name="robot-1", kind="robot")
 
     @client.action("robot.move")
     def move(direction: str, cm: int = 10) -> dict:

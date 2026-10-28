@@ -54,7 +54,7 @@ def test_max_awake_caps_extensions_from_background_speech():
         c.t += 5
         g.touch()
         g.keep_awake(fresh=False)  # model ortam sesine yanit veriyor: tavani sifirlamaz
-    assert not g.awake  # 20 sn tavani asildi: yeniden "Hey CYRAEN" gerekir
+    assert not g.awake  # 20 sn tavani asildi: yeniden "Hey JARVIS" gerekir
 
 
 def test_reply_reopens_the_window_only_within_the_cap():

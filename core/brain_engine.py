@@ -89,7 +89,7 @@ _OFFLINE_TTS_STEP_S = 0.1
 # Konusmaci dogrulama: uyanista bakilan ses, pencere acikken degerlendirilen dilim uzunlugu
 _SPEAKER_WAKE_S = 1.5
 _SPEAKER_SEGMENT_S = 2.0
-_SPEAKER_WAKE_MARGIN = 0.05  # kisa "Hey CYRAEN" uzun cumleden daha dusuk skor verir
+_SPEAKER_WAKE_MARGIN = 0.05  # kisa "Hey JARVIS" uzun cumleden daha dusuk skor verir
 
 # Native-audio modeli bazen transkripte ham kontrol tokenlari sizdirir ('<ctrl46>').
 _CTRL_TOKEN_RE = re.compile(r"<ctrl\d+>")
@@ -100,7 +100,7 @@ class BrainEngine:
     _speaker: Any = None
     _speaker_gate: Any = None
     _speaker_task: "asyncio.Task[None] | None" = None
-    # Kisilik modu; __init__ data/persona.json'dan kurar (None = varsayilan CYRAEN)
+    # Kisilik modu; __init__ data/persona.json'dan kurar (None = varsayilan JARVIS)
     _persona: "personas.PersonaMode | None" = None
     _fx: Any = None  # ses efekti islemcisi (ULTRON), efektsizse None
 
@@ -177,7 +177,7 @@ class BrainEngine:
         self._webcam_streaming = settings.webcam_enabled
         self._screen_streaming = settings.screen_enabled
 
-        # Uyandirma kelimesi kapisi ("Hey CYRAEN"); detektor ilk ihtiyacta yuklenir
+        # Uyandirma kelimesi kapisi ("Hey JARVIS"); detektor ilk ihtiyacta yuklenir
         self._wake_enabled = bool(settings.wake_word_enabled)
         self._last_near_miss = float("-inf")
         self._wake = WakeWordDetector(settings.wake_word_model)
@@ -211,7 +211,7 @@ class BrainEngine:
         self._user_transcript = ""
         self._model_transcript = ""
 
-        # Kisilik modu (CYRAEN / FRIDAY / ULTRON): prompt + ses baglanti aninda uygulanir
+        # Kisilik modu (JARVIS / FRIDAY / ULTRON): prompt + ses baglanti aninda uygulanir
         self._persona = personas.load_active(settings)
         self._persona_switch = asyncio.Event()
         self._fx = voice_fx.make(
@@ -266,7 +266,7 @@ class BrainEngine:
         return self._wake_enabled
 
     def interrupt_speaking(self) -> None:
-        """CYRAEN'i konusurken susturur (El Kontrolu ✊, /api/control interrupt).
+        """JARVIS'i konusurken susturur (El Kontrolu ✊, /api/control interrupt).
 
         Calan ses tamponu bosaltilir ve bu turun geri kalan sesi atilir; bir sonraki tur
         (turn_complete sonrasi) normal calar. Cevrimdisi TTS dongusu de durur.
@@ -283,7 +283,7 @@ class BrainEngine:
         self._discard_audio = True
         self._offline_stop = True
         self._drain_playback()
-        logger.info("CYRAEN susturuldu (interrupt).")
+        logger.info("JARVIS susturuldu (interrupt).")
 
     def set_output_muted(self, muted: bool) -> None:
         """PC hoparlorunu sustur/ac. Telefondan gorusurken ('uzak mod') kullanilir:
@@ -296,7 +296,7 @@ class BrainEngine:
         return self._output_muted
 
     def _tools(self) -> list[types.Tool]:
-        """Modele verilen araclar; CYRAEN_TOOLS_OFF ile kapatilan gruplar haric."""
+        """Modele verilen araclar; JARVIS_TOOLS_OFF ile kapatilan gruplar haric."""
         off = set(getattr(self.settings, "tool_groups_disabled", ()) or ())
         return get_tools(off) if off else get_tools()
 
@@ -715,7 +715,7 @@ class BrainEngine:
             self._notify("on_input_level", level)
             blob = types.Blob(data=data, mime_type=mime)
             if self._wake_enabled and await self._wake_ready():
-                # kopru bekletmesinde kapi uykudadir: yalniz "Hey CYRAEN" sesi iceri alir
+                # kopru bekletmesinde kapi uykudadir: yalniz "Hey JARVIS" sesi iceri alir
                 if not await self._gate_audio(data, blob, level):
                     continue  # uykuda: ses modele GITMEZ
             elif self._bridge_held():
@@ -755,7 +755,7 @@ class BrainEngine:
         return bool(self._wake.available)
 
     async def _wake_speaker_ok(self) -> bool:
-        """'Hey CYRAEN'i kayitli ses mi soyledi? Dogrulama pasifse her zaman True."""
+        """'Hey JARVIS'i kayitli ses mi soyledi? Dogrulama pasifse her zaman True."""
         if not self._speaker_active:
             return True
         score = await asyncio.to_thread(self._speaker.score, b"".join(self._recent_pcm))
@@ -839,7 +839,7 @@ class BrainEngine:
             return
         self._notify("on_wake", changed)
         if not changed:
-            logger.debug("Uyandirma penceresi kapandi - uykuda ('Hey CYRAEN' bekleniyor).")
+            logger.debug("Uyandirma penceresi kapandi - uykuda ('Hey JARVIS' bekleniyor).")
             with contextlib.suppress(asyncio.QueueFull):
                 self.out_queue.put_nowait(("audio_end", None))
 
@@ -884,7 +884,7 @@ class BrainEngine:
                 self._notify("on_state", "speaking")
             self._playback_active.set()
             if not self._no_followup and not self._bridge_held():
-                # model konusuyor: bitince kullanici "Hey CYRAEN"siz cevap verebilsin
+                # model konusuyor: bitince kullanici "Hey JARVIS"siz cevap verebilsin
                 self._gate.keep_awake(fresh=False)
             fx = self._fx
             if fx is not None:
@@ -973,7 +973,7 @@ class BrainEngine:
         Enjekte edilen tur da sesle bolunebilir: 6 Ekim'de odadaki sohbet, telefondan gelen
         soruyu defalarca kesti ve soru dakikalarca yanitsiz kaldi. Bekletme, bu mesajin
         yanit turu bitince (`_release_bridge_hold`) ya da `bridge_hold_s` dolunca kalkar;
-        uyandirma kelimesi aciksa "Hey CYRAEN" hemen kaldirir.
+        uyandirma kelimesi aciksa "Hey JARVIS" hemen kaldirir.
         """
         self._discard_audio = False  # yeni istek: onceki susturma bunun yanitini kesmesin
         if message.lstrip().startswith(_GESTURE_SOURCE):
@@ -1030,9 +1030,9 @@ class BrainEngine:
                 self._notify("on_user_transcript", user_final, True)
                 self._log_conversation("user", user_final)
             if model_final:
-                logger.info(f"CYRAEN    : {model_final}")
+                logger.info(f"JARVIS    : {model_final}")
                 self._notify("on_assistant_transcript", model_final, True)
-                self._log_conversation("cyraen", model_final)
+                self._log_conversation("jarvis", model_final)
             self._user_transcript = ""
             self._model_transcript = ""
             self._turn_tools = False
@@ -1199,7 +1199,7 @@ class BrainEngine:
         self._proactive_audio = False
         logger.warning(
             "Model 'proactive audio' ayarini kabul etmedi; bu calismada kapatildi "
-            "(kalici kapatmak icin CYRAEN_PROACTIVE_AUDIO=false)."
+            "(kalici kapatmak icin JARVIS_PROACTIVE_AUDIO=false)."
         )
 
     @staticmethod

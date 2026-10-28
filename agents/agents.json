@@ -1,9 +1,12 @@
 {
-  "_comment": "CYRAEN Multi-Model Ajan Yapılandırması - yazılım ajanları (kodcu, bilgisayar_op) ücretli Claude (claude-*, ANTHROPIC_API_KEY) ile çalışır, yedekleri ücretsiz OpenRouter; diğerleri yalnızca ücretsiz OpenRouter modelleri (araç çağırma test edildi: 2026-10-03); en son yedek her zaman Gemini.",
+  "_comment": "JARVIS Multi-Model Ajan Yapılandırması - yazılım ajanları (kodcu, bilgisayar_op) ücretli Claude (claude-*, ANTHROPIC_API_KEY) ile çalışır, yedekleri ücretsiz OpenRouter; diğerleri yalnızca ücretsiz OpenRouter modelleri (araç çağırma + Türkçe test edildi: 2026-10-28; her ajan fallback_models ile tüm ücretsiz havuzu dener); en son yedek her zaman Gemini.",
   "orchestrator": {
-    "default_model": "qwen/qwen3.8-27b:free",
+    "default_model": "nvidia/nemotron-3.5-super-vl:free",
     "fallback_models": [
-      "nvidia/nemotron-3-super-120b-a12b:free",
+      "poolside/laguna-s-2.1:free",
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "dots-studio/dots-3-note-preview:free",
+      "cohere/north-mini-code:free",
       "openrouter/free"
     ]
   },
@@ -13,13 +16,19 @@
       "title": "J.O.C.A.S.T.A. (Araştırmacı & Analist)",
       "department": "bilgi",
       "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
-      "fallback_model": "qwen/qwen3.8-27b:free",
+      "fallback_model": "nvidia/nemotron-3.5-super-vl:free",
       "description": "Devasa dokümanları, kütüphaneleri ve web kaynaklarını tarar, özet ve bağlam çıkarır.",
       "grounded_search": false,
       "temperature": 0.3,
       "system_prompt": "Sen J.O.C.A.S.T.A. (Araştırmacı & Analist) ajansın. Güncel olabilecek her konuda (son gelişmeler, haberler, sürümler, fiyatlar, tarihler) ÖNCE search_web aracıyla internette ara; gerekirse farklı açılardan 2-3 arama yap. Kendi eğitim bilgini güncelmiş gibi sunma. Bulguları tarihleriyle birlikte net, maddeler halinde Türkçe özetle ve sonunda en önemli 3-5 kaynağın linkini ver.",
       "capabilities": [
         "web_search"
+      ],
+      "fallback_models": [
+        "poolside/laguna-s-2.1:free",
+        "dots-studio/dots-3-note-preview:free",
+        "cohere/north-mini-code:free",
+        "openrouter/free"
       ]
     },
     {
@@ -27,7 +36,7 @@
       "title": "H.O.M.E.R. (Kıdemli Yazılımcı & Mühendis)",
       "department": "geliştirme",
       "model": "claude-opus-5-5",
-      "fallback_model": "qwen/qwen3.8-27b:free",
+      "fallback_model": "nvidia/nemotron-3.5-super-vl:free",
       "effort": "high",
       "description": "Backend/frontend kollarını yazar, mimari tasarlar, kod incelemesi ve refactoring yapar; dosyaları diske kaydedebilir.",
       "capabilities": [
@@ -35,34 +44,54 @@
       ],
       "max_steps": 12,
       "temperature": 0.2,
-      "system_prompt": "Sen H.O.M.E.R. (Kıdemli Yazılımcı & Mühendis) ajansın. Araştırma ve mimari verilerine göre temiz, modüler, tip korumalı ve optimize edilmiş kod yaz."
+      "system_prompt": "Sen H.O.M.E.R. (Kıdemli Yazılımcı & Mühendis) ajansın. Araştırma ve mimari verilerine göre temiz, modüler, tip korumalı ve optimize edilmiş kod yaz.",
+      "fallback_models": [
+        "poolside/laguna-s-2.1:free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "dots-studio/dots-3-note-preview:free",
+        "cohere/north-mini-code:free",
+        "openrouter/free"
+      ]
     },
     {
       "name": "bilgisayar_op",
       "title": "D.U.M.M.Y. (Sistem & Terminal Operatörü)",
       "department": "sistem",
       "model": "claude-opus-5-5",
-      "fallback_model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "fallback_model": "poolside/laguna-s-2.1:free",
       "effort": "medium",
       "description": "Yazılan kodları veya terminal komutlarını yerel sistemde çalıştırır, test eder ve sonuçları doğrular.",
       "temperature": 0.1,
-      "system_prompt": "Sen D.U.M.M.Y. (Sistem & Terminal Operatörü) ajansın. Komutları ve kod çalıştırma adımlarını hatasız ve güvenli şekilde yürüt."
+      "system_prompt": "Sen D.U.M.M.Y. (Sistem & Terminal Operatörü) ajansın. Komutları ve kod çalıştırma adımlarını hatasız ve güvenli şekilde yürüt.",
+      "fallback_models": [
+        "nvidia/nemotron-3.5-super-vl:free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "dots-studio/dots-3-note-preview:free",
+        "cohere/north-mini-code:free",
+        "openrouter/free"
+      ]
     },
     {
       "name": "planlayici",
       "title": "F.R.I.D.A.Y. (Taktik & Süreç Planlayıcı)",
       "department": "yönetim",
-      "model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "model": "poolside/laguna-s-2.1:free",
       "description": "Karmaşık kullanıcı isteklerini alt görevlere böler, sıraya koyar ve doğru ajanlara devreder.",
       "temperature": 0.2,
       "system_prompt": "Sen F.R.I.D.A.Y. (Taktik & Süreç Planlayıcı) ajansın. İstekleri adım adım ayrıştırarak orkestrasyon zincirini oluştur.",
-      "fallback_model": "qwen/qwen3.8-27b:free"
+      "fallback_model": "nvidia/nemotron-3.5-super-vl:free",
+      "fallback_models": [
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "dots-studio/dots-3-note-preview:free",
+        "cohere/north-mini-code:free",
+        "openrouter/free"
+      ]
     },
     {
       "name": "sekreter",
       "title": "K.A.R.E.N. (Kişisel Asistan & Not Tutucu)",
       "department": "iletisim",
-      "model": "qwen/qwen3.8-27b:free",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
       "description": "Gmail ve Telegram'i yonetir (okunmamislar, yanit taslaklari, Sezai'ye ozet), notlari, Obsidian ozetlerini ve ajandayi tutar.",
       "temperature": 0.4,
       "system_prompt": "Sen K.A.R.E.N. (Kişisel Asistan & Not Tutucu) ajansın. Gelen e-posta ve Telegram mesajlarını özetle, gerekirse generate_auto_reply_draft ile yanıt TASLAĞI hazırla (asla gönderme), önemli şeyleri notify_owner_telegram ile Sezai'ye bildir. Düzenli not tut ve özetleri Obsidian yapısına uygun hazırla.",
@@ -71,43 +100,64 @@
         "telegram",
         "notes"
       ],
-      "fallback_model": "nvidia/nemotron-3-super-120b-a12b:free"
+      "fallback_model": "poolside/laguna-s-2.1:free",
+      "fallback_models": [
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "dots-studio/dots-3-note-preview:free",
+        "cohere/north-mini-code:free",
+        "openrouter/free"
+      ]
     },
     {
       "name": "ulasim",
       "title": "T.A.D.A.S.H.I. (Ulaşım & Mobilite Rehberi)",
       "department": "gunluk",
-      "model": "qwen/qwen3.8-27b:free",
-      "fallback_model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "fallback_model": "poolside/laguna-s-2.1:free",
       "description": "İzmir toplu taşıma: ESHOT durak/hat saatleri, canlı otobüs, rota planı, İzmirim Kart bakiye sayfası.",
       "capabilities": [
         "transit"
       ],
       "autonomy": "fully_autonomous",
       "temperature": 0.2,
-      "system_prompt": "Sen T.A.D.A.S.H.I. (Ulaşım & Mobilite Rehberi) ajansın (İzmir). Durak için eshot_find_stop, hat saatleri için eshot_line_info, canlı otobüs için eshot_approaching_buses, rota için transit_route kullan. Saatleri ve hat numaralarını UYDURMA; yalnızca araç çıktısına dayan. Kısa, sesli okunabilir Türkçe yanıt ver."
+      "system_prompt": "Sen T.A.D.A.S.H.I. (Ulaşım & Mobilite Rehberi) ajansın (İzmir). Durak için eshot_find_stop, hat saatleri için eshot_line_info, canlı otobüs için eshot_approaching_buses, rota için transit_route kullan. Saatleri ve hat numaralarını UYDURMA; yalnızca araç çıktısına dayan. Kısa, sesli okunabilir Türkçe yanıt ver.",
+      "fallback_models": [
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "dots-studio/dots-3-note-preview:free",
+        "cohere/north-mini-code:free",
+        "openrouter/free"
+      ]
     }
   ],
   "channels": {
     "_comment": "Ajan olmayan yan kollarin (eklentilerin) kendi modelleri - hepsi ucretsiz.",
     "telegram": {
-      "model": "qwen/qwen3.8-27b:free",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
       "fallback_models": [
-        "nvidia/nemotron-3-super-120b-a12b:free",
+        "poolside/laguna-s-2.1:free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "dots-studio/dots-3-note-preview:free",
+        "cohere/north-mini-code:free",
         "openrouter/free"
       ]
     },
     "gmail_draft": {
       "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
       "fallback_models": [
-        "qwen/qwen3.8-27b:free",
+        "nvidia/nemotron-3.5-super-vl:free",
+        "poolside/laguna-s-2.1:free",
+        "dots-studio/dots-3-note-preview:free",
+        "cohere/north-mini-code:free",
         "openrouter/free"
       ]
     },
     "briefing": {
-      "model": "qwen/qwen3.8-27b:free",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
       "fallback_models": [
-        "nvidia/nemotron-3-super-120b-a12b:free",
+        "poolside/laguna-s-2.1:free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "dots-studio/dots-3-note-preview:free",
+        "cohere/north-mini-code:free",
         "openrouter/free"
       ]
     }

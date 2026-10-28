@@ -260,8 +260,8 @@ def test_persona_card_sits_bottom_right_and_switches_via_worker(hud, qapp):
 
     card = hud._persona_card
     assert card.title_label.text() == "EKİPLER"
-    assert list(card.chips) == ["cyraen", "friday", "ultron"]
-    card.set_active("cyraen")  # gercek data/persona.json'dan bagimsiz
+    assert list(card.chips) == ["jarvis", "friday", "ultron"]
+    card.set_active("jarvis")  # gercek data/persona.json'dan bagimsiz
     hud.show()
     wait_ms(qapp, 50)
     assert card.mapTo(hud, QPoint(0, 0)).x() > hud.width() // 2  # sag sutun
@@ -271,12 +271,12 @@ def test_persona_card_sits_bottom_right_and_switches_via_worker(hud, qapp):
     hud._worker = SimpleNamespace(set_persona=calls.append)
     QTest.mouseClick(card.chips["ultron"], Qt.MouseButton.LeftButton)
     assert calls == ["ultron"]
-    assert card.active == "cyraen"  # motor onaylayana kadar degismez
+    assert card.active == "jarvis"  # motor onaylayana kadar degismez
 
     hud._observer.persona.emit("ultron")
     wait_ms(qapp, 20)
     assert card.active == "ultron" and card.meta_label.text() == "ULTRON"
-    assert card.chips["ultron"].active and not card.chips["cyraen"].active
+    assert card.chips["ultron"].active and not card.chips["jarvis"].active
     QTest.mouseClick(card.chips["ultron"], Qt.MouseButton.LeftButton)  # zaten aktif
     assert calls == ["ultron"]
     hud._worker = None
@@ -286,21 +286,21 @@ def test_palettes_recolor_everything_and_drop_the_old_orange():
     from ui import theme
 
     seen = set()
-    for key in ("cyraen", "friday", "ultron"):
+    for key in ("jarvis", "friday", "ultron"):
         assert theme.apply_palette(key) == key
         assert "rgba(255, 109, 0" not in theme.QSS and "#ff8c42" not in theme.QSS
         assert theme.ACCENT in theme.QSS and theme.HUD_TICK == theme.SPEAK == theme.ACCENT
         assert theme.DEPT_COLORS[0] == theme.ACCENT
         seen.add(theme.ACCENT)
     assert len(seen) == 3
-    assert theme.apply_palette("yok") == "cyraen"
+    assert theme.apply_palette("yok") == "jarvis"
 
 
 def test_persona_switch_rethemes_the_whole_hud(hud, qapp):
     from ui import theme
     hud.show()
     wait_ms(qapp, 30)
-    assert hud._brand.text() == "CYRAEN_OS" and theme.PERSONA == "cyraen"
+    assert hud._brand.text() == "JARVIS_OS" and theme.PERSONA == "jarvis"
     assert not hud._fx_overlay.isVisible() and not hud._fx_overlay.timer_running
     hud._caption.setText(theme.branding()["greeting"])
 
@@ -325,9 +325,9 @@ def test_persona_switch_rethemes_the_whole_hud(hud, qapp):
     assert hud._brand.text() == "FRIDAY_OS" and theme.EFFECT == "friday"
     assert not hud._fx_overlay.isVisible() and not hud._fx_overlay.timer_running
 
-    hud._observer.persona.emit("cyraen")
+    hud._observer.persona.emit("jarvis")
     wait_ms(qapp, 30)
-    assert hud._brand.text() == "CYRAEN_OS" and hud._caption.text() == theme.BRANDING["cyraen"]["greeting"]
+    assert hud._brand.text() == "JARVIS_OS" and hud._caption.text() == theme.BRANDING["jarvis"]["greeting"]
 
 
 def test_transcript_uses_the_active_persona_name(qapp):

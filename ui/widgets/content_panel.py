@@ -1,5 +1,5 @@
 """Icerik paneli: video, Wikipedia, web sitesi, yerel belge, Spotify karti, haberler, fiyat
-grafigi, 3B Izmir haritasi, hava durumu ve bilgi karti CYRAEN penceresinin ICINDE acilir (beyin haritasinin / komuta grafinin yerinde).
+grafigi, 3B Izmir haritasi, hava durumu ve bilgi karti JARVIS penceresinin ICINDE acilir (beyin haritasinin / komuta grafinin yerinde).
 
 Yuk (`payload`) `tools/panel_tools.py`'den gelir ve orada dogrulanmistir:
     {"kind": "video",   "video_id", "title", "subtitle", "url"}
@@ -46,7 +46,7 @@ from ui import theme
 from ui.widgets.panel_views import ChartView, InfoView, NewsView, WeatherView
 
 _TAGS = {"video": "▶ YOUTUBE", "wiki": "W WIKIPEDIA", "web": "◎ WEB", "doc": "▤ BELGE", "spotify": "♫ SPOTIFY",
-         "news": "▦ HABERLER", "chart": "◢ PİYASA", "weather": "☼ HAVA", "info": "◆ CYRAEN",
+         "news": "▦ HABERLER", "chart": "◢ PİYASA", "weather": "☼ HAVA", "info": "◆ JARVIS",
          "map": "⌖ HARİTA"}
 _MAX_TEXT_BYTES = 2 * 1024 * 1024
 _VIDEO_CLOSE_DELAY_MS = 1200
@@ -183,7 +183,7 @@ class SpotifyCard(QWidget):
         if self._busy:
             return
         self._busy = True
-        threading.Thread(target=self._fetch, name="cyraen-spotify-card", daemon=True).start()
+        threading.Thread(target=self._fetch, name="jarvis-spotify-card", daemon=True).start()
 
     def _fetch(self) -> None:
         try:
@@ -210,7 +210,7 @@ class SpotifyCard(QWidget):
             self._busy = False
             self._fetch()
 
-        threading.Thread(target=run, name="cyraen-spotify-card", daemon=True).start()
+        threading.Thread(target=run, name="jarvis-spotify-card", daemon=True).start()
 
     def _toggle(self) -> None:
         self._send("pause" if self._playing else "resume")

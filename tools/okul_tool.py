@@ -68,7 +68,7 @@ def _not_connected() -> dict[str, Any]:
     return {
         "error": (
             "okul (BOTE Ders Merkezi) henuz baglanmadi. okul uygulamasini ac, "
-            "Ayarlar > CYRAEN'e baglan bolumunden bu PC'nin adresini ve tokenini gir."
+            "Ayarlar > JARVIS'e baglan bolumunden bu PC'nin adresini ve tokenini gir."
         )
     }
 
@@ -97,8 +97,8 @@ def _append_op(op: str, payload: dict[str, Any]) -> dict[str, Any]:
     note = (
         "okul uygulamasi acik/odakta oldugunda birkac saniye icinde islenir."
         if connected else
-        "DIKKAT: okul henuz CYRAEN'e baglanmadi - islem kuyrukta bekliyor. "
-        "okul'da Ayarlar > CYRAEN baglantisi kurulunca otomatik uygulanir."
+        "DIKKAT: okul henuz JARVIS'e baglanmadi - islem kuyrukta bekliyor. "
+        "okul'da Ayarlar > JARVIS baglantisi kurulunca otomatik uygulanir."
     )
     return {"status": "kuyruga alindi", "id": entry["id"], "okul_bagli": connected, "note": note}
 
@@ -303,7 +303,7 @@ def okul_add_task(
 ) -> dict[str, Any]:
     """okul'a yeni bir odev/gorev ekler. `due` ISO tarih (YYYY-MM-DD)."""
     if not _enabled():
-        return {"error": "okul koprusu kapali (CYRAEN_OKUL_ENABLED=false)."}
+        return {"error": "okul koprusu kapali (JARVIS_OKUL_ENABLED=false)."}
     title = (title or "").strip()
     if not title:
         return {"error": "'title' zorunlu"}
@@ -333,7 +333,7 @@ def okul_add_exam(
 ) -> dict[str, Any]:
     """okul'a yeni bir sinav ekler. `exam_date` ISO (YYYY-MM-DD); `topics` her satir bir konu."""
     if not _enabled():
-        return {"error": "okul koprusu kapali (CYRAEN_OKUL_ENABLED=false)."}
+        return {"error": "okul koprusu kapali (JARVIS_OKUL_ENABLED=false)."}
     course = (course or "").strip()
     d = _parse_iso(exam_date)
     if not course or not d:

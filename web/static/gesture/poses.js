@@ -5,7 +5,7 @@
 //           push (acik avucu kameraya/ileri itme)
 (function (root, factory) {
   if (typeof module !== "undefined" && module.exports) module.exports = factory();
-  else root.CyraenPoses = factory();
+  else root.JarvisPoses = factory();
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 

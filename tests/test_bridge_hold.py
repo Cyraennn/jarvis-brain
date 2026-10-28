@@ -149,7 +149,7 @@ def test_wake_word_breaks_the_hold():
     eng._hold_for_bridge("[TELEFON] Saat kac?")
     assert not eng._gate.awake  # bekletme kapiyi uyutur
     kinds = _listen(eng, 3)
-    assert not eng._bridge_held()  # "Hey CYRAEN" duyuldu
+    assert not eng._bridge_held()  # "Hey JARVIS" duyuldu
     assert kinds.count("audio") == 3  # on-dolum (2 parca) + uyaniktaki 3. parca
 
 
@@ -179,7 +179,7 @@ def test_user_speech_clears_the_no_followup_flag():
     eng = _engine()
     eng._hold_for_bridge("[TELEGRAM] Ali: selam")
     eng._handle_server_content(SimpleNamespace(
-        interrupted=None, input_transcription=SimpleNamespace(text="Cyraen"),
+        interrupted=None, input_transcription=SimpleNamespace(text="Jarvis"),
         output_transcription=None, turn_complete=None))
     assert not eng._no_followup
 

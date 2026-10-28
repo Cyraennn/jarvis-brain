@@ -119,7 +119,9 @@ class Agent:
         self.client = client
         self.openrouter = openrouter
         self.claude = claude
-        declared = [m for m in (spec.model, spec.fallback_model) if m]
+        declared = list(dict.fromkeys(
+            m for m in (spec.model, spec.fallback_model, *spec.fallback_models) if m
+        ))
         # Claude zinciri (agents.json'daki "claude-*" tanimlari) - varsa ilk denenir
         self.claude_models: list[str] = [m for m in declared if is_claude_model(m)]
         # OpenRouter zinciri (agents.json'daki "saglayici/model" tanimlari)

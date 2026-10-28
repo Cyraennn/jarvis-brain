@@ -1,4 +1,4 @@
-"""GBrain - CYRAEN ve ajanlarin kalici, anlamsal aranabilir ortak hafizasi."""
+"""GBrain - JARVIS ve ajanlarin kalici, anlamsal aranabilir ortak hafizasi."""
 
 from __future__ import annotations
 

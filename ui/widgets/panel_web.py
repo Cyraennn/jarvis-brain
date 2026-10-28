@@ -1,7 +1,7 @@
 """Icerik panelinin web gorunumu (QtWebEngine): YouTube oynatici, Wikipedia/site sayfasi, PDF,
 3B Izmir haritasi (`web3d/` `?view=map`). Harita koprusu: sayfa hazir olunca baslik
-"cyraen:ready:<n>" olur; ardindan `window.cyraen.show({lat, lon, zoom, label, route?})` ve
-`window.cyraen.command("zoom_in|zoom_out|rotate|reset")`. Rota cizgisi URL'ye sigmadigi icin
+"jarvis:ready:<n>" olur; ardindan `window.jarvis.show({lat, lon, zoom, label, route?})` ve
+`window.jarvis.command("zoom_in|zoom_out|rotate|reset")`. Rota cizgisi URL'ye sigmadigi icin
 yuk her zaman hazir sinyalinden SONRA gonderilir.
 
 PySide6-Addons ister. Kurulu degilse bu modul ice aktarilamaz; `content_panel` o durumda
@@ -26,7 +26,7 @@ from ui import theme
 _Attr = QWebEngineSettings.WebAttribute
 
 # Oynatici bir https sayfasinin icinde olmali: referer'siz gomme YouTube'da "hata 153" verir.
-_PLAYER_BASE = QUrl("https://cyraen.local/")
+_PLAYER_BASE = QUrl("https://jarvis.local/")
 # Durum Qt'ye sayfa basligi uzerinden bildirilir (QWebChannel gerekmez): bitti / sahibi engelledi.
 _PLAYER_HTML = """<!doctype html><html><head><meta charset="utf-8">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -38,9 +38,9 @@ _PLAYER_HTML = """<!doctype html><html><head><meta charset="utf-8">
 function onYouTubeIframeAPIReady(){
   new YT.Player('p',{host:'https://www.youtube-nocookie.com',videoId:'__ID__',width:'100%',height:'100%',
     playerVars:{autoplay:1,rel:0,playsinline:1,modestbranding:1},
-    events:{onStateChange:function(e){if(e.data===0)document.title='cyraen:ended';
-                                      else if(e.data===1)document.title='cyraen:playing';},
-            onError:function(e){document.title='cyraen:error:'+e.data;}}});
+    events:{onStateChange:function(e){if(e.data===0)document.title='jarvis:ended';
+                                      else if(e.data===1)document.title='jarvis:playing';},
+            onError:function(e){document.title='jarvis:error:'+e.data;}}});
 }
 </script></body></html>"""
 
@@ -53,7 +53,7 @@ def _profile(storage_dir: Path) -> QWebEngineProfile:
     global _profile_ref
     if _profile_ref is None:
         storage_dir.mkdir(parents=True, exist_ok=True)
-        prof = QWebEngineProfile("cyraen-panel", QApplication.instance())
+        prof = QWebEngineProfile("jarvis-panel", QApplication.instance())
         prof.setPersistentStoragePath(str(storage_dir / "storage"))
         prof.setCachePath(str(storage_dir / "cache"))
         _profile_ref = prof
@@ -102,7 +102,7 @@ class PanelWebView(QWebEngineView):
         super().__init__(parent)
         self._video = False
         self._map = False          # harita sayfasi yuklu
-        self._map_ready = False    # ... ve window.cyraen.show cagrilabilir
+        self._map_ready = False    # ... ve window.jarvis.show cagrilabilir
         self._map_pending: dict[str, Any] | None = None   # sayfa hazir olunca gonderilecek yuk
         self._page = _PanelPage(_profile(storage_dir), self)
         self._page.setBackgroundColor(QColor(theme.BG_SPACE))
@@ -138,7 +138,7 @@ class PanelWebView(QWebEngineView):
         return data
 
     def _map_js(self, call: str, arg: Any) -> None:
-        self._page.runJavaScript(f"window.cyraen && window.cyraen.{call}({json.dumps(arg)})")
+        self._page.runJavaScript(f"window.jarvis && window.jarvis.{call}({json.dumps(arg)})")
 
     def open_map(self, base_url: str, place: dict[str, Any]) -> None:
         """Harita sayfasi hazirsa yeri/rotayi yerinde gosterir (kamera suzulur); degilse sayfayi
@@ -170,17 +170,17 @@ class PanelWebView(QWebEngineView):
         self.setUrl(QUrl("about:blank"))
 
     def _on_title(self, title: str) -> None:
-        if self._map and title.startswith("cyraen:ready"):
+        if self._map and title.startswith("jarvis:ready"):
             self._map_ready = True
             if self._map_pending is not None:
                 self._map_js("show", self._map_pending)
                 self._map_pending = None
             return
-        if not self._video or not title.startswith("cyraen:"):
+        if not self._video or not title.startswith("jarvis:"):
             return
-        if title == "cyraen:ended":
+        if title == "jarvis:ended":
             self.video_ended.emit()
-        elif title.startswith("cyraen:error:"):
+        elif title.startswith("jarvis:error:"):
             try:
                 self.video_blocked.emit(int(title.rsplit(":", 1)[1]))
             except ValueError:

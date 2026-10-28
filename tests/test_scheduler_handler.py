@@ -258,7 +258,7 @@ def test_overnight_task_results_reads_window_and_body(tmp_path):
     from datetime import datetime
 
     (tmp_path / "2026-10-04.md").write_text(
-        "# CYRAEN Notlari\n\n"
+        "# JARVIS Notlari\n\n"
         "- **12:00** Zamanli gorev (Eski): ogle gorevi\n  \n  sayilmamali\n"
         "- **23:00** Zamanli gorev (Sistem Sagligi): disk raporu\n  \n  Disk %97 dolu.\n  Temizlik onerildi.\n",
         encoding="utf-8")

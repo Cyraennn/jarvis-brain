@@ -1,1 +1,1 @@
-"""CYRAEN masaustu arayuzu (PySide6)."""
+"""JARVIS masaustu arayuzu (PySide6)."""

@@ -46,7 +46,7 @@ class ServerEngineObserver(WebEngineObserver):
         super().on_assistant_transcript(text, final)
         self._broker.on_assistant_transcript(text, final)
         if not final:
-            self._hub.publish_threadsafe("transcript_partial", {"who": "cyraen", "text": text})
+            self._hub.publish_threadsafe("transcript_partial", {"who": "jarvis", "text": text})
 
     def on_tool_call(self, names: list[str]) -> None:
         super().on_tool_call(names)

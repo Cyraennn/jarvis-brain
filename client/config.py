@@ -49,7 +49,7 @@ class ClientConfig:
 def load_client_config(env_path: Path | None = None) -> ClientConfig:
     path = env_path or ENV_PATH
     if path.is_file():
-        # client/.env ONCE yuklenir; cyraen-brain/.env'deki ayni adli degerleri ezer
+        # client/.env ONCE yuklenir; jarvis-brain/.env'deki ayni adli degerleri ezer
         load_dotenv(path, override=True)
         # eski adli client/.env (JARVIS_*) de ana .env'i ezebilsin; yeni ad yazildiysa o kazanir
         values = dotenv_values(path)
@@ -59,25 +59,25 @@ def load_client_config(env_path: Path | None = None) -> ClientConfig:
                 if new_key not in values:
                     os.environ[new_key] = val
     alias_legacy_env()
-    host = os.getenv("CYRAEN_SERVER_HOST", "").strip()
-    token = os.getenv("CYRAEN_TOKEN", "").strip()
+    host = os.getenv("JARVIS_SERVER_HOST", "").strip()
+    token = os.getenv("JARVIS_TOKEN", "").strip()
     if not host or not token:
         raise SystemExit(
-            f"{path} icinde CYRAEN_SERVER_HOST ve CYRAEN_TOKEN dolu olmali "
+            f"{path} icinde JARVIS_SERVER_HOST ve JARVIS_TOKEN dolu olmali "
             "(ornek: client/.env.example)."
         )
     return ClientConfig(
         server_host=host,
-        server_port=int(os.getenv("CYRAEN_SERVER_PORT", "8765") or 8765),
+        server_port=int(os.getenv("JARVIS_SERVER_PORT", "8765") or 8765),
         token=token,
-        name=os.getenv("CYRAEN_CLIENT_NAME", "pc").strip() or "pc",
-        kind=os.getenv("CYRAEN_CLIENT_KIND", "desktop").strip() or "desktop",
-        audio=_bool("CYRAEN_CLIENT_AUDIO", True),
-        audio_port=int(os.getenv("CYRAEN_REMOTE_AUDIO_PORT", "8771") or 8771),
-        audio_token=os.getenv("CYRAEN_REMOTE_AUDIO_TOKEN", "").strip() or token,
-        desktop=_bool("CYRAEN_CLIENT_DESKTOP", True),
-        vision=_bool("CYRAEN_CLIENT_VISION", True),
-        confirm_mode=(os.getenv("CYRAEN_CLIENT_CONFIRM", "dialog").strip().lower() or "dialog"),
-        web_port=int(os.getenv("CYRAEN_WEB_PORT", "8770") or 8770),
-        web_token=os.getenv("CYRAEN_WEB_TOKEN", "").strip() or token,
+        name=os.getenv("JARVIS_CLIENT_NAME", "pc").strip() or "pc",
+        kind=os.getenv("JARVIS_CLIENT_KIND", "desktop").strip() or "desktop",
+        audio=_bool("JARVIS_CLIENT_AUDIO", True),
+        audio_port=int(os.getenv("JARVIS_REMOTE_AUDIO_PORT", "8771") or 8771),
+        audio_token=os.getenv("JARVIS_REMOTE_AUDIO_TOKEN", "").strip() or token,
+        desktop=_bool("JARVIS_CLIENT_DESKTOP", True),
+        vision=_bool("JARVIS_CLIENT_VISION", True),
+        confirm_mode=(os.getenv("JARVIS_CLIENT_CONFIRM", "dialog").strip().lower() or "dialog"),
+        web_port=int(os.getenv("JARVIS_WEB_PORT", "8770") or 8770),
+        web_token=os.getenv("JARVIS_WEB_TOKEN", "").strip() or token,
     )

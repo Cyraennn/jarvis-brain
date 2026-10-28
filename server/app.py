@@ -1,7 +1,7 @@
 """FastAPI uclari: GET /health, POST /command, WS /ws.
 
 Tum uclar kimlik dogrulamali: HTTP'de `X-Token` basligi, WebSocket'te ilk mesajdaki
-`token` (deger: .env CYRAEN_TOKEN, karsilastirma `secrets.compare_digest`).
+`token` (deger: .env JARVIS_TOKEN, karsilastirma `secrets.compare_digest`).
 OpenAPI/dokumantasyon sayfalari kapali (saldiri yuzeyi olmasin).
 """
 
@@ -21,7 +21,7 @@ class CommandIn(BaseModel):
 
 
 def create_app(runtime: Any) -> FastAPI:
-    app = FastAPI(title="CYRAEN", version=__version__, docs_url=None, redoc_url=None,
+    app = FastAPI(title="JARVIS", version=__version__, docs_url=None, redoc_url=None,
                   openapi_url=None)
 
     def require_token(x_token: str | None = Header(default=None, alias="X-Token")) -> None:

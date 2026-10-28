@@ -105,7 +105,7 @@ class NetworkAudioServer:
     async def run(self) -> None:
         if not self.token:
             logger.warning(
-                "CYRAEN_REMOTE_AUDIO_TOKEN bos - uzak ses sunucusu SADECE localhost'a acik "
+                "JARVIS_REMOTE_AUDIO_TOKEN bos - uzak ses sunucusu SADECE localhost'a acik "
                 "(ev bilgisayarindan baglanamazsiniz)."
             )
         async with serve(

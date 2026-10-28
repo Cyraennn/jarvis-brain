@@ -1,4 +1,4 @@
-"""Telefon uygulamasi araclari: CYRAEN telefonda arama, SMS, alarm, uygulama acma, konum.
+"""Telefon uygulamasi araclari: JARVIS telefonda arama, SMS, alarm, uygulama acma, konum.
 
 Hepsi `web/phone_link.py::PHONE` kanalindan telefona gider ve telefonun yanitini bekler.
 Telefon bagli degilse ya da reddederse arac `{"error"}` doner: model "aradim" diyemez.
@@ -40,7 +40,7 @@ def set_alarm(time: str = "", label: str = "") -> dict[str, Any]:
     if not m or int(m.group(1)) > 23 or int(m.group(2)) > 59:
         return {"error": "Saat 'SS:DD' biciminde olmali (orn. 07:30)."}
     return PHONE.request("alarm", {"hour": int(m.group(1)), "minute": int(m.group(2)),
-                                   "label": (label or "CYRAEN").strip()[:60]})
+                                   "label": (label or "JARVIS").strip()[:60]})
 
 
 def set_timer(minutes: float = 0, label: str = "") -> dict[str, Any]:
@@ -51,7 +51,7 @@ def set_timer(minutes: float = 0, label: str = "") -> dict[str, Any]:
         seconds = 0
     if not 1 <= seconds <= 24 * 3600:
         return {"error": "Sure 1 sn ile 24 saat arasinda olmali."}
-    return PHONE.request("timer", {"seconds": seconds, "label": (label or "CYRAEN").strip()[:60]})
+    return PHONE.request("timer", {"seconds": seconds, "label": (label or "JARVIS").strip()[:60]})
 
 
 def open_phone_app(app: str = "") -> dict[str, Any]:

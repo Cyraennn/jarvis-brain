@@ -1,5 +1,5 @@
 @echo off
-REM CYRAEN - Windows .exe derleme
+REM JARVIS - Windows .exe derleme
 setlocal
 cd /d "%~dp0"
 
@@ -12,12 +12,12 @@ python assets\generate_assets.py || goto :err
 python assets\generate_pwa_icons.py || goto :err
 
 echo [3/3] PyInstaller...
-python -m PyInstaller --noconfirm cyraen.spec || goto :err
+python -m PyInstaller --noconfirm jarvis.spec || goto :err
 
 echo.
-echo Tamamlandi:  dist\CYRAEN\CYRAEN.exe
-echo Calistirmadan once dist\CYRAEN\ klasorune .env dosyanizi (GEMINI_API_KEY) kopyalayin.
-copy /y ".env" "dist\CYRAEN\.env" >nul 2>&1 && echo (.env kopyalandi)
+echo Tamamlandi:  dist\JARVIS\JARVIS.exe
+echo Calistirmadan once dist\JARVIS\ klasorune .env dosyanizi (GEMINI_API_KEY) kopyalayin.
+copy /y ".env" "dist\JARVIS\.env" >nul 2>&1 && echo (.env kopyalandi)
 goto :eof
 
 :err

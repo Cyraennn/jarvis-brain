@@ -1,8 +1,8 @@
-"""WhatsApp Web otomasyon modulu - CYRAEN'in WhatsApp kolu.
+"""WhatsApp Web otomasyon modulu - JARVIS'in WhatsApp kolu.
 
 Playwright (kalici tarayici oturumu) uzerinden `web.whatsapp.com`'a baglanir,
 okunmamis sohbetleri tarar, gelen mesaji (metin / sesli mesaj / gorsel) isler,
-CYRAEN'in LLM'i ile bir yanit uretir ve insan gibi ("yaziyor..." + gecikme)
+JARVIS'in LLM'i ile bir yanit uretir ve insan gibi ("yaziyor..." + gecikme)
 geri gonderir.
 
 Tasarim ilkeleri
@@ -13,8 +13,8 @@ Tasarim ilkeleri
 * **Modulerlik.** LLM cagrisi `agents.genai_util`, STT/Vision `core.media_utils`,
   bildirim `agents.integrations.notifier` uzerinden - hepsi opsiyonel.
 * **Rol tabanli yetki.** admin / whitelist / others. `others` yoksayilir.
-* **Yonetici komutlari.** Admin numarasindan "CYRAEN durum", "CYRAEN modu ...",
-  "CYRAEN sessiz", "CYRAEN mikrofon kapat" vb. ile sistem uzaktan yonetilir.
+* **Yonetici komutlari.** Admin numarasindan "JARVIS durum", "JARVIS modu ...",
+  "JARVIS sessiz", "JARVIS mikrofon kapat" vb. ile sistem uzaktan yonetilir.
 * **Kopru aynasi.** Gelen/giden her mesaj `bridge/outbox.txt`'e `[WHATSAPP] ...`
   olarak yazilir; canli sesli beyin olan biteni "duyar".
 
@@ -120,8 +120,8 @@ HONESTY_RULES = (
     "'Sezai'ye ileteyim, musait olunca doner' de."
 )
 
-# Yonetici komutu on eki: "CYRAEN durum", "/siren sessiz", eski "jarvis ..." (okunus: Siren)
-_ADMIN_PREFIX_RE = re.compile(r"^/?(?:cyraen|siren|jarvis)(?:[:,\s]+|$)", re.IGNORECASE)
+# Yonetici komutu on eki: "JARVIS durum", "/jarvis sessiz"; kisa sureli eski ad "cyraen ..." da kabul
+_ADMIN_PREFIX_RE = re.compile(r"^/?(?:jarvis|cyraen)(?:[:,\s]+|$)", re.IGNORECASE)
 _TR_ASCII = str.maketrans("ıİşŞğĞüÜöÖçÇ", "iIsSgGuUoOcC")
 
 # "nerdesin", "napiyosun", "musait misin", "gelecek misin" ... (ASCII'ye indirgenmis metinde aranir)
@@ -198,7 +198,7 @@ class WhatsAppConfig:
     scan_top_chats: int = 8
 
     system_prompt: str = (
-        "Sen WhatsApp uzerinden kullanicin adina yanit veren CYRAEN'sin. "
+        "Sen WhatsApp uzerinden kullanicin adina yanit veren JARVIS'sin. "
         "Kullanicinin uslubunu benimse, yanitlari kisa, dogal ve samimi tut. "
         "Karsi taraf art arda birden fazla mesaj attiysa bunlar sana TEK bir mesaj olarak "
         "birlestirilip verilir; hepsini oku ve TEK bir mesajla, akici ve kisa bir sekilde "
@@ -231,11 +231,11 @@ class WhatsAppConfig:
             break
 
         # env override
-        env_enabled = os.getenv("CYRAEN_WHATSAPP_ENABLED")
+        env_enabled = os.getenv("JARVIS_WHATSAPP_ENABLED")
         if env_enabled is not None:
             cfg.enabled = env_enabled.strip().lower() in {"1", "true", "yes", "on", "evet"}
-        if os.getenv("CYRAEN_WHATSAPP_HEADLESS"):
-            cfg.headless = os.getenv("CYRAEN_WHATSAPP_HEADLESS", "").lower() in {"1", "true", "yes", "on"}
+        if os.getenv("JARVIS_WHATSAPP_HEADLESS"):
+            cfg.headless = os.getenv("JARVIS_WHATSAPP_HEADLESS", "").lower() in {"1", "true", "yes", "on"}
 
         cfg._resolve_paths()
         return cfg
@@ -576,7 +576,7 @@ class WhatsAppHandler:
                 admin_reply = await self._try_admin_command(m["text"])
                 if admin_reply is not None:
                     await self._plain_send(page, admin_reply)
-                    self._mirror_to_bridge(f"[WHATSAPP] (CYRAEN->{contact}): {admin_reply[:200]}")
+                    self._mirror_to_bridge(f"[WHATSAPP] (JARVIS->{contact}): {admin_reply[:200]}")
                     return contact
                 break
 
@@ -618,12 +618,12 @@ class WhatsAppHandler:
         ):
             await self._notify_admin(
                 "WhatsApp: seni soruyorlar",
-                f"{contact}: {' / '.join(resolved)[:160]} -> CYRAEN: {reply[:120]}",
+                f"{contact}: {' / '.join(resolved)[:160]} -> JARVIS: {reply[:120]}",
             )
         self._memory.add(contact, "user", self._merge_messages(resolved))
         self._memory.add(contact, "assistant", reply)
         self._last_reply_at[contact] = time.time()
-        self._mirror_to_bridge(f"[WHATSAPP] (CYRAEN->{contact}): {reply[:200]}")
+        self._mirror_to_bridge(f"[WHATSAPP] (JARVIS->{contact}): {reply[:200]}")
         logger.success(f"[WA] {len(resolved)} mesaj yanitlandi -> {contact}: {reply[:90]}")
         return contact
 
@@ -952,7 +952,7 @@ class WhatsAppHandler:
             api_key=self._openrouter_key(),
             timeout=self.OPENROUTER_TIMEOUT_S,
             max_retries=0,
-            default_headers={"HTTP-Referer": "https://localhost/cyraen", "X-Title": "CYRAEN WhatsApp"},
+            default_headers={"HTTP-Referer": "https://localhost/jarvis", "X-Title": "JARVIS WhatsApp"},
         )
         try:
             resp = await client.chat.completions.create(
@@ -1130,7 +1130,7 @@ class WhatsAppHandler:
             logger.warning(f"[WA] {digits} icin sohbet acilamadi (numara WhatsApp'ta yok?)")
             return False
         await self._plain_send(page, text)
-        self._mirror_to_bridge(f"[WHATSAPP] (CYRAEN->{digits}): {text[:200]}")
+        self._mirror_to_bridge(f"[WHATSAPP] (JARVIS->{digits}): {text[:200]}")
         logger.info(f"[WA] proaktif mesaj gonderildi -> {digits}")
         return True
 
@@ -1205,10 +1205,10 @@ class WhatsAppHandler:
     # -------------------------------------------------------------- yonetici komutlari
 
     async def _try_admin_command(self, text: str) -> str | None:
-        """Metin bir CYRAEN komutu ise yanit string'i, degilse None doner."""
+        """Metin bir JARVIS komutu ise yanit string'i, degilse None doner."""
         raw = text.strip()
         low = raw.lower()
-        # "siren" okunusu, "jarvis" eski ad: alistirilmis yazimlar da komut sayilir
+        # "cyraen" kisa sureli eski ad: alistirilmis yazim da komut sayilir
         if not _ADMIN_PREFIX_RE.match(low):
             return None
         body = _ADMIN_PREFIX_RE.sub("", raw).strip()
@@ -1259,7 +1259,7 @@ class WhatsAppHandler:
             logger.warning("[WA] admin uzaktan kapatma komutu verdi.")
             self._safe_engine("request_shutdown")
             self.request_shutdown()
-            return "🛑 CYRAEN kapatiliyor."
+            return "🛑 JARVIS kapatiliyor."
 
         return f"❓ Anlamadim. '{self._help_text_short()}'"
 
@@ -1300,7 +1300,7 @@ class WhatsAppHandler:
 
     def _status_text(self) -> str:
         lines = [
-            "🤖 *CYRAEN · WhatsApp*",
+            "🤖 *JARVIS · WhatsApp*",
             f"Mod: {self.mode.value}",
             f"Calisma suresi: {int(time.time() - self._started_at)} sn",
             f"Aktif sohbet hafizasi: {self._memory.contacts} kisi",
@@ -1322,21 +1322,21 @@ class WhatsAppHandler:
     @staticmethod
     def _help_text() -> str:
         return (
-            "🤖 *CYRAEN komutlari*\n"
-            "• CYRAEN durum\n"
-            "• CYRAEN modu [otomatik|manuel|sessiz]\n"
-            "• CYRAEN sessiz\n"
-            "• CYRAEN mikrofon [aç|kapat]\n"
-            "• CYRAEN hoparlör [aç|kapat]\n"
-            "• CYRAEN söyle: <metin>   (canli beyne ilet)\n"
-            "• CYRAEN ajan: <görev>    (ajan kuyruguna ekle)\n"
-            "• CYRAEN hafıza sil\n"
-            "• CYRAEN kapat            (tumunu durdur)"
+            "🤖 *JARVIS komutlari*\n"
+            "• JARVIS durum\n"
+            "• JARVIS modu [otomatik|manuel|sessiz]\n"
+            "• JARVIS sessiz\n"
+            "• JARVIS mikrofon [aç|kapat]\n"
+            "• JARVIS hoparlör [aç|kapat]\n"
+            "• JARVIS söyle: <metin>   (canli beyne ilet)\n"
+            "• JARVIS ajan: <görev>    (ajan kuyruguna ekle)\n"
+            "• JARVIS hafıza sil\n"
+            "• JARVIS kapat            (tumunu durdur)"
         )
 
     @staticmethod
     def _help_text_short() -> str:
-        return "CYRAEN durum | modu ... | mikrofon aç/kapat | söyle: ... | kapat"
+        return "JARVIS durum | modu ... | mikrofon aç/kapat | söyle: ... | kapat"
 
     # -------------------------------------------------------------- yardimcilar
 
@@ -1396,7 +1396,7 @@ class WhatsAppHandler:
             logger.info(f"[WA][bildirim] {title} - {message}")
             return
         try:
-            await self._notifier.notify(f"CYRAEN · {title}", message, priority=4, tags=["speech_balloon"])
+            await self._notifier.notify(f"JARVIS · {title}", message, priority=4, tags=["speech_balloon"])
         except Exception:  # noqa: BLE001
             logger.debug("[WA] admin bildirimi gonderilemedi")
 

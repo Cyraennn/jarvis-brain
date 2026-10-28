@@ -1,1 +1,1 @@
-"""CYRAEN cok-ajanli sistem (orkestrator + uzman ajanlar)."""
+"""JARVIS cok-ajanli sistem (orkestrator + uzman ajanlar)."""

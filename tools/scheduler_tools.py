@@ -24,7 +24,7 @@ def set_reminder(text: str, when: str) -> dict[str, Any]:
 def schedule_task(task: str, when: str, agent: str = "auto", save_note: bool = True) -> dict[str, Any]:
     """Bir isi ileri bir zamanda ajana yaptirir (orn. 'saat 3'te sunu analiz et').
     Vakti gelince gorev ajana verilir; save_note=True ise sonuc notlara (Obsidian) kaydedilir
-    ve CYRAEN sonucu sesli bildirir. `when`: '15:00', 'saat 3', 'aksam 7', 'yarin 09:00'."""
+    ve JARVIS sonucu sesli bildirir. `when`: '15:00', 'saat 3', 'aksam 7', 'yarin 09:00'."""
     if not (task or "").strip():
         return {"error": "Yapilacak is (task) bos."}
     return add_task_record(_dir(), task, when, agent=agent, save_note=save_note)

@@ -34,11 +34,11 @@ for _candidate in (APP_DIR / ".env", BASE_DIR / ".env"):
     if _candidate.is_file():
         load_dotenv(_candidate)
         break
-alias_legacy_env()  # eski .env'deki JARVIS_* -> CYRAEN_*
+alias_legacy_env()  # eski .env'deki JARVIS_* -> JARVIS_*
 
-_FALLBACK_PROMPT = "Sen CYRAEN (okunusu Siren) adinda, Turkce konusan gelismis bir yapay zeka asistanisin."
+_FALLBACK_PROMPT = "Sen JARVIS adinda, Turkce konusan gelismis bir yapay zeka asistanisin."
 
-_WAKE_PHRASES = {"hey_jarvis": "Hey Jarvis", "hey_siren": "Hey Siren", "hey_cyraen": "Hey Siren"}
+_WAKE_PHRASES = {"hey_jarvis": "Hey Jarvis"}
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -124,13 +124,13 @@ class Settings(BaseModel):
     screen_interval: float = 1.2   # daha guncel kareler -> daha isabetli tiklama
     screen_jpeg_quality: int = 55
 
-    # Uyandirma kelimesi ("Hey CYRAEN", cevrimdisi openWakeWord). Acikken mikrofon sesi
+    # Uyandirma kelimesi ("Hey JARVIS", cevrimdisi openWakeWord). Acikken mikrofon sesi
     # yalnizca uyandiktan sonra wake_window_s boyunca (konustukca uzar) modele gider.
     wake_word_enabled: bool = False
     wake_word_model: str = "hey_jarvis"
     wake_word_threshold: float = 0.5
     wake_window_s: float = 8.0
-    # Tek bir "Hey CYRAEN" ile en fazla bu kadar uyanik kalinir (0 = sinirsiz); arka plandaki
+    # Tek bir "Hey JARVIS" ile en fazla bu kadar uyanik kalinir (0 = sinirsiz); arka plandaki
     # sohbet pencereyi suresiz acik tutamasin.
     wake_max_awake_s: float = 90.0
     # Kopru mesaji (telefon / ajan / hatirlatici) yanitlanana kadar mikrofon modele en fazla
@@ -177,6 +177,9 @@ class Settings(BaseModel):
             "gemini-3.5-flash-lite",
             "gemini-3.5-flash",
             "gemini-3.6-flash",  # gemini-2.5-* yeni anahtarlara kapali (404)
+            "gemini-3.1-flash-lite",
+            "gemini-3.7-flash",
+            "gemini-3.8-flash",
         ]
     )
     agents_api_version: str = "v1beta"
@@ -218,7 +221,7 @@ class Settings(BaseModel):
     email_imap_host: str = ""
     email_smtp_host: str = ""
     email_smtp_port: int = 0
-    email_sender_name: str = "CYRAEN"
+    email_sender_name: str = "JARVIS"
 
     # Gmail API (OAuth 2.0) - credentials+token varsa IMAP/SMTP yerine kullanilir
     gmail_credentials_file: Path = APP_DIR / "config" / "gmail_credentials.json"
@@ -305,10 +308,10 @@ class Settings(BaseModel):
     adb_path: str = "adb"  # PATH'te degilse platform-tools\adb.exe tam yolu
     adb_tcp_port: int = 5555  # kablosuz ADB varsayilan portu
     # Acilista otomatik `adb connect` denenecek ag adresleri (WiFi cihazlar).
-    # env: CYRAEN_ADB_TCP_DEVICES="192.168.1.42,192.168.1.43:5555"
+    # env: JARVIS_ADB_TCP_DEVICES="192.168.1.42,192.168.1.43:5555"
     adb_tcp_devices: list[str] = Field(default_factory=list)
     # Telefon ekran kilidi PIN'i - tanimliysa `unlock_device` kilit ekranini
-    # kaydirdiktan sonra PIN'i otomatik girer. env: CYRAEN_ADB_UNLOCK_PIN
+    # kaydirdiktan sonra PIN'i otomatik girer. env: JARVIS_ADB_UNLOCK_PIN
     # (GIZLI - .env gitignore'da; loga yazilmaz)
     adb_unlock_pin: str = ""
 
@@ -318,7 +321,7 @@ class Settings(BaseModel):
 
     # --- okul (BOTE Ders Merkezi) kopru entegrasyonu ---
     # okul web uygulamasi web konsoluna (/api/okul/push) tam durumunu gonderir;
-    # CYRAEN okur ve /api/okul/pull uzerinden degisiklik geri iletir.
+    # JARVIS okur ve /api/okul/pull uzerinden degisiklik geri iletir.
     okul_enabled: bool = True
     okul_state_path: Path = APP_DIR / "data" / "okul_state.json"
     okul_outbox_path: Path = APP_DIR / "data" / "okul_outbox.json"
@@ -327,9 +330,9 @@ class Settings(BaseModel):
     # Tanimliysa notlar + GBrain kayitlari + konusma kaydi vault'a markdown yazilir.
     obsidian_vault: str = ""
     # Vault icinde alt klasor. Bos ("") ise dogrudan vault kokune yazar
-    # (CYRAEN'e ayrilmis kasa icin). Varsayilan "CYRAEN" (paylasilan kasa icin).
-    obsidian_subdir: str = "CYRAEN"
-    # Konusmalari (her tur: Sen / CYRAEN) otomatik vault'a kaydet
+    # (JARVIS'e ayrilmis kasa icin). Varsayilan "JARVIS" (paylasilan kasa icin).
+    obsidian_subdir: str = "JARVIS"
+    # Konusmalari (her tur: Sen / JARVIS) otomatik vault'a kaydet
     obsidian_log_conversations: bool = True
 
     # Yeniden baglanma (exponential backoff)
@@ -344,12 +347,12 @@ class Settings(BaseModel):
     def _non_empty(cls, value: str) -> str:
         if not value or not value.strip():
             raise ValueError(
-                "GEMINI_API_KEY tanimli degil. cyraen-brain/.env dosyasini olusturun "
+                "GEMINI_API_KEY tanimli degil. jarvis-brain/.env dosyasini olusturun "
                 "(.env.example sablonuna bakin)."
             )
         return value.strip()
 
-    def load_system_prompt(self, persona: str = "cyraen") -> str:
+    def load_system_prompt(self, persona: str = "jarvis") -> str:
         try:
             text = self.system_prompt_path.read_text(encoding="utf-8").strip()
             text = text or _FALLBACK_PROMPT
@@ -358,7 +361,7 @@ class Settings(BaseModel):
 
         # kimlik + KARAKTER kisilige gore degisir; YETENEKLER herkes icin ortak
         identity = ""
-        for key in dict.fromkeys((persona or "cyraen", "cyraen")):
+        for key in dict.fromkeys((persona or "jarvis", "jarvis")):
             try:
                 identity = (self.persona_prompt_dir / f"{key}.md").read_text(
                     encoding="utf-8"
@@ -383,8 +386,8 @@ class Settings(BaseModel):
     def wake_phrase(self) -> str:
         """Uyandirma modelinin gercekten tanidigi ifade (ekrandaki ipuclari icin).
 
-        Hazir openWakeWord modellerinde "Hey Siren" yok; ozel model (orn. hey_siren.onnx)
-        egitilip CYRAEN_WAKE_WORD_MODEL ile verilene kadar "hey_jarvis" kullanilir.
+        Varsayilan hazir openWakeWord modeli "hey_jarvis"; JARVIS_WAKE_WORD_MODEL ile baska
+        bir model (orn. ozel .onnx) verilirse ifade dosya adindan turetilir.
         """
         stem = Path(self.wake_word_model or "hey_jarvis").stem
         return _WAKE_PHRASES.get(stem, stem.replace("_", " ").title())
@@ -398,14 +401,14 @@ class Settings(BaseModel):
 
     @property
     def vision_model_chain(self) -> list[str]:
-        """Raf taramasi icin model zinciri: CYRAEN_VISION_MODEL once, sonra ajan zinciri."""
+        """Raf taramasi icin model zinciri: JARVIS_VISION_MODEL once, sonra ajan zinciri."""
         chain = [self.vision_model, *self.agent_model_chain]
         seen: set[str] = set()
         return [m for m in chain if m and not (m in seen or seen.add(m))]
 
     @property
     def obsidian_dir(self) -> Path | None:
-        """CYRAEN'in yazacagi vault klasoru; vault tanimsiz/yoksa None.
+        """JARVIS'in yazacagi vault klasoru; vault tanimsiz/yoksa None.
 
         `obsidian_subdir` bos ise dogrudan vault koku, degilse `<vault>/<subdir>`.
         """
@@ -428,62 +431,62 @@ def get_settings() -> Settings:
     settings = Settings(
         gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
         model=os.getenv("GEMINI_MODEL", Settings.model_fields["model"].default),
-        voice_name=os.getenv("CYRAEN_VOICE", Settings.model_fields["voice_name"].default),
-        friday_voice=os.getenv("CYRAEN_FRIDAY_VOICE", "").strip()
+        voice_name=os.getenv("JARVIS_VOICE", Settings.model_fields["voice_name"].default),
+        friday_voice=os.getenv("JARVIS_FRIDAY_VOICE", "").strip()
         or Settings.model_fields["friday_voice"].default,
-        ultron_voice=os.getenv("CYRAEN_ULTRON_VOICE", "").strip()
+        ultron_voice=os.getenv("JARVIS_ULTRON_VOICE", "").strip()
         or Settings.model_fields["ultron_voice"].default,
-        ultron_fx=_env_bool("CYRAEN_ULTRON_FX", True),
+        ultron_fx=_env_bool("JARVIS_ULTRON_FX", True),
         log_level=os.getenv("LOG_LEVEL", "INFO"),
         webcam_enabled=_env_bool("WEBCAM_ENABLED", False),
         webcam_index=_env_int("WEBCAM_INDEX", 0),
-        screen_enabled=_env_bool("CYRAEN_SCREEN_ENABLED", True),
-        wake_word_enabled=_env_bool("CYRAEN_WAKE_WORD", False),
-        wake_word_model=os.getenv("CYRAEN_WAKE_WORD_MODEL", "hey_jarvis").strip() or "hey_jarvis",
-        wake_word_threshold=float(os.getenv("CYRAEN_WAKE_WORD_THRESHOLD", "0.5") or 0.5),
-        wake_window_s=float(os.getenv("CYRAEN_WAKE_WINDOW_S", "8") or 8),
-        wake_max_awake_s=float(os.getenv("CYRAEN_WAKE_MAX_AWAKE_S", "90") or 90),
-        bridge_hold_s=float(os.getenv("CYRAEN_BRIDGE_HOLD_S", "45") or 45),
-        proactive_audio=_env_bool("CYRAEN_PROACTIVE_AUDIO", True),
-        session_context_enabled=_env_bool("CYRAEN_SESSION_CONTEXT", True),
-        speaker_verify_enabled=_env_bool("CYRAEN_SPEAKER_VERIFY", True),
-        speaker_threshold=float(os.getenv("CYRAEN_SPEAKER_THRESHOLD", "0") or 0),
-        offline_voice_enabled=_env_bool("CYRAEN_OFFLINE_VOICE", True),
-        offline_stt_model=os.getenv("CYRAEN_OFFLINE_STT_MODEL", "").strip(),
-        offline_tts=(os.getenv("CYRAEN_OFFLINE_TTS", "auto").strip().lower() or "auto"),
+        screen_enabled=_env_bool("JARVIS_SCREEN_ENABLED", True),
+        wake_word_enabled=_env_bool("JARVIS_WAKE_WORD", False),
+        wake_word_model=os.getenv("JARVIS_WAKE_WORD_MODEL", "hey_jarvis").strip() or "hey_jarvis",
+        wake_word_threshold=float(os.getenv("JARVIS_WAKE_WORD_THRESHOLD", "0.5") or 0.5),
+        wake_window_s=float(os.getenv("JARVIS_WAKE_WINDOW_S", "8") or 8),
+        wake_max_awake_s=float(os.getenv("JARVIS_WAKE_MAX_AWAKE_S", "90") or 90),
+        bridge_hold_s=float(os.getenv("JARVIS_BRIDGE_HOLD_S", "45") or 45),
+        proactive_audio=_env_bool("JARVIS_PROACTIVE_AUDIO", True),
+        session_context_enabled=_env_bool("JARVIS_SESSION_CONTEXT", True),
+        speaker_verify_enabled=_env_bool("JARVIS_SPEAKER_VERIFY", True),
+        speaker_threshold=float(os.getenv("JARVIS_SPEAKER_THRESHOLD", "0") or 0),
+        offline_voice_enabled=_env_bool("JARVIS_OFFLINE_VOICE", True),
+        offline_stt_model=os.getenv("JARVIS_OFFLINE_STT_MODEL", "").strip(),
+        offline_tts=(os.getenv("JARVIS_OFFLINE_TTS", "auto").strip().lower() or "auto"),
         offline_tts_voice=Path(
-            os.getenv("CYRAEN_OFFLINE_TTS_VOICE", "").strip()
+            os.getenv("JARVIS_OFFLINE_TTS_VOICE", "").strip()
             or Settings.model_fields["offline_tts_voice"].default
         ),
-        screen_monitor=_env_int("CYRAEN_SCREEN_MONITOR", 1),
-        open_apps_via_search=_env_bool("CYRAEN_OPEN_VIA_SEARCH", True),
-        type_in_browser=_env_bool("CYRAEN_TYPE_IN_BROWSER", True),
-        confirm_before_close=_env_bool("CYRAEN_CONFIRM_CLOSE", True),
-        always_on_top=_env_bool("CYRAEN_ALWAYS_ON_TOP", True),
-        minimize_to_tray=_env_bool("CYRAEN_MINIMIZE_TO_TRAY", True),
-        ui_style=(os.getenv("CYRAEN_UI_STYLE", "hud").strip().lower() or "hud"),
-        hud_weather_location=os.getenv("CYRAEN_HUD_WEATHER", "İzmir").strip() or "İzmir",
-        boot_style=(os.getenv("CYRAEN_BOOT_STYLE", "orb").strip().lower() or "orb"),
-        boot_hold_s=float(os.getenv("CYRAEN_BOOT_HOLD_S", "3") or 3),
-        docs_dirs=os.getenv("CYRAEN_DOCS_DIRS", "").strip(),
-        startup_sound=_env_bool("CYRAEN_STARTUP_SOUND", True),
-        agents_enabled=_env_bool("CYRAEN_AGENTS_ENABLED", True),
-        agents_model=os.getenv("CYRAEN_AGENTS_MODEL", Settings.model_fields["agents_model"].default),
-        local_llm_enabled=_env_bool("CYRAEN_LOCAL_LLM", True),
+        screen_monitor=_env_int("JARVIS_SCREEN_MONITOR", 1),
+        open_apps_via_search=_env_bool("JARVIS_OPEN_VIA_SEARCH", True),
+        type_in_browser=_env_bool("JARVIS_TYPE_IN_BROWSER", True),
+        confirm_before_close=_env_bool("JARVIS_CONFIRM_CLOSE", True),
+        always_on_top=_env_bool("JARVIS_ALWAYS_ON_TOP", True),
+        minimize_to_tray=_env_bool("JARVIS_MINIMIZE_TO_TRAY", True),
+        ui_style=(os.getenv("JARVIS_UI_STYLE", "hud").strip().lower() or "hud"),
+        hud_weather_location=os.getenv("JARVIS_HUD_WEATHER", "İzmir").strip() or "İzmir",
+        boot_style=(os.getenv("JARVIS_BOOT_STYLE", "orb").strip().lower() or "orb"),
+        boot_hold_s=float(os.getenv("JARVIS_BOOT_HOLD_S", "3") or 3),
+        docs_dirs=os.getenv("JARVIS_DOCS_DIRS", "").strip(),
+        startup_sound=_env_bool("JARVIS_STARTUP_SOUND", True),
+        agents_enabled=_env_bool("JARVIS_AGENTS_ENABLED", True),
+        agents_model=os.getenv("JARVIS_AGENTS_MODEL", Settings.model_fields["agents_model"].default),
+        local_llm_enabled=_env_bool("JARVIS_LOCAL_LLM", True),
         local_llm_url=(
-            os.getenv("CYRAEN_LOCAL_LLM_URL", "").strip()
+            os.getenv("JARVIS_LOCAL_LLM_URL", "").strip()
             or Settings.model_fields["local_llm_url"].default
         ),
         local_llm_model=(
-            os.getenv("CYRAEN_LOCAL_LLM_MODEL", "").strip()
+            os.getenv("JARVIS_LOCAL_LLM_MODEL", "").strip()
             or Settings.model_fields["local_llm_model"].default
         ),
         local_llm_small_model=(
-            os.getenv("CYRAEN_LOCAL_LLM_SMALL_MODEL", "").strip()
+            os.getenv("JARVIS_LOCAL_LLM_SMALL_MODEL", "").strip()
             or Settings.model_fields["local_llm_small_model"].default
         ),
-        local_llm_num_ctx=_env_int("CYRAEN_LOCAL_LLM_NUM_CTX", 8192),
-        local_llm_timeout=float(_env_int("CYRAEN_LOCAL_LLM_TIMEOUT", 120)),
+        local_llm_num_ctx=_env_int("JARVIS_LOCAL_LLM_NUM_CTX", 8192),
+        local_llm_timeout=float(_env_int("JARVIS_LOCAL_LLM_TIMEOUT", 120)),
         openrouter_api_key=os.getenv("OPENROUTER_API_KEY", ""),
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
         anthropic_workspace_id=os.getenv("ANTHROPIC_WORKSPACE_ID", ""),
@@ -491,13 +494,13 @@ def get_settings() -> Settings:
         supabase_key=os.getenv("SUPABASE_KEY", os.getenv("SUPABASE_SERVICE_KEY", "")),
         ntfy_topic=os.getenv("NTFY_TOPIC", ""),
         ntfy_server=os.getenv("NTFY_SERVER", "https://ntfy.sh"),
-        agents_auto_approve_assisted=_env_bool("CYRAEN_AGENTS_AUTO_APPROVE", True),
+        agents_auto_approve_assisted=_env_bool("JARVIS_AGENTS_AUTO_APPROVE", True),
         email_address=os.getenv("EMAIL_ADDRESS", ""),
         email_app_password=os.getenv("EMAIL_APP_PASSWORD", os.getenv("EMAIL_PASSWORD", "")),
         email_imap_host=os.getenv("EMAIL_IMAP_HOST", ""),
         email_smtp_host=os.getenv("EMAIL_SMTP_HOST", ""),
         email_smtp_port=_env_int("EMAIL_SMTP_PORT", 0),
-        email_sender_name=os.getenv("EMAIL_SENDER_NAME", "CYRAEN"),
+        email_sender_name=os.getenv("EMAIL_SENDER_NAME", "JARVIS"),
         gmail_credentials_file=Path(
             os.getenv("GMAIL_CREDENTIALS_FILE", "").strip()
             or Settings.model_fields["gmail_credentials_file"].default
@@ -517,19 +520,19 @@ def get_settings() -> Settings:
             or Settings.model_fields["spotify_token_file"].default
         ),
         spotify_default_device=os.getenv("SPOTIFY_DEFAULT_DEVICE", "").strip(),
-        mcp_enabled=_env_bool("CYRAEN_MCP", True),
+        mcp_enabled=_env_bool("JARVIS_MCP", True),
         mcp_config_file=Path(
-            os.getenv("CYRAEN_MCP_CONFIG", "").strip()
+            os.getenv("JARVIS_MCP_CONFIG", "").strip()
             or Settings.model_fields["mcp_config_file"].default
         ),
         browser_profile_dir=Path(
-            os.getenv("CYRAEN_BROWSER_PROFILE", "").strip()
+            os.getenv("JARVIS_BROWSER_PROFILE", "").strip()
             or Settings.model_fields["browser_profile_dir"].default
         ),
-        browser_headless=_env_bool("CYRAEN_BROWSER_HEADLESS", False),
+        browser_headless=_env_bool("JARVIS_BROWSER_HEADLESS", False),
         browser_blocked_domains=[
             d.strip().lower()
-            for d in os.getenv("CYRAEN_BROWSER_BLOCKED", "").replace(";", ",").split(",")
+            for d in os.getenv("JARVIS_BROWSER_BLOCKED", "").replace(";", ",").split(",")
             if d.strip()
         ],
         telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", "").strip(),
@@ -546,64 +549,64 @@ def get_settings() -> Settings:
         telegram_auto_reply=_env_bool("TELEGRAM_AUTO_REPLY", True),
         izmir_openapi_token=os.getenv("IZMIR_OPENAPI_TOKEN", "").strip(),
         izmirim_kart_no=os.getenv("IZMIRIM_KART_NO", "").strip(),
-        web_console_enabled=_env_bool("CYRAEN_WEB_CONSOLE", True),
-        web_console_port=_env_int("CYRAEN_WEB_PORT", 8770),
-        web_console_bind=os.getenv("CYRAEN_WEB_BIND", "0.0.0.0"),
-        web_console_token=os.getenv("CYRAEN_WEB_TOKEN", ""),
-        team_tts_enabled=_env_bool("CYRAEN_TEAM_TTS", True),
-        user_name=os.getenv("CYRAEN_USER_NAME", "").strip() or Settings.model_fields["user_name"].default,
-        vision_model=os.getenv("CYRAEN_VISION_MODEL", "").strip() or Settings.model_fields["vision_model"].default,
-        welcome_voice=os.getenv("CYRAEN_WELCOME_VOICE", "").strip()
+        web_console_enabled=_env_bool("JARVIS_WEB_CONSOLE", True),
+        web_console_port=_env_int("JARVIS_WEB_PORT", 8770),
+        web_console_bind=os.getenv("JARVIS_WEB_BIND", "0.0.0.0"),
+        web_console_token=os.getenv("JARVIS_WEB_TOKEN", ""),
+        team_tts_enabled=_env_bool("JARVIS_TEAM_TTS", True),
+        user_name=os.getenv("JARVIS_USER_NAME", "").strip() or Settings.model_fields["user_name"].default,
+        vision_model=os.getenv("JARVIS_VISION_MODEL", "").strip() or Settings.model_fields["vision_model"].default,
+        welcome_voice=os.getenv("JARVIS_WELCOME_VOICE", "").strip()
         or Settings.model_fields["welcome_voice"].default,
-        welcome_text=os.getenv("CYRAEN_WELCOME_TEXT", "").strip()
+        welcome_text=os.getenv("JARVIS_WELCOME_TEXT", "").strip()
         or Settings.model_fields["welcome_text"].default,
-        audio_mode=os.getenv("CYRAEN_AUDIO_MODE", Settings.model_fields["audio_mode"].default),
-        remote_audio_port=_env_int("CYRAEN_REMOTE_AUDIO_PORT", 8771),
-        remote_audio_token=os.getenv("CYRAEN_REMOTE_AUDIO_TOKEN", ""),
-        phone_audio_enabled=_env_bool("CYRAEN_PHONE_AUDIO", True),
-        remote_desktop_enabled=_env_bool("CYRAEN_REMOTE_DESKTOP", False),
-        tool_groups_disabled=[g.strip() for g in os.getenv("CYRAEN_TOOLS_OFF", "").split(",") if g.strip()],
+        audio_mode=os.getenv("JARVIS_AUDIO_MODE", Settings.model_fields["audio_mode"].default),
+        remote_audio_port=_env_int("JARVIS_REMOTE_AUDIO_PORT", 8771),
+        remote_audio_token=os.getenv("JARVIS_REMOTE_AUDIO_TOKEN", ""),
+        phone_audio_enabled=_env_bool("JARVIS_PHONE_AUDIO", True),
+        remote_desktop_enabled=_env_bool("JARVIS_REMOTE_DESKTOP", False),
+        tool_groups_disabled=[g.strip() for g in os.getenv("JARVIS_TOOLS_OFF", "").split(",") if g.strip()],
         remote_confirm_timeout=float(
-            _env_int("CYRAEN_REMOTE_CONFIRM_TIMEOUT", 120)
+            _env_int("JARVIS_REMOTE_CONFIRM_TIMEOUT", 120)
         ),
-        # SCHEDULER_ENABLED, eski CYRAEN_SCHEDULER'in kisa adi (ikisi de gecerli)
-        scheduler_enabled=_env_bool("SCHEDULER_ENABLED", _env_bool("CYRAEN_SCHEDULER", True)),
+        # SCHEDULER_ENABLED, eski JARVIS_SCHEDULER'in kisa adi (ikisi de gecerli)
+        scheduler_enabled=_env_bool("SCHEDULER_ENABLED", _env_bool("JARVIS_SCHEDULER", True)),
         morning_briefing_time=os.getenv(
-            "CYRAEN_MORNING_BRIEFING", Settings.model_fields["morning_briefing_time"].default
+            "JARVIS_MORNING_BRIEFING", Settings.model_fields["morning_briefing_time"].default
         ).strip(),
         morning_briefing_channels=[
             c.strip().lower()
-            for c in os.getenv("CYRAEN_MORNING_CHANNELS", "").replace(";", ",").split(",")
+            for c in os.getenv("JARVIS_MORNING_CHANNELS", "").replace(";", ",").split(",")
             if c.strip()
         ],
-        health_check_interval_min=_env_int("CYRAEN_HEALTH_INTERVAL_MIN", 60),
-        health_cpu_alert=float(_env_int("CYRAEN_HEALTH_CPU_ALERT", 90)),
-        health_mem_alert=float(_env_int("CYRAEN_HEALTH_MEM_ALERT", 90)),
-        health_disk_alert=float(_env_int("CYRAEN_HEALTH_DISK_ALERT", 90)),
-        maintenance_report_weekly=_env_bool("CYRAEN_MAINTENANCE_REPORT", True),
+        health_check_interval_min=_env_int("JARVIS_HEALTH_INTERVAL_MIN", 60),
+        health_cpu_alert=float(_env_int("JARVIS_HEALTH_CPU_ALERT", 90)),
+        health_mem_alert=float(_env_int("JARVIS_HEALTH_MEM_ALERT", 90)),
+        health_disk_alert=float(_env_int("JARVIS_HEALTH_DISK_ALERT", 90)),
+        maintenance_report_weekly=_env_bool("JARVIS_MAINTENANCE_REPORT", True),
         daily_summary_time=os.getenv(
-            "CYRAEN_DAILY_SUMMARY", Settings.model_fields["daily_summary_time"].default
+            "JARVIS_DAILY_SUMMARY", Settings.model_fields["daily_summary_time"].default
         ),
-        code_exec_enabled=_env_bool("CYRAEN_CODE_EXEC", False),
-        adb_enabled=_env_bool("CYRAEN_ADB_ENABLED", True),
-        adb_path=os.getenv("CYRAEN_ADB_PATH", Settings.model_fields["adb_path"].default),
-        adb_tcp_port=_env_int("CYRAEN_ADB_TCP_PORT", 5555),
+        code_exec_enabled=_env_bool("JARVIS_CODE_EXEC", False),
+        adb_enabled=_env_bool("JARVIS_ADB_ENABLED", True),
+        adb_path=os.getenv("JARVIS_ADB_PATH", Settings.model_fields["adb_path"].default),
+        adb_tcp_port=_env_int("JARVIS_ADB_TCP_PORT", 5555),
         adb_tcp_devices=[
             a.strip()
-            for a in os.getenv("CYRAEN_ADB_TCP_DEVICES", "").replace(";", ",").split(",")
+            for a in os.getenv("JARVIS_ADB_TCP_DEVICES", "").replace(";", ",").split(",")
             if a.strip()
         ],
         adb_unlock_pin=(
-            os.getenv("CYRAEN_ADB_UNLOCK_PIN", "").strip()
-            or (get_secret("CYRAEN_ADB_UNLOCK_PIN") or "")
+            os.getenv("JARVIS_ADB_UNLOCK_PIN", "").strip()
+            or (get_secret("JARVIS_ADB_UNLOCK_PIN") or "")
         ),
-        gbrain_enabled=_env_bool("CYRAEN_GBRAIN", True),
-        okul_enabled=_env_bool("CYRAEN_OKUL_ENABLED", True),
-        obsidian_vault=os.getenv("CYRAEN_OBSIDIAN_VAULT", ""),
+        gbrain_enabled=_env_bool("JARVIS_GBRAIN", True),
+        okul_enabled=_env_bool("JARVIS_OKUL_ENABLED", True),
+        obsidian_vault=os.getenv("JARVIS_OBSIDIAN_VAULT", ""),
         obsidian_subdir=os.getenv(
-            "CYRAEN_OBSIDIAN_SUBDIR", Settings.model_fields["obsidian_subdir"].default
+            "JARVIS_OBSIDIAN_SUBDIR", Settings.model_fields["obsidian_subdir"].default
         ),
-        obsidian_log_conversations=_env_bool("CYRAEN_OBSIDIAN_LOG_CONVERSATIONS", True),
+        obsidian_log_conversations=_env_bool("JARVIS_OBSIDIAN_LOG_CONVERSATIONS", True),
     )
     settings.ensure_dirs()
     return settings

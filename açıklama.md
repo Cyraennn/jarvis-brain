@@ -1,6 +1,6 @@
-# CYRAEN Çoklu Ajan Sistemi: Kurulum Rehberi
+# JARVIS Çoklu Ajan Sistemi: Kurulum Rehberi
 
-Bu rehber, yeni eklenen özellikleri (OpenRouter çoklu model, Gmail, Telegram, İzmir ulaşım) çalıştırmak için **senin yapman gerekenleri** sırayla anlatır. Bütün komutlar `cyraen-brain` klasöründe çalıştırılır.
+Bu rehber, yeni eklenen özellikleri (OpenRouter çoklu model, Gmail, Telegram, İzmir ulaşım) çalıştırmak için **senin yapman gerekenleri** sırayla anlatır. Bütün komutlar `jarvis-brain` klasöründe çalıştırılır.
 
 > Kısaca: Adım 1 ve 2 zorunlu. Telegram (Adım 3), Gmail (Adım 4) ve Ulaşım (Adım 5) birbirinden bağımsız. Hangisini kurarsan o çalışır, kurmadıkların sistemi bozmaz.
 
@@ -62,7 +62,7 @@ Yeni eklenen paketler şunlar: `openai` (OpenRouter için), `httpx`, `google-api
 
 ### 3.1 Bot oluştur
 1. Telegram'da **@BotFather**'ı aç ve `/newbot` yaz.
-2. Bota bir ad ve sonu `bot` ile biten bir kullanıcı adı ver (örnek: `benim_cyraen_bot`).
+2. Bota bir ad ve sonu `bot` ile biten bir kullanıcı adı ver (örnek: `benim_jarvis_bot`).
 3. BotFather'ın verdiği **token**'ı kopyala. `123456789:AA...` gibi görünür.
 
 ### 3.2 Kendi chat id'ni bul
@@ -84,9 +84,9 @@ TELEGRAM_DEFAULT_CHAT_ID=123456789
 ```
 
 ### Nasıl davranır?
-- Bota gelen **her** mesaj CYRAEN'e `[TELEGRAM] kişi: mesaj` olarak iletilir ve CYRAEN bunu sesli söyler.
-- **Otomatik yanıt yalnızca izinli sohbetlere** gider. `TELEGRAM_ALLOWED_CHAT_IDS` boşsa bu sadece senin sohbetindir (`TELEGRAM_DEFAULT_CHAT_ID`). Yabancılar bota yazarsa CYRAEN sana haber verir ama onlara cevap vermez.
-- CYRAEN'e sesle "Telegram'dan şunu gönder" dersen önce metni okur, sonra **onay penceresi** açılır.
+- Bota gelen **her** mesaj JARVIS'e `[TELEGRAM] kişi: mesaj` olarak iletilir ve JARVIS bunu sesli söyler.
+- **Otomatik yanıt yalnızca izinli sohbetlere** gider. `TELEGRAM_ALLOWED_CHAT_IDS` boşsa bu sadece senin sohbetindir (`TELEGRAM_DEFAULT_CHAT_ID`). Yabancılar bota yazarsa JARVIS sana haber verir ama onlara cevap vermez.
+- JARVIS'e sesle "Telegram'dan şunu gönder" dersen önce metni okur, sonra **onay penceresi** açılır.
 
 > Uyarı: Aynı bot token'ını aynı anda iki programda dinletme. Telegram buna `409 Conflict` hatasıyla karşılık verir.
 
@@ -97,18 +97,18 @@ TELEGRAM_DEFAULT_CHAT_ID=123456789
 Bu adımı yapmazsan e-posta araçları eskisi gibi IMAP ile (`EMAIL_ADDRESS` + `EMAIL_APP_PASSWORD`) çalışmaya devam eder. Gmail API daha güvenlidir ve **taslak oluşturma** ile **üslubunda yanıt taslağı** özelliklerini açar.
 
 ### 4.1 Google Cloud ayarı (bir kez)
-1. https://console.cloud.google.com adresine git ve üstteki proje seçiciden **Yeni Proje** oluştur (örnek: `cyraen`).
+1. https://console.cloud.google.com adresine git ve üstteki proje seçiciden **Yeni Proje** oluştur (örnek: `jarvis`).
 2. **API'ler ve Hizmetler → Kitaplık** bölümünde **Gmail API**'yi aratıp **Etkinleştir**'e bas.
 3. **OAuth izin ekranı** ayarı:
    - Kullanıcı türü: **Harici (External)**
-   - Uygulama adı: `CYRAEN`; destek e-postası: kendi adresin
+   - Uygulama adı: `JARVIS`; destek e-postası: kendi adresin
    - **Test kullanıcıları** bölümüne kendi Gmail adresini ekle.
 4. **Kimlik Bilgileri → Kimlik bilgisi oluştur → OAuth istemci kimliği** yolunu izle:
    - Uygulama türü: **Masaüstü uygulaması**
    - Oluşturduktan sonra **JSON'u indir**.
 5. İndirdiğin dosyayı şu adla kaydet:
    ```
-   cyraen-brain/config/gmail_credentials.json
+   jarvis-brain/config/gmail_credentials.json
    ```
 
 ### 4.2 Yetki ver (bir kez)
@@ -116,7 +116,7 @@ Bu adımı yapmazsan e-posta araçları eskisi gibi IMAP ile (`EMAIL_ADDRESS` + 
 python scripts/gmail_auth.py
 ```
 - Tarayıcı açılır. Gmail hesabını seçip izin ver.
-- "Google bu uygulamayı doğrulamadı" uyarısı çıkarsa **Gelişmiş → CYRAEN'e git (güvenli değil)** yolunu seç. Bu normaldir, uygulama senin kendi uygulaman.
+- "Google bu uygulamayı doğrulamadı" uyarısı çıkarsa **Gelişmiş → JARVIS'e git (güvenli değil)** yolunu seç. Bu normaldir, uygulama senin kendi uygulaman.
 - Sonunda terminalde `Yetkilendirme tamam` yazısını ve son 3 okunmamış mailini görürsün.
 - Token `data/gmail_token.json` dosyasına kaydedilir ve süresi dolunca kendiliğinden yenilenir.
 
@@ -134,11 +134,11 @@ Durak arama, yakındaki duraklar, hat saatleri ve rota **hiçbir ayar yapmadan**
 
 İsteğe bağlı olarak `.env`'e şunları ekleyebilirsin:
 ```
-IZMIRIM_KART_NO=1234567890        # bakiye sayfası açılırken CYRAEN söyler
+IZMIRIM_KART_NO=1234567890        # bakiye sayfası açılırken JARVIS söyler
 IZMIR_OPENAPI_TOKEN=...           # canlı otobüs konumu için
 ```
-- **İzmirim Kart:** Açık bir bakiye servisi olmadığı için CYRAEN resmi bakiye sayfasını açar. Bakiyeyi sesli okuyamaz.
-- **Canlı otobüs:** İzmir'in canlı otobüs servisi artık token istiyor. Token yoksa CYRAEN bunu söyler ve tarife saatlerini verir.
+- **İzmirim Kart:** Açık bir bakiye servisi olmadığı için JARVIS resmi bakiye sayfasını açar. Bakiyeyi sesli okuyamaz.
+- **Canlı otobüs:** İzmir'in canlı otobüs servisi artık token istiyor. Token yoksa JARVIS bunu söyler ve tarife saatlerini verir.
 
 ---
 
@@ -154,13 +154,13 @@ IZMIR_OPENAPI_TOKEN=...           # canlı otobüs konumu için
 3. `pip install spotipy` → `python scripts/spotify_auth.py` → tarayıcıda izin ver.
 
 Sonra: "Danza Kuduro çal", "sıradaki", "ne çalıyor", "sesi 30 yap", "telefonda çal".
-Spotify kapalıysa CYRAEN PC'deki uygulamayı açıp çalar (zamanlı görevler dahil).
+Spotify kapalıysa JARVIS PC'deki uygulamayı açıp çalar (zamanlı görevler dahil).
 
 ---
 
 ## Adım 5c: MCP entegrasyonları (isteğe bağlı)
 
-CYRAEN, Claude Desktop biçimindeki herhangi bir MCP sunucusuna bağlanabilir (GitHub, Notion, takvim, dosya sistemi…).
+JARVIS, Claude Desktop biçimindeki herhangi bir MCP sunucusuna bağlanabilir (GitHub, Notion, takvim, dosya sistemi…).
 
 1. `config/mcp_servers.example.json` dosyasını `config/mcp_servers.json` olarak kopyala.
 2. İstediğin sunucuyu ekle veya `"disabled": true` satırını kaldır. Token'ları JSON'a değil `.env`'e yaz; JSON'da `${GITHUB_TOKEN}` gibi başvur.
@@ -172,12 +172,12 @@ Ajanlar (`entegrasyon_uzmani`) yalnızca onay gerektirmeyen araçları çalışt
 
 ## Adım 5d: Tarayıcı ajanı
 
-`playwright install chromium` komutunu bir kez çalıştır. CYRAEN ayrı bir kalıcı profil kullanır (`data/browser_profile`).
+`playwright install chromium` komutunu bir kez çalıştır. JARVIS ayrı bir kalıcı profil kullanır (`data/browser_profile`).
 Giriş gerektiren bir site için ilk seferde açılan pencerede **elle giriş yap**; profil oturumu hatırlar.
 
 Dene: "eshot.gov.tr'ye gir, 5 numaralı hattın duyurularına bak".
 Bu istek `web_operatoru` ajanına gider. Ajan ödeme, satın alma, silme ve şifre girişi yapmaz.
-İsteğe bağlı `.env` ayarları: `CYRAEN_BROWSER_HEADLESS=true` (pencere gizli), `CYRAEN_BROWSER_BLOCKED=site1.com,site2.com`.
+İsteğe bağlı `.env` ayarları: `JARVIS_BROWSER_HEADLESS=true` (pencere gizli), `JARVIS_BROWSER_BLOCKED=site1.com,site2.com`.
 
 ## Adım 6: Çalıştır
 
@@ -196,7 +196,7 @@ Başarılı bir açılışta log'da şu satırları görürsün:
 
 ## Adım 7: Dene
 
-CYRAEN'e sesle şunları söyleyebilirsin:
+JARVIS'e sesle şunları söyleyebilirsin:
 
 **E-posta**
 - "Okunmamış maillerim var mı?"
@@ -206,7 +206,7 @@ CYRAEN'e sesle şunları söyleyebilirsin:
 **Telegram**
 - "Telegram'da yeni mesaj var mı?"
 - "Telegram'dan bana 'eve geldim' yaz."
-- Telefondan bota mesaj at: CYRAEN sesli bildirir ve sohbet izinliyse otomatik cevap verir.
+- Telefondan bota mesaj at: JARVIS sesli bildirir ve sohbet izinliyse otomatik cevap verir.
 
 **Ulaşım**
 - "5 numaralı otobüs ne zaman kalkıyor?"
@@ -222,7 +222,7 @@ CYRAEN'e sesle şunları söyleyebilirsin:
 
 ## Modelleri değiştirmek
 
-Bütün model seçimleri `agents/agents.json` dosyasında. Kodu değiştirmen gerekmez, dosyayı düzenleyip CYRAEN'i yeniden başlatman yeterli.
+Bütün model seçimleri `agents/agents.json` dosyasında. Kodu değiştirmen gerekmez, dosyayı düzenleyip JARVIS'i yeniden başlatman yeterli.
 
 ```jsonc
 // Bir ajanın modeli
@@ -257,7 +257,7 @@ Bütün model seçimleri `agents/agents.json` dosyasında. Kodu değiştirmen ge
 | Spotify `403` / Premium hatası | Hesap Premium değil | Oynatma kontrolü Premium ister |
 | `Calacak Spotify cihazi yok` | Spotify hiçbir cihazda açık değil | Uygulamayı aç ya da `device` belirt |
 | Telegram `409 Conflict` | Bot başka bir yerde de dinleniyor | Diğer programı kapat |
-| Bot cevap vermiyor ama CYRAEN bildiriyor | Sohbet izinli listede değil | `TELEGRAM_ALLOWED_CHAT_IDS`'e ekle |
+| Bot cevap vermiyor ama JARVIS bildiriyor | Sohbet izinli listede değil | `TELEGRAM_ALLOWED_CHAT_IDS`'e ekle |
 | Canlı otobüste `IZMIR_OPENAPI_TOKEN` hatası | Canlı servis token istiyor | Token ekle ya da hat saatlerini kullan |
 | ESHOT verisi indirilemedi | İnternet yok | Bağlantıyı kontrol et; eski veri varsa o kullanılır |
 
@@ -273,5 +273,5 @@ python -m pytest tests -q --ignore=tests/test_keyboard_live.py
 - `.env`, `config/gmail_credentials.json` ve `data/` klasörü (Gmail token'ı dahil) **git'e eklenmez**. Bunları kimseyle paylaşma.
 - Ajanlar **e-posta gönderemez**, sadece taslak hazırlayabilir. Telegram'da da yalnızca sana bildirim atabilirler.
 - Sesle istenen bütün e-posta ve Telegram gönderimleri **onay penceresinden** geçer.
-- Telegram otomatik yanıtı yalnızca izin verdiğin sohbetlere gider ve CYRAEN kendisine sorulursa yapay zekâ olduğunu saklamaz.
-- MCP ile yapılan yazma/silme işlemleri sesli CYRAEN'de **onay penceresinden** geçer; tarayıcı ajanı kart ve şifre alanlarına dokunmaz.
+- Telegram otomatik yanıtı yalnızca izin verdiğin sohbetlere gider ve JARVIS kendisine sorulursa yapay zekâ olduğunu saklamaz.
+- MCP ile yapılan yazma/silme işlemleri sesli JARVIS'de **onay penceresinden** geçer; tarayıcı ajanı kart ve şifre alanlarına dokunmaz.

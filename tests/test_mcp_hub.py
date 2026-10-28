@@ -32,8 +32,8 @@ def hub(tmp_path, monkeypatch):
 
 
 def test_expand_env(monkeypatch):
-    monkeypatch.setenv("CYRAEN_TEST_TOKEN", "abc")
-    spec = mcp_hub.ServerSpec.from_dict("x", {"command": "c", "env": {"T": "${CYRAEN_TEST_TOKEN}"}})
+    monkeypatch.setenv("JARVIS_TEST_TOKEN", "abc")
+    spec = mcp_hub.ServerSpec.from_dict("x", {"command": "c", "env": {"T": "${JARVIS_TEST_TOKEN}"}})
     assert spec.env == {"T": "abc"}
 
 

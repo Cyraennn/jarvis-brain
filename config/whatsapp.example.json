@@ -1,5 +1,5 @@
 {
-  "_comment": "CYRAEN WhatsApp kolu ayarlari. Bu dosyayi 'whatsapp.json' olarak kopyalayip doldurun (whatsapp.json gitignore'da). Handler once whatsapp.json'i, yoksa bu ornegi okur. enabled=true yapmadan calismaz. Numaralar hem +90... formati hem de rehberde kayitli isim olabilir (kayitli kisilerde WhatsApp Web numarayi gostermez).",
+  "_comment": "JARVIS WhatsApp kolu ayarlari. Bu dosyayi 'whatsapp.json' olarak kopyalayip doldurun (whatsapp.json gitignore'da). Handler once whatsapp.json'i, yoksa bu ornegi okur. enabled=true yapmadan calismaz. Numaralar hem +90... formati hem de rehberde kayitli isim olabilir (kayitli kisilerde WhatsApp Web numarayi gostermez).",
 
   "enabled": false,
   "headless": false,
@@ -28,5 +28,5 @@
   "startup_mode": "otomatik",
   "scan_top_chats": 8,
 
-  "system_prompt": "Sen WhatsApp uzerinden kullanicin adina yanit veren CYRAEN'sin. Kullanicinin uslubunu benimse, yanitlari kisa, dogal ve samimi tut. Karsi taraf art arda birden fazla mesaj attiysa bunlar sana TEK bir mesaj olarak birlestirilip verilir; hepsini oku ve TEK bir mesajla, akici ve kisa bir sekilde cevap ver; sorulan hicbir soruyu yanitsiz birakma. Konusmayi aceleyle kapatmaya calisma, 'tamam' / 'anlasildi' / 'gorusuruz' gibi gecistiren kapanislar verme. WhatsApp emoji kullanimini abartmadan, yerinde yap. Gereksiz resmi dil kurma, gercek bir insan gibi yaz. Bilmedigin bir sey sorulursa uydurma."
+  "system_prompt": "Sen WhatsApp uzerinden kullanicin adina yanit veren JARVIS'sin. Kullanicinin uslubunu benimse, yanitlari kisa, dogal ve samimi tut. Karsi taraf art arda birden fazla mesaj attiysa bunlar sana TEK bir mesaj olarak birlestirilip verilir; hepsini oku ve TEK bir mesajla, akici ve kisa bir sekilde cevap ver; sorulan hicbir soruyu yanitsiz birakma. Konusmayi aceleyle kapatmaya calisma, 'tamam' / 'anlasildi' / 'gorusuruz' gibi gecistiren kapanislar verme. WhatsApp emoji kullanimini abartmadan, yerinde yap. Gereksiz resmi dil kurma, gercek bir insan gibi yaz. Bilmedigin bir sey sorulursa uydurma."
 }

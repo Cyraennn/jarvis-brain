@@ -27,7 +27,7 @@ class EventBus:
             "mic": True,
             "screen": True,
             "away": False,             # "uzak mod" - telefondan gorusme
-            "wake": False,             # uyandirma kelimesi ("Hey CYRAEN") acik mi
+            "wake": False,             # uyandirma kelimesi ("Hey JARVIS") acik mi
             "transcript": [],          # [{who, text, ts}]
             "agents": {},              # name -> {title, department, autonomy, status}
             "departments": [],
@@ -84,7 +84,7 @@ class EventBus:
         elif kind == "remote_audio":
             s["remote_audio"] = data or {}
         elif kind == "persona":
-            s["persona"] = data or "cyraen"
+            s["persona"] = data or "jarvis"
         elif kind == "panel":
             # telefon sonradan baglanirsa acik paneli /api/state'ten alir
             pkind = (data or {}).get("kind")

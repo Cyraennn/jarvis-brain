@@ -3,7 +3,7 @@
 // isik degisimi (normalizasyon) ve goruntu gurultusu vermez.
 (function (root, factory) {
   if (typeof module !== "undefined" && module.exports) module.exports = factory();
-  else { root.CyraenShelfDrift = factory(); (root.JEL = root.JEL || {}).Drift = root.CyraenShelfDrift; }
+  else { root.JarvisShelfDrift = factory(); (root.JEL = root.JEL || {}).Drift = root.JarvisShelfDrift; }
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 

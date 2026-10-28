@@ -1,5 +1,5 @@
 """Icerik paneli araclari: video, Wikipedia, yerel belge, web sitesi, Spotify karti, haberler,
-piyasa grafigi, 3B Izmir haritasi, hava durumu ve bilgi karti CYRAEN arayuzunun ICINDE acilir (ayri tarayici
+piyasa grafigi, 3B Izmir haritasi, hava durumu ve bilgi karti JARVIS arayuzunun ICINDE acilir (ayri tarayici
 penceresi yerine).
 
 Model kimlik, adres ya da dosya yolu UYDURAMAZ: yalnizca sorgu/ad verir; video kimligini,
@@ -28,7 +28,7 @@ from tools.app_launcher import resolve_url
 from tools.spotify_tool import spotify_enabled, spotify_playback_state
 
 # Wikimedia, iletisim adresi (URL) icermeyen User-Agent'i 403 ile reddediyor (w.wiki/4wJS).
-_UA = {"User-Agent": "CYRAEN-Brain/1.0 (https://github.com/Cyraennn/cyraen-brain; kisisel masaustu asistani)"}
+_UA = {"User-Agent": "JARVIS-Brain/1.0 (https://github.com/Jarvisnn/jarvis-brain; kisisel masaustu asistani)"}
 _TIMEOUT = 10.0
 
 # ------------------------------------------------------------------ video
@@ -104,7 +104,7 @@ def _search_video_ids(query: str) -> list[str]:
 
 
 def show_video(query: str) -> dict[str, Any]:
-    """Bir YouTube videosunu arar (ya da verilen baglantiyi) dogrular ve CYRAEN panelinde oynatir."""
+    """Bir YouTube videosunu arar (ya da verilen baglantiyi) dogrular ve JARVIS panelinde oynatir."""
     query = (query or "").strip()
     if not query:
         return {"error": "'query' zorunlu: aranacak video ya da YouTube baglantisi."}
@@ -120,7 +120,7 @@ def show_video(query: str) -> dict[str, Any]:
             title = str(meta.get("title") or "Video")
             channel = str(meta.get("author_name") or "")
             return {
-                "status": "video CYRAEN panelinde acildi",
+                "status": "video JARVIS panelinde acildi",
                 "title": title,
                 "channel": channel,
                 "panel": {"kind": "video", "video_id": vid, "title": title, "subtitle": channel,
@@ -160,7 +160,7 @@ def _wiki_search(lang: str, query: str) -> str | None:
 
 
 def show_wikipedia(title: str) -> dict[str, Any]:
-    """Wikipedia sayfasini (Turkce, yoksa Ingilizce) bulur, CYRAEN panelinde acar ve ozetini doner."""
+    """Wikipedia sayfasini (Turkce, yoksa Ingilizce) bulur, JARVIS panelinde acar ve ozetini doner."""
     title = (title or "").strip()
     if not title:
         return {"error": "'title' zorunlu."}
@@ -179,7 +179,7 @@ def show_wikipedia(title: str) -> dict[str, Any]:
                 continue
             real = str(data["title"])
             out: dict[str, Any] = {
-                "status": "Wikipedia sayfasi CYRAEN panelinde acildi",
+                "status": "Wikipedia sayfasi JARVIS panelinde acildi",
                 "title": real,
                 "language": lang,
                 "description": data.get("description") or "",
@@ -212,7 +212,7 @@ def _fold(s: str) -> str:
 
 
 def doc_roots() -> list[Path]:
-    """Belge aranan / acilmasina izin verilen klasorler. `.env` CYRAEN_DOCS_DIRS (`;` ile ayrilir);
+    """Belge aranan / acilmasina izin verilen klasorler. `.env` JARVIS_DOCS_DIRS (`;` ile ayrilir);
     bossa Belgeler, Masaustu ve Indirilenler (OneDrive'a tasinmis olanlar dahil)."""
     raw = ""
     try:
@@ -220,7 +220,7 @@ def doc_roots() -> list[Path]:
 
         raw = get_settings().docs_dirs
     except Exception:  # noqa: BLE001 - ayarlar yuklenemese de varsayilanlarla calis
-        raw = os.getenv("CYRAEN_DOCS_DIRS", "")
+        raw = os.getenv("JARVIS_DOCS_DIRS", "")
     if raw.strip():
         candidates = [Path(p.strip()).expanduser() for p in raw.split(";") if p.strip()]
     else:
@@ -250,7 +250,7 @@ def _check_doc(path: Path, roots: list[Path]) -> tuple[Path | None, str]:
     if real.suffix.lower() not in DOC_TYPES:
         return None, f"Bu dosya turu panelde acilamaz ({real.suffix or 'uzantisiz'}). Desteklenen: pdf, txt, md."
     if not any(real.is_relative_to(r) for r in roots):
-        return None, ("Dosya belge klasorlerinin disinda. Panelde acmak icin klasoru .env CYRAEN_DOCS_DIRS'e ekleyin; "
+        return None, ("Dosya belge klasorlerinin disinda. Panelde acmak icin klasoru .env JARVIS_DOCS_DIRS'e ekleyin; "
                       "ya da open_path ile varsayilan uygulamada acin.")
     size = real.stat().st_size
     if not size or size > MAX_DOC_BYTES:
@@ -300,7 +300,7 @@ def _find_docs(words: list[str], roots: list[Path]) -> list[Path]:
 def _doc_result(real: Path) -> dict[str, Any]:
     kind = DOC_TYPES[real.suffix.lower()]
     return {
-        "status": "belge CYRAEN panelinde acildi",
+        "status": "belge JARVIS panelinde acildi",
         "name": real.name,
         "type": kind,
         "note": "Belgenin icerigini OKUMADIN; icerik hakkinda tahmin yurutme (ozet icin summarize_document).",
@@ -310,13 +310,13 @@ def _doc_result(real: Path) -> dict[str, Any]:
 
 
 def show_document(query: str) -> dict[str, Any]:
-    """Yerel bir belgeyi (PDF, .txt, .md) dosya adiyla ya da tam yoluyla bulur ve CYRAEN panelinde acar."""
+    """Yerel bir belgeyi (PDF, .txt, .md) dosya adiyla ya da tam yoluyla bulur ve JARVIS panelinde acar."""
     query = (query or "").strip().strip('"')
     if not query:
         return {"error": "'query' zorunlu: dosya adi ya da tam yol."}
     roots = doc_roots()
     if not roots:
-        return {"error": "Belge klasoru bulunamadi (.env CYRAEN_DOCS_DIRS)."}
+        return {"error": "Belge klasoru bulunamadi (.env JARVIS_DOCS_DIRS)."}
 
     looks_like_path = bool(re.match(r"^[a-zA-Z]:[\\/]", query)) or query.startswith(("/", "\\", "~"))
     if looks_like_path:
@@ -342,7 +342,7 @@ def show_document(query: str) -> dict[str, Any]:
 
 # ------------------------------------------------------------------ web sitesi
 def show_website(target: str) -> dict[str, Any]:
-    """Bir web sitesini (URL, alan adi, kisayol ya da arama) CYRAEN panelinde acar."""
+    """Bir web sitesini (URL, alan adi, kisayol ya da arama) JARVIS panelinde acar."""
     target = (target or "").strip()
     if not target:
         return {"error": "Adres bos."}
@@ -354,7 +354,7 @@ def show_website(target: str) -> dict[str, Any]:
     if u.scheme not in ("http", "https") or not u.hostname:
         return {"error": f"Gecersiz adres: {target}"}
     return {
-        "status": "site CYRAEN panelinde acildi",
+        "status": "site JARVIS panelinde acildi",
         "url": url,
         "panel": {"kind": "web", "url": url, "title": u.hostname.removeprefix("www."), "subtitle": "WEB"},
     }
@@ -394,7 +394,7 @@ def _parse_news(xml_text: str) -> list[dict[str, str]]:
 
 
 def show_news(topic: str = "") -> dict[str, Any]:
-    """Guncel haber basliklarini (bos: Turkiye gundemi; dolu: konu aramasi) CYRAEN panelinde gosterir."""
+    """Guncel haber basliklarini (bos: Turkiye gundemi; dolu: konu aramasi) JARVIS panelinde gosterir."""
     topic = (topic or "").strip()
     url = f"{_NEWS_FEED}/search" if topic else _NEWS_FEED
     params = {**_NEWS_LOCALE, **({"q": topic} if topic else {})}
@@ -408,7 +408,7 @@ def show_news(topic: str = "") -> dict[str, Any]:
     title = f"Haberler · {topic}" if topic else "Gündem"
     page = "https://news.google.com/" + (f"search?q={quote(topic)}&" if topic else "?") + "hl=tr&gl=TR&ceid=TR:tr"
     return {
-        "status": "haberler CYRAEN panelinde acildi",
+        "status": "haberler JARVIS panelinde acildi",
         "topic": topic or "gundem",
         "headlines": [{"title": i["title"], "source": i["source"], "published": i["published"][:16]}
                       for i in items[:_NEWS_SPOKEN]],
@@ -491,7 +491,7 @@ def _market_series(symbol: str, period: str) -> dict[str, Any] | None:
 
 
 def show_market(query: str, period: str = "1ay") -> dict[str, Any]:
-    """Bir endeks, hisse, doviz ya da kripto varligin fiyat grafigini CYRAEN panelinde gosterir."""
+    """Bir endeks, hisse, doviz ya da kripto varligin fiyat grafigini JARVIS panelinde gosterir."""
     query = (query or "").strip()
     if not query:
         return {"error": "'query' zorunlu: orn. 'borsa', 'dolar', 'bitcoin', 'Turk Hava Yollari'."}
@@ -521,7 +521,7 @@ def show_market(query: str, period: str = "1ay") -> dict[str, Any]:
     }
     label = MARKET_PERIODS[period][2]
     return {
-        "status": "grafik CYRAEN panelinde acildi",
+        "status": "grafik JARVIS panelinde acildi",
         "name": name, "symbol": symbol, "period": label, **stats,
         "note": "Yalnizca bu rakamlari anlat (fiyat, donem degisimi, en yuksek/dusuk). Yatirim tavsiyesi verme.",
         "panel": {"kind": "chart", "title": name, "subtitle": f"{symbol} · {label}", "points": points,
@@ -692,7 +692,7 @@ def show_map(place: str = "") -> dict[str, Any]:
         zoom = _map_zoom(hit["kind"])
     osm = f"https://www.openstreetmap.org/#map={int(round(zoom))}/{lat:.5f}/{lon:.5f}"
     return {
-        "status": "3B harita CYRAEN panelinde acildi",
+        "status": "3B harita JARVIS panelinde acildi",
         "place": label,
         "address": address,
         "lat": round(lat, 6), "lon": round(lon, 6),
@@ -778,7 +778,7 @@ def map_control(action: str) -> dict[str, Any]:
 
 # ------------------------------------------------------------------ hava + bilgi karti
 def show_weather(location: str = "") -> dict[str, Any]:
-    """Bir sehrin guncel hava durumunu ve kisa tahminini CYRAEN panelinde gosterir."""
+    """Bir sehrin guncel hava durumunu ve kisa tahminini JARVIS panelinde gosterir."""
     from tools.quick_tools import get_weather
 
     location = (location or "").strip()
@@ -796,7 +796,7 @@ def show_weather(location: str = "") -> dict[str, Any]:
         return data
     place = str(data.get("konum", location))
     return {
-        "status": "hava durumu CYRAEN panelinde acildi",
+        "status": "hava durumu JARVIS panelinde acildi",
         **data,
         "panel": {"kind": "weather", "title": place, "subtitle": "HAVA DURUMU",
                   "now": data.get("simdi") or {}, "days": data.get("tahmin") or []},
@@ -808,7 +808,7 @@ INFO_BODY_MAX = 6000
 
 
 def show_info(title: str, body: str) -> dict[str, Any]:
-    """CYRAEN'in kendi hazirladigi yazili icerigi (ozet, tarif, adim listesi, karsilastirma tablosu)
+    """JARVIS'in kendi hazirladigi yazili icerigi (ozet, tarif, adim listesi, karsilastirma tablosu)
     panelde gosterir. Bu modulde icerigi MODELIN urettigi tek arac budur: govde sade Markdown'dir,
     panel baglanti ve uzak gorsel yuklemez."""
     title = " ".join((title or "").split())[:INFO_TITLE_MAX]
@@ -817,7 +817,7 @@ def show_info(title: str, body: str) -> dict[str, Any]:
         return {"error": "'title' ve 'body' zorunlu."}
     truncated = len(body) > INFO_BODY_MAX
     return {
-        "status": "bilgi karti CYRAEN panelinde acildi" + (" (govde kisaltildi)" if truncated else ""),
+        "status": "bilgi karti JARVIS panelinde acildi" + (" (govde kisaltildi)" if truncated else ""),
         "title": title,
         "panel": {"kind": "info", "title": title, "subtitle": "BİLGİ KARTI", "body": body[:INFO_BODY_MAX]},
     }
@@ -825,18 +825,18 @@ def show_info(title: str, body: str) -> dict[str, Any]:
 
 # ------------------------------------------------------------------ spotify + kapat
 def show_spotify() -> dict[str, Any]:
-    """Spotify 'su an caliyor' kartini CYRAEN panelinde gosterir (kapak, sarki, onceki/duraklat/sonraki)."""
+    """Spotify 'su an caliyor' kartini JARVIS panelinde gosterir (kapak, sarki, onceki/duraklat/sonraki)."""
     if not spotify_enabled():
         return {"error": "Spotify yapilandirilmamis (.env SPOTIFY_CLIENT_ID/SECRET + `python scripts/spotify_auth.py`)."}
     state = spotify_playback_state()
     if "error" in state:
         return state
     out = {k: v for k, v in state.items() if k not in ("image", "progress_ms", "duration_ms")}
-    out["status"] = "Spotify karti CYRAEN panelinde acildi"
+    out["status"] = "Spotify karti JARVIS panelinde acildi"
     out["panel"] = {"kind": "spotify", "title": "Spotify", "subtitle": str(state.get("device") or "")}
     return out
 
 
 def close_panel() -> dict[str, Any]:
-    """CYRAEN arayuzundeki icerik panelini (video, haber, grafik, belge, site, Spotify...) kapatir."""
+    """JARVIS arayuzundeki icerik panelini (video, haber, grafik, belge, site, Spotify...) kapatir."""
     return {"status": "panel kapatildi", "panel": {"kind": "close"}}

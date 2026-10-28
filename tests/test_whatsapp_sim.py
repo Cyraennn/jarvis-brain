@@ -237,7 +237,7 @@ def test_blacklist_matches_whole_words_only(tmp_path, monkeypatch):
 def test_admin_command_mode_change_and_plain_send(tmp_path, monkeypatch):
     h = make_handler(tmp_path, monkeypatch)
     h.contact = "+90 555 111 22 33"
-    h.msgs = [text("CYRAEN modu sessiz")]
+    h.msgs = [text("JARVIS modu sessiz")]
     run(h._process_open_chat(FakePage()))
     assert h.mode is Mode.SILENT
     assert h.box.filled, "komut yaniti hizli (fill) gonderilmeli"
@@ -247,7 +247,7 @@ def test_admin_command_mode_change_and_plain_send(tmp_path, monkeypatch):
 def test_non_admin_cannot_run_admin_commands(tmp_path, monkeypatch):
     h = make_handler(tmp_path, monkeypatch)
     h.contact = "Anne"
-    h.msgs = [text("CYRAEN modu sessiz")]
+    h.msgs = [text("JARVIS modu sessiz")]
     run(h._process_open_chat(FakePage()))
     assert h.mode is Mode.AUTO
     assert h.box.filled == []
@@ -306,7 +306,7 @@ def test_conversation_is_mirrored_to_bridge(tmp_path, monkeypatch):
     run(h._process_open_chat(FakePage()))
     lines = (tmp_path / "outbox.txt").read_text(encoding="utf-8").splitlines()
     assert any(l.startswith("[WHATSAPP] Anne: selam") for l in lines)
-    assert any("(CYRAEN->Anne)" in l for l in lines)
+    assert any("(JARVIS->Anne)" in l for l in lines)
 
 
 # ------------------------------------------------------------------ tek mesaj birlestirme

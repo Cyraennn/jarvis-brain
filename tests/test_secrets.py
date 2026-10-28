@@ -35,14 +35,14 @@ def test_keyring_errors_do_not_raise(monkeypatch):
 def test_persist_pin_prefers_keyring_and_never_touches_env_file(monkeypatch, tmp_path):
     from tools import adb_tool
 
-    monkeypatch.setenv("CYRAEN_ADB_UNLOCK_PIN", "")  # teardown ortami geri yukler
+    monkeypatch.setenv("JARVIS_ADB_UNLOCK_PIN", "")  # teardown ortami geri yukler
     saved = {}
     monkeypatch.setattr(adb_tool, "set_secret", lambda n, v: saved.__setitem__(n, v) or True)
     monkeypatch.setattr(adb_tool, "APP_DIR", tmp_path)
     monkeypatch.setattr(adb_tool, "BASE_DIR", tmp_path)
     res = adb_tool._persist_unlock_pin("12-34 56")
     assert res["store"] == "keyring" and res["digits"] == 6
-    assert saved["CYRAEN_ADB_UNLOCK_PIN"] == "123456"
+    assert saved["JARVIS_ADB_UNLOCK_PIN"] == "123456"
     assert not (tmp_path / ".env").exists()
 
 

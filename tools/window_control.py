@@ -70,7 +70,7 @@ def _normalize(name: str) -> str:
 
 
 def is_protected_exe(exe: str) -> bool:
-    """Asla kapatilmayacak bir surec mi (sistem surecleri + CYRAEN'in kendi python'u)?"""
+    """Asla kapatilmayacak bir surec mi (sistem surecleri + JARVIS'in kendi python'u)?"""
     return (exe or "").strip().lower() in _PROTECTED
 
 

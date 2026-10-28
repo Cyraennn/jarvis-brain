@@ -18,7 +18,7 @@ FAKE_SEARCH = textwrap.dedent('''
 
     INDEX_DIR = Path(__file__).parent / "index"
     CALLS = {"update": 0}
-    WORDS = ["okul", "whatsapp", "disk", "cyraen"]
+    WORDS = ["okul", "whatsapp", "disk", "jarvis"]
 
     def _vec(text):
         v = np.array([text.lower().count(w) for w in WORDS], dtype=np.float32) + 0.01
@@ -49,7 +49,7 @@ FAKE_SEARCH = textwrap.dedent('''
 @pytest.fixture()
 def vs(tmp_path, monkeypatch):
     (tmp_path / "search.py").write_text(FAKE_SEARCH, encoding="utf-8")
-    monkeypatch.setenv("CYRAEN_VAULT_SEARCH_DIR", str(tmp_path))
+    monkeypatch.setenv("JARVIS_VAULT_SEARCH_DIR", str(tmp_path))
     import tools.vault_search as mod
 
     monkeypatch.setattr(mod, "_module", None)
@@ -89,7 +89,7 @@ def test_update_skipped_when_locked(vs):
 def test_missing_tool_returns_error(tmp_path, monkeypatch):
     import tools.vault_search as mod
 
-    monkeypatch.setenv("CYRAEN_VAULT_SEARCH_DIR", str(tmp_path / "yok"))
+    monkeypatch.setenv("JARVIS_VAULT_SEARCH_DIR", str(tmp_path / "yok"))
     monkeypatch.setattr(mod, "_module", None)
     assert "error" in mod.memory_search("x")
     assert "error" in mod.memory_search("  ")

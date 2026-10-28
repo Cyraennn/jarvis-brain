@@ -5,8 +5,8 @@ dosyasi `file://` uzerinden yuklenemedigi icin klasor, yalnizca bu makineden eri
 (127.0.0.1, rastgele port) salt-okunur bir sunucudan verilir.
 
 Kopru (QWebChannel gerekmez, bkz. `web3d/src/bridge.ts`):
-    Qt -> sayfa : window.cyraen.setStats({cpu, ram, disk}) / window.cyraen.dismiss()
-    sayfa -> Qt : document.title = "cyraen:<ready|idle|done|error>:<sayac>"
+    Qt -> sayfa : window.jarvis.setStats({cpu, ram, disk}) / window.jarvis.dismiss()
+    sayfa -> Qt : document.title = "jarvis:<ready|idle|done|error>:<sayac>"
 
 `BootOverlay` ile ayni arayuz: `start()` + `finished` sinyali. Sayfa hazir olmazsa (derleme
 yok, WebGL yok, zaman asimi) kendini kapatir; arayuz acilmaya devam eder.
@@ -68,9 +68,9 @@ def serve(directory: Path = WEB_DIR) -> str:
 
 
 def event_of(title: str) -> str:
-    """"cyraen:done:3" -> "done"; kopru basligi degilse bos metin."""
+    """"jarvis:done:3" -> "done"; kopru basligi degilse bos metin."""
     parts = title.split(":")
-    return parts[1] if len(parts) >= 2 and parts[0] == "cyraen" else ""
+    return parts[1] if len(parts) >= 2 and parts[0] == "jarvis" else ""
 
 
 def available() -> bool:
@@ -113,7 +113,7 @@ class Boot3DOverlay(QWidget):
         lay.addWidget(self._view)
 
         # QtWebEngine'in ilk acilisi birkac saniye surer: o sirada ekran bos kalmasin
-        self._loading = QLabel("C.Y.R.A.E.N  ·  3B ÇEKİRDEK YÜKLENİYOR…", self)
+        self._loading = QLabel("J.A.R.V.I.S  ·  3B ÇEKİRDEK YÜKLENİYOR…", self)
         self._loading.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._loading.setStyleSheet(
             f"color: {theme.ACCENT}; background: {theme.BG_SPACE}; font-size: 15px; letter-spacing: 6px;")
@@ -143,7 +143,7 @@ class Boot3DOverlay(QWidget):
     def dismiss(self) -> None:
         """Kullanici Esc'e basti: sayfa kararip "done" bildirir; hazir degilse hemen kapanir."""
         if self._ready:
-            self._view.page().runJavaScript("window.cyraen && window.cyraen.dismiss()")
+            self._view.page().runJavaScript("window.jarvis && window.jarvis.dismiss()")
         else:
             self._finish()
 
@@ -181,7 +181,7 @@ class Boot3DOverlay(QWidget):
 
     def _push_stats(self) -> None:
         data = {"cpu": self._probe.cpu() or 0.0, "ram": self._probe.ram() or 0.0, "disk": self._probe.disk() or 0.0}
-        self._view.page().runJavaScript(f"window.cyraen && window.cyraen.setStats({json.dumps(data)})")
+        self._view.page().runJavaScript(f"window.jarvis && window.jarvis.setStats({json.dumps(data)})")
 
     def _finish(self) -> None:
         if self._closed:

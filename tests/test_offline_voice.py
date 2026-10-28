@@ -142,7 +142,7 @@ def test_spoken_question_is_answered_aloud_then_session_takes_the_mic_back():
     asyncio.run(run())
 
 
-def test_mic_is_ignored_while_cyraen_is_speaking_or_muted():
+def test_mic_is_ignored_while_jarvis_is_speaking_or_muted():
     async def run():
         stt = FakeSTT({1: "bir sey"})
         eng = _engine(OfflineVoice(stt, FakeTTS()))
@@ -222,7 +222,7 @@ def test_unavailable_backends_degrade_quietly(tmp_path, monkeypatch):
 VOICE = Path(__file__).resolve().parents[1] / "data" / "piper" / "tr_TR-dfki-medium.onnx"
 
 
-@pytest.mark.skipif(os.getenv("CYRAEN_LIVE_TESTS") != "1", reason="gercek vosk + Piper modelleri")
+@pytest.mark.skipif(os.getenv("JARVIS_LIVE_TESTS") != "1", reason="gercek vosk + Piper modelleri")
 def test_live_piper_speech_is_understood_by_vosk():
     tts = LocalTTS(backend="piper", voice_path=VOICE, rate=24000)
     pcm = tts.synthesize("Yarın hangi derslerim var?")

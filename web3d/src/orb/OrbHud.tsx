@@ -87,7 +87,7 @@ export default function OrbHud() {
             title={embedded ? 'Mikrofonu aç / kapat' : 'Konuşma benzetimi'}
           >
             <Wave driven={driven} />
-            <span className="hc-say-hi">“Merhaba Siren” de</span>
+            <span className="hc-say-hi">“Hey JARVIS” de</span>
           </button>
           <p className="hc-status">{status}</p>
         </div>

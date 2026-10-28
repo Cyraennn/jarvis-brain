@@ -30,7 +30,7 @@ MAX_TURNS = 12  # gecmiste tutulan kullanici turu
 PREFIX = "(yerel) "
 
 SYSTEM_PROMPT = (
-    "Sen CYRAEN'sin; Sezai'nin Turkce konusan kisisel asistanisin. Su an CEVRIMDISI "
+    "Sen JARVIS'sin; Sezai'nin Turkce konusan kisisel asistanisin. Su an CEVRIMDISI "
     "moddasin: internet yok, yerel bir model olarak calisiyorsun. Yalnizca sana verilen "
     "araclari kullan; web aramasi, e-posta, telefon ve muzik servisleri YOK - istenirse "
     "internet gelince yapilabilecegini soyle. Kisa ve net yanit ver, 'efendim' diye hitap "
@@ -84,7 +84,7 @@ class OfflineChat:
             answer = await self._run(text)
         self._notify("on_assistant_transcript", PREFIX + answer, True)
         self._log("user", text)
-        self._log("cyraen", PREFIX + answer)
+        self._log("jarvis", PREFIX + answer)
         return answer
 
     async def _run(self, text: str) -> str:

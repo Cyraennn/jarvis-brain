@@ -50,7 +50,7 @@ class TranscriptView(QTextEdit):
         if not text:
             return
         who = "SEN" if role == "user" else theme.branding()["name"]
-        color = theme.USER_COLOR if role == "user" else theme.CYRAEN_COLOR
+        color = theme.USER_COLOR if role == "user" else theme.JARVIS_COLOR
         align = "right" if role == "user" else "left"
         self._append(
             f'<table width="100%" style="margin:6px 0;"><tr><td align="{align}">'

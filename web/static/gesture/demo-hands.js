@@ -2,7 +2,7 @@
 // makeHand testlerde de kullanilir (gercekci 21 nokta, ekran pikselinde).
 (function (root, factory) {
   if (typeof module !== "undefined" && module.exports) module.exports = factory();
-  else root.CyraenDemoHands = factory();
+  else root.JarvisDemoHands = factory();
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 

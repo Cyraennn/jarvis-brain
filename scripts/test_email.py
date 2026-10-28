@@ -48,8 +48,8 @@ def main() -> int:
     if "--send" in sys.argv and ok:
         sr = send_email(
             to=c.address,
-            subject="CYRAEN e-posta testi",
-            body="Bu, CYRAEN'in SMTP baglantisini dogrulamak icin gonderdigi bir test mesajidir.",
+            subject="JARVIS e-posta testi",
+            body="Bu, JARVIS'in SMTP baglantisini dogrulamak icin gonderdigi bir test mesajidir.",
         )
         sok = sr.get("status") == "gonderildi"
         print(f"[{PASS if sok else FAIL}] send_email -> "

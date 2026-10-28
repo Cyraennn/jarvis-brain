@@ -1,4 +1,4 @@
-// CYRAEN HUD katmani (HTML + Tailwind): sade, cercevesiz; 3B sahnenin ustunde durur ve fareyi
+// JARVIS HUD katmani (HTML + Tailwind): sade, cercevesiz; 3B sahnenin ustunde durur ve fareyi
 // sahneye gecirir. Parca etiketleri sahnenin icindedir (scene/Armor.tsx, Callout).
 import { useEffect, useState } from 'react'
 import { useHud, type Stage } from '../store'
@@ -41,7 +41,7 @@ export default function Hud({ onDismiss, countdown }: { onDismiss: () => void; c
     <div className={`pointer-events-none absolute inset-0 overflow-hidden transition-opacity duration-700 ${started ? 'opacity-100' : 'opacity-0'}`}>
       {/* sol ust: ad + durum */}
       <header className="absolute left-8 top-7">
-        <h1 className="text-lg font-semibold tracking-[0.5em] text-ink">C.Y.R.A.E.N</h1>
+        <h1 className="text-lg font-semibold tracking-[0.5em] text-ink">J.A.R.V.I.S</h1>
         <p className={`mt-1 flex items-center gap-2 font-mono text-[0.66rem] tracking-[0.22em] ${online ? 'text-mint' : 'text-gold'}`}>
           <span className={`h-1.5 w-1.5 rounded-full ${online ? 'bg-mint' : 'bg-gold hud-blink'}`} />
           {online ? 'ÇEVRİMİÇİ' : `BAŞLATILIYOR · %${power}`}

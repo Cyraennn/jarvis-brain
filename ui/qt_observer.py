@@ -92,7 +92,7 @@ class QtEngineObserver(QObject, EngineObserver):
     def on_assistant_transcript(self, text: str, final: bool) -> None:
         self._emit("assistant_transcript", text, bool(final))
         if final and text.strip():
-            BUS.push("transcript", {"who": "cyraen", "text": text, "ts": 0})
+            BUS.push("transcript", {"who": "jarvis", "text": text, "ts": 0})
 
     def on_tool_call(self, names: list[str]) -> None:
         self._emit("tool_call", list(names))

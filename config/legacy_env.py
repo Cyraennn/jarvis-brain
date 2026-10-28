@@ -1,8 +1,9 @@
-"""Eski ad (JARVIS) ile yazilmis ortam degiskenlerini yeni ada (CYRAEN) tasir.
+"""Gecici ad (CYRAEN) ile yazilmis ortam degiskenlerini asil ada (JARVIS) tasir.
 
-Asistanin adi JARVIS -> CYRAEN oldu; tum kod artik `CYRAEN_*` okur. Eski bir `.env`
-(sunucu, lab paketi, uzak istemci) hala `JARVIS_*` icerebilir. `.env` yuklendikten
-hemen sonra bu fonksiyon cagrilir: `CYRAEN_X` yoksa `JARVIS_X` degeri ona kopyalanir.
+Asistanin adi kisa bir sure CYRAEN oldu, sonra yeniden JARVIS'e dondu; tum kod `JARVIS_*`
+okur. O donemde yazilmis bir `.env` (sunucu, lab paketi, uzak istemci) hala `CYRAEN_*`
+icerebilir. `.env` yuklendikten hemen sonra bu fonksiyon cagrilir: `JARVIS_X` yoksa
+`CYRAEN_X` degeri ona kopyalanir.
 Yeni ad her zaman onceliklidir.
 """
 
@@ -10,12 +11,12 @@ from __future__ import annotations
 
 import os
 
-LEGACY_PREFIX = "JARVIS_"
-PREFIX = "CYRAEN_"
+LEGACY_PREFIX = "CYRAEN_"
+PREFIX = "JARVIS_"
 
 
 def alias_legacy_env(environ: dict[str, str] | None = None) -> list[str]:
-    """`JARVIS_*` -> `CYRAEN_*` (yalniz yeni ad tanimsizsa). Tasinan yeni adlari doner."""
+    """`CYRAEN_*` -> `JARVIS_*` (yalniz yeni ad tanimsizsa). Tasinan yeni adlari doner."""
     env = os.environ if environ is None else environ
     moved = []
     for key in list(env):

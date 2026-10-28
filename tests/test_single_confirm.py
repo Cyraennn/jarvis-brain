@@ -5,11 +5,11 @@ import asyncio
 import threading
 import time
 
-from client.core import CyraenClient, _accepts_cancel
+from client.core import JarvisClient, _accepts_cancel
 
 
-def _client_with_outbox() -> tuple[CyraenClient, list[dict]]:
-    client = CyraenClient("ws://x/ws", "x")
+def _client_with_outbox() -> tuple[JarvisClient, list[dict]]:
+    client = JarvisClient("ws://x/ws", "x")
     sent: list[dict] = []
 
     async def fake_send(msg: dict) -> None:

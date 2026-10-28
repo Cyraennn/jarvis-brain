@@ -1,4 +1,4 @@
-"""CYRAEN sunucu <-> istemci WebSocket protokolu (tek dogruluk kaynagi).
+"""JARVIS sunucu <-> istemci WebSocket protokolu (tek dogruluk kaynagi).
 
 Hem `server/` hem `client/` bu modulu kullanir; biri degisirse digeri otomatik uyar.
 

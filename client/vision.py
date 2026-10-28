@@ -14,11 +14,11 @@ from typing import Any
 
 from loguru import logger
 
-from client.core import CyraenClient
+from client.core import JarvisClient
 
 
 class VisionLink:
-    def __init__(self, client: CyraenClient, *, screen_interval: float = 1.2,
+    def __init__(self, client: JarvisClient, *, screen_interval: float = 1.2,
                  webcam_interval: float = 1.5) -> None:
         self.client = client
         self.screen_interval = screen_interval

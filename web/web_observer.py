@@ -54,7 +54,7 @@ class WebEngineObserver(EngineObserver):
 
     def on_assistant_transcript(self, text: str, final: bool) -> None:
         if final and text.strip():
-            BUS.push("transcript", {"who": "cyraen", "text": text, "ts": 0})
+            BUS.push("transcript", {"who": "jarvis", "text": text, "ts": 0})
 
     def on_tool_call(self, names: list[str]) -> None:
         BUS.push("tool_call", {"names": list(names)})

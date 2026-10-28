@@ -1,4 +1,4 @@
-"""MCP istemcisi: CYRAEN'i herhangi bir Model Context Protocol sunucusuna baglar.
+"""MCP istemcisi: JARVIS'i herhangi bir Model Context Protocol sunucusuna baglar.
 
 Sunucular `config/mcp_servers.json` dosyasinda Claude Desktop bicimiyle tanimlanir:
 
@@ -169,7 +169,7 @@ class _Connection:
                 logger.info(f"[MCP] {spec.name} bagli ({len(self.tools)} arac)")
                 self._ready.set()
                 await self._stop.wait()
-        except Exception as exc:  # noqa: BLE001 - sunucu hatasi CYRAEN'i cokertmez
+        except Exception as exc:  # noqa: BLE001 - sunucu hatasi JARVIS'i cokertmez
             self.error = f"{type(exc).__name__}: {exc}"
             logger.warning(f"[MCP] {spec.name} baglanti hatasi: {self.error}")
         finally:
@@ -274,7 +274,7 @@ class MCPHub:
     # ------------------------------------------------------------ sync API
     def servers(self) -> dict[str, Any]:
         if not get_settings().mcp_enabled:
-            return {"error": "MCP kapali (.env CYRAEN_MCP=false)."}
+            return {"error": "MCP kapali (.env JARVIS_MCP=false)."}
         if not self.specs:
             return {
                 "servers": [],
@@ -298,7 +298,7 @@ class MCPHub:
 
     def _check_server(self, server: str) -> dict[str, Any] | None:
         if not get_settings().mcp_enabled:
-            return {"error": "MCP kapali (.env CYRAEN_MCP=false)."}
+            return {"error": "MCP kapali (.env JARVIS_MCP=false)."}
         spec = self.specs.get(server)
         if spec is None:
             return {"error": f"Bilinmeyen MCP sunucusu: '{server}'. Mevcut: {', '.join(self.specs) or 'yok'}"}
@@ -440,13 +440,13 @@ def mcp_list_tools(server: str, query: str = "") -> dict[str, Any]:
 
 def mcp_call_readonly(server: str, tool: str, arguments_json: str = "") -> dict[str, Any]:
     """Bir MCP sunucusundaki araci cagirir. arguments_json, aracin parametrelerini iceren JSON nesnesidir
-    (orn. {"query": "x"}). Yazan/silen/gonderen araclar yalnizca sesli CYRAEN onayiyla calisir."""
+    (orn. {"query": "x"}). Yazan/silen/gonderen araclar yalnizca sesli JARVIS onayiyla calisir."""
     hub = get_hub()
     if (err := hub.ensure_connected(server)) is not None:
         return err
     if hub.needs_confirm((server or "").strip(), (tool or "").strip()):
         return {"error": "Bu MCP islemi kullanici onayi ister; ajan calistiramaz. "
-                         "Kullaniciya CYRAEN'e sesli olarak yaptirmasini oner."}
+                         "Kullaniciya JARVIS'e sesli olarak yaptirmasini oner."}
     return hub.call(server, tool, arguments_json)
 
 

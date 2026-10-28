@@ -4,7 +4,7 @@ WhatsApp kolunun (core/whatsapp_handler.py) hafif kardesi:
 
 * **Long-poll.** `getUpdates` (timeout 25 sn) httpx.AsyncClient ile; event loop tikanmaz.
 * **Kopru aynasi.** Her gelen mesaj `[TELEGRAM] kisi: metin`, her otomatik yanit
-  `[TELEGRAM] (CYRAEN->kisi): metin` olarak `bridge/outbox.txt`'e yazilir -> BrainEngine
+  `[TELEGRAM] (JARVIS->kisi): metin` olarak `bridge/outbox.txt`'e yazilir -> BrainEngine
   bunlari canli oturuma enjekte eder (sesli bildirim).
 * **Otomatik yanit YALNIZCA izinli sohbetlere** (TELEGRAM_ALLOWED_CHAT_IDS; bos ise
   TELEGRAM_DEFAULT_CHAT_ID). Digerleri sadece kopruye bildirilir.
@@ -31,7 +31,7 @@ REPLY_TIMEOUT_S = 50.0
 MAX_BACKOFF_S = 60.0
 
 PERSONA = (
-    "Sen CYRAEN'sin - Sezai'nin (DEU BOTE ogrencisi) kisisel yapay zeka asistani. "
+    "Sen JARVIS'sin - Sezai'nin (DEU BOTE ogrencisi) kisisel yapay zeka asistani. "
     "Telegram'da Sezai adina, onun samimi ve kisa uslubuyla Turkce yaziyorsun. "
     "Mesajlar kisa olsun (1-3 cumle), emoji abartma, resmi dil kullanma."
 )
@@ -162,7 +162,7 @@ class TelegramHandler:
         )
         if resp.status_code == 200:
             self._memory.add(chat_id, "assistant", reply)
-            mirror_to_bridge(f"[TELEGRAM] (CYRAEN->{who}): {reply[:200]}")
+            mirror_to_bridge(f"[TELEGRAM] (JARVIS->{who}): {reply[:200]}")
         else:
             logger.warning(f"[TG] yanit gonderilemedi: HTTP {resp.status_code}")
 

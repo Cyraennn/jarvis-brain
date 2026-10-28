@@ -1,4 +1,4 @@
-# FUTBOL ANALİSTİ MODÜLÜ (CYRAEN Futbol Motoru)
+# FUTBOL ANALİSTİ MODÜLÜ (JARVIS Futbol Motoru)
 
 Bu modül, kullanıcı futbolla ilgili bir konu actığında (takımlar, maçlar, taktikler,
 transferler, skor/sonuç tahmini, lig durumu, oyuncu performansı) devreye girer.

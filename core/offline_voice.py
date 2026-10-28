@@ -31,14 +31,14 @@ _SAPI_SCRIPT = (
     "Add-Type -AssemblyName System.Speech;"
     "$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;"
     "$v = $s.GetInstalledVoices() | Where-Object { $_.Enabled -and "
-    "$_.VoiceInfo.Culture.Name -like ($env:CYRAEN_TTS_LANG + '*') } | Select-Object -First 1;"
+    "$_.VoiceInfo.Culture.Name -like ($env:JARVIS_TTS_LANG + '*') } | Select-Object -First 1;"
     "if ($null -eq $v) { exit 3 };"
     "$s.SelectVoice($v.VoiceInfo.Name);"
     "$f = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo("
-    "[int]$env:CYRAEN_TTS_RATE, [System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen, "
+    "[int]$env:JARVIS_TTS_RATE, [System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen, "
     "[System.Speech.AudioFormat.AudioChannel]::Mono);"
-    "$s.SetOutputToWaveFile($env:CYRAEN_TTS_OUT, $f);"
-    "$s.Speak($env:CYRAEN_TTS_TEXT);"
+    "$s.SetOutputToWaveFile($env:JARVIS_TTS_OUT, $f);"
+    "$s.Speak($env:JARVIS_TTS_TEXT);"
     "$s.Dispose()"
 )
 
@@ -84,7 +84,7 @@ class LocalSTT:
         return self.available
 
     def reset(self) -> None:
-        """Yarim kalmis cumleyi at (CYRAEN konustuktan sonra kendi sesini duymasin)."""
+        """Yarim kalmis cumleyi at (JARVIS konustuktan sonra kendi sesini duymasin)."""
         if self._model is not None:
             from vosk import KaldiRecognizer
 
@@ -171,10 +171,10 @@ class LocalTTS:
     def _sapi(self, text: str) -> bytes:
         if sys.platform != "win32":
             return b""
-        fd, path = tempfile.mkstemp(suffix=".wav", prefix="cyraen_tts_")
+        fd, path = tempfile.mkstemp(suffix=".wav", prefix="jarvis_tts_")
         os.close(fd)
-        env = {**os.environ, "CYRAEN_TTS_TEXT": text, "CYRAEN_TTS_OUT": path,
-               "CYRAEN_TTS_RATE": str(self.rate), "CYRAEN_TTS_LANG": self.lang}
+        env = {**os.environ, "JARVIS_TTS_TEXT": text, "JARVIS_TTS_OUT": path,
+               "JARVIS_TTS_RATE": str(self.rate), "JARVIS_TTS_LANG": self.lang}
         # PowerShell 7 (pwsh) Windows'un yeni "OneCore" seslerini de (or. Turkce Tolga) gorur;
         # eski Windows PowerShell yalniz klasik SAPI seslerini listeler.
         shell = shutil.which("pwsh") or "powershell"

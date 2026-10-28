@@ -1,4 +1,4 @@
-"""Kisilik modlari (CYRAEN / FRIDAY / ULTRON): secim, prompt, ses, robotik efekt, motor gecisi."""
+"""Kisilik modlari (JARVIS / FRIDAY / ULTRON): secim, prompt, ses, robotik efekt, motor gecisi."""
 import asyncio
 from types import SimpleNamespace
 
@@ -18,27 +18,27 @@ def settings(tmp_path):
     return s
 
 
-def test_selection_persists_and_unknown_falls_back_to_cyraen(settings):
-    assert personas.load_active(settings).key == "cyraen"  # dosya yok
+def test_selection_persists_and_unknown_falls_back_to_jarvis(settings):
+    assert personas.load_active(settings).key == "jarvis"  # dosya yok
     personas.save_active(settings, "ultron")
     assert personas.load_active(settings).key == "ultron"
     (settings.data_dir / "persona.json").write_text("bozuk{", encoding="utf-8")
-    assert personas.load_active(settings).key == "cyraen"
-    assert personas.get(settings, "yok").key == "cyraen"
+    assert personas.load_active(settings).key == "jarvis"
+    assert personas.get(settings, "yok").key == "jarvis"
 
 
 def test_each_persona_has_its_own_voice_and_only_ultron_is_robotic(settings):
     table = personas.modes(settings)
-    assert [m.key for m in table.values()] == ["cyraen", "friday", "ultron"]
+    assert [m.key for m in table.values()] == ["jarvis", "friday", "ultron"]
     assert len({m.voice_name for m in table.values()}) == 3
-    assert table["cyraen"].voice_name == settings.voice_name
+    assert table["jarvis"].voice_name == settings.voice_name
     assert [k for k, m in table.items() if m.audio_effect] == ["ultron"]
     settings.ultron_fx = False
     assert personas.get(settings, "ultron").audio_effect == ""
 
 
 @pytest.mark.parametrize("key, marker", [
-    ("cyraen", "Sen CYRAEN'sin"),
+    ("jarvis", "Sen JARVIS'sin"),
     ("friday", "Sen FRIDAY'sin"),
     ("ultron", "Sen ULTRON'sun"),
 ])
@@ -46,7 +46,7 @@ def test_prompt_swaps_identity_but_keeps_capabilities(settings, key, marker):
     text = settings.load_system_prompt(key)
     assert text.startswith(marker)
     assert "YETENEKLER" in text and "send_email" in text  # arac kurallari herkeste ortak
-    others = {"cyraen": "Sen CYRAEN'sin", "friday": "Sen FRIDAY'sin", "ultron": "Sen ULTRON'sun"}
+    others = {"jarvis": "Sen JARVIS'sin", "friday": "Sen FRIDAY'sin", "ultron": "Sen ULTRON'sun"}
     assert not any(v in text for k, v in others.items() if k != key)
 
 
@@ -55,8 +55,8 @@ def test_ultron_prompt_still_obeys_in_the_end(settings):
     assert "SONUNDA HER ZAMAN" in text and "onay al" in text
 
 
-def test_missing_persona_file_falls_back_to_cyraen(settings):
-    assert settings.load_system_prompt("bilinmeyen").startswith("Sen CYRAEN'sin")
+def test_missing_persona_file_falls_back_to_jarvis(settings):
+    assert settings.load_system_prompt("bilinmeyen").startswith("Sen JARVIS'sin")
 
 
 # ------------------------------------------------------------------ robotik ses

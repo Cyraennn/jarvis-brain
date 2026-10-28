@@ -11,7 +11,7 @@ Isler (job):
                           (core/scheduler.py dosya tabanli mantigi; sesli komutla kurulanlar)
   * ``morning_briefing``- her gun `morning_briefing_time` (varsayilan 08:30): hava, bugunku
                           hatirlaticilar, okunmamis mailler, odevler -> model ozetler ->
-                          CYRAEN sesli soyler + Telegram/WhatsApp/ntfy'ye gonderir
+                          JARVIS sesli soyler + Telegram/WhatsApp/ntfy'ye gonderir
   * ``health_check``    - her `health_check_interval_min` dk: CPU/RAM/disk; esik asilirsa uyari
   * ``daily_summary``   - her gun `daily_summary_time` (varsayilan 23:30): gunun konusma/not/
                           gorevlerinden Obsidian'a sessizce gun sonu ozeti (core/daily_summary.py);
@@ -371,7 +371,7 @@ class SchedulerHandler:
         """Bilgileri kisa bir gunaydin mesajina cevirir: OpenRouter ('briefing' kanali) ->
         Gemini -> sablon. Model yoksa bile mesaj gider."""
         system = (
-            "Sen CYRAEN'sin, Sezai'nin kisisel asistani. Verilen JSON'dan Turkce, sicak ve kisa "
+            "Sen JARVIS'sin, Sezai'nin kisisel asistani. Verilen JSON'dan Turkce, sicak ve kisa "
             "(en fazla 6 satir) bir gunaydin ozeti yaz: hava, bugunku hatirlaticilar, onemli "
             "okunmamis mailler, odevler. 'gece_gorevleri' varsa her gorev icin bir cumlelik "
             "sonuc ekle (bu kisim icin +6 satir serbest) ve detaylarin Obsidian'daki gunluk "
@@ -496,7 +496,7 @@ class SchedulerHandler:
             return ""
         if scan["reclaimable_mb"] < 500:
             return ""
-        return f"{scan_summary(scan)}. 'CYRAEN temizlik yap' de."
+        return f"{scan_summary(scan)}. 'JARVIS temizlik yap' de."
 
     async def daily_summary(self) -> Path | None:
         """Bugunun gun sonu ozetini Obsidian'a yazar (sessiz; sesli okunmaz)."""
@@ -523,7 +523,7 @@ class SchedulerHandler:
         text = (f"Haftalik bakim: C: %{disk['used_percent']:.0f} dolu, {disk['free_gb']:.0f} GB bos. "
                 f"{scan_summary(scan)}.")
         if scan["reclaimable_mb"] >= 1024:
-            text += " Temizlik icin 'CYRAEN temizlik yap' de."
+            text += " Temizlik icin 'JARVIS temizlik yap' de."
         await asyncio.to_thread(append_note, text)
         await self.broadcaster.broadcast(text)
         return {"text": text, "scan": scan}

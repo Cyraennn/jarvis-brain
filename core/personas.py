@@ -1,4 +1,4 @@
-"""Canli beynin kisilik modlari: CYRAEN / FRIDAY / ULTRON.
+"""Canli beynin kisilik modlari: JARVIS / FRIDAY / ULTRON.
 
 Uc mod da ayni Gemini Live oturumunu kullanir; degisen yalnizca sistem promptunun
 kimlik bolumu (prompts/personas/<key>.md), Gemini hazir sesi ve istege bagli ses
@@ -18,9 +18,9 @@ from typing import Any
 
 from loguru import logger
 
-DEFAULT_KEY = "cyraen"
+DEFAULT_KEY = "jarvis"
 # Ad degisikligi oncesi kayitli anahtarlar (data/persona.json, eski istemciler)
-_LEGACY_KEYS = {"jarvis": "cyraen"}
+_LEGACY_KEYS = {"cyraen": "jarvis"}
 _STATE_FILE = "persona.json"
 
 
@@ -35,7 +35,7 @@ class PersonaMode:
 
 # (anahtar, ad, renk) - HUD'daki cip sirasi
 CHIPS: tuple[tuple[str, str, str], ...] = (
-    ("cyraen", "CYRAEN", "#3da9fc"),
+    ("jarvis", "JARVIS", "#3da9fc"),
     ("friday", "FRIDAY", "#2ee59d"),
     ("ultron", "ULTRON", "#ff3b3b"),
 )
@@ -43,7 +43,7 @@ CHIPS: tuple[tuple[str, str, str], ...] = (
 
 def modes(settings: Any) -> dict[str, PersonaMode]:
     voices = {
-        "cyraen": getattr(settings, "voice_name", "Puck"),
+        "jarvis": getattr(settings, "voice_name", "Puck"),
         "friday": getattr(settings, "friday_voice", "Kore"),
         "ultron": getattr(settings, "ultron_voice", "Charon"),
     }

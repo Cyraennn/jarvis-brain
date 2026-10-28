@@ -1,7 +1,7 @@
 """Mobil-uyumlu tek sayfa web konsolu (Iron Man HUD temasi).
 
-Telefondan CYRAEN ile YAZILI ve SESLI (cift yonlu) gorusme:
-  - "Telefon gorusmesi" modu: mikrofon surekli dinler, CYRAEN yaniti telefonda
+Telefondan JARVIS ile YAZILI ve SESLI (cift yonlu) gorusme:
+  - "Telefon gorusmesi" modu: mikrofon surekli dinler, JARVIS yaniti telefonda
     sesli okunur (Web Speech API - SpeechSynthesis). Konusurken mikrofon durur (eko).
   - "Uzak mod": PC'nin mikrofonu + hoparloru susturulur; gorusme tamamen telefonden.
 """
@@ -14,14 +14,14 @@ _HTML = r"""<!doctype html><html lang="tr"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#05070d">
-<title>CYRAEN</title>
+<title>JARVIS</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/favicon.ico">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="CYRAEN">
+<meta name="apple-mobile-web-app-title" content="JARVIS">
 <style>
 :root{--bg:#05070d;--panel:#0b1120;--card:#0d1220;--border:#16233a;--cyan:#34e3f0;
 --gold:#ffb84d;--mystic:#b47cff;--text:#cfe6ef;--dim:#7f97a6;--good:#3ff5b0;--bad:#ff5c72}
@@ -40,7 +40,7 @@ border:1px solid var(--border);border-radius:10px;color:var(--dim)}
 .msg{padding:8px 11px;border-radius:11px;border:1px solid var(--border);background:var(--card);line-height:1.35}
 .msg .who{font-family:monospace;font-size:9px;letter-spacing:2px;font-weight:700;margin-bottom:3px}
 .msg.user{align-self:flex-end;max-width:85%}.msg.user .who{color:#82b1ff}
-.msg.cyraen{align-self:flex-start;max-width:92%}.msg.cyraen .who{color:var(--gold)}
+.msg.jarvis{align-self:flex-start;max-width:92%}.msg.jarvis .who{color:var(--gold)}
 .msg.sys{align-self:center;font-size:12px;color:var(--dim);border-style:dashed}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .agent{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px;font-size:12px}
@@ -103,7 +103,7 @@ background:var(--card);color:var(--cyan);font-size:19px;display:flex;align-items
     <button class="tog away" id="tAway">&#128246; Uzak mod (PC sessiz)</button>
     <button class="tog" id="tWake">&#128066; __WAKE_PHRASE__ (PC uyandirma)</button>
     <button class="tog" id="install" style="display:none">&#11015; Uygulamayi yukle</button>
-  </div><div class="empty" id="callHint" style="margin-top:8px">Telefon gorusmesini ac: mikrofon surekli dinler, CYRAEN telefonda sesli yanit verir.</div></div>
+  </div><div class="empty" id="callHint" style="margin-top:8px">Telefon gorusmesini ac: mikrofon surekli dinler, JARVIS telefonda sesli yanit verir.</div></div>
   <div class="sec"><h2>KONUSMA</h2><div id="log"><div class="empty">Henuz mesaj yok. Asagidan yaz veya mikrofona bas.</div></div></div>
   <div class="sec"><h2>HIZLI</h2><div class="quick" id="quick"></div></div>
   <div class="sec"><h2>KITAPLIK</h2>
@@ -122,7 +122,7 @@ background:var(--card);color:var(--cyan);font-size:19px;display:flex;align-items
   <div class="sec"><h2>DEPARTMAN & AJANLAR</h2><div class="grid" id="agents"><div class="empty">yukleniyor...</div></div></div>
 </div>
 <div class="bar">
-  <input id="inp" placeholder="CYRAEN'e yaz..." autocomplete="off">
+  <input id="inp" placeholder="JARVIS'e yaz..." autocomplete="off">
   <button class="icon" id="mic" title="Sesli komut">&#127908;</button>
   <button class="icon" id="send" title="Gonder">&#10148;</button>
 </div>
@@ -171,8 +171,8 @@ function renderState(s){
   confirmations=s.confirmations||[];renderConfirms();
   const log=q('#log');
   if(s.transcript&&s.transcript.length){log.innerHTML='';for(const m of s.transcript){
-    addMsg(m.who==='user'?'SEN':(m.who==='sys'?'SISTEM':'CYRAEN'),m.text,
-      m.who==='user'?'user':(m.who==='sys'?'sys':'cyraen'));}}
+    addMsg(m.who==='user'?'SEN':(m.who==='sys'?'SISTEM':'JARVIS'),m.text,
+      m.who==='user'?'user':(m.who==='sys'?'sys':'jarvis'));}}
   if(typeof s.away==='boolean'&&s.away!==awayOn){awayOn=s.away;q('#tAway').classList.toggle('on',awayOn);}
   if(typeof s.wake==='boolean'){wakeOn=s.wake;q('#tWake').classList.toggle('on',wakeOn);}
   const ag=q('#agents');const names=Object.values(s.agents||{});
@@ -196,7 +196,7 @@ const qd=q('#quick');QUICK.forEach(([lbl,cmd])=>{const b=document.createElement(
   b.textContent=lbl;b.onclick=()=>say(cmd);qd.appendChild(b);});
 
 function say(text){text=(text||'').trim();if(!text)return;
-  // eko: CYRAEN'in az once soyledigi cumleyi geri gondermeyelim
+  // eko: JARVIS'in az once soyledigi cumleyi geri gondermeyelim
   if(callMode&&lastSpoken&&similar(text,lastSpoken)){return;}
   addMsg('SEN',text,'user');
   api('/api/say',{text}).catch(()=>addMsg('SISTEM','gonderilemedi','sys'));q('#inp').value='';}
@@ -228,9 +228,9 @@ function connectSSE(){const ev=new EventSource('/api/events?key='+encodeURICompo
     if(evt.kind==='kitaplik.degisti'){libLoad();}
     if(evt.kind==='transcript'){
       const m=evt.data;
-      addMsg(m.who==='user'?'SEN':(m.who==='sys'?'SISTEM':'CYRAEN'),m.text,
-        m.who==='user'?'user':(m.who==='sys'?'sys':'cyraen'));
-      if(m.who==='cyraen')speak(m.text);
+      addMsg(m.who==='user'?'SEN':(m.who==='sys'?'SISTEM':'JARVIS'),m.text,
+        m.who==='user'?'user':(m.who==='sys'?'sys':'jarvis'));
+      if(m.who==='jarvis')speak(m.text);
     }
     else if(evt.kind==='snapshot'){renderState(evt.data);}
     else if(evt.kind==='connection'){q('#conn').textContent=evt.data;}
@@ -275,8 +275,8 @@ q('#tCall').onclick=()=>{
   q('#tCall').classList.toggle('on',callMode);
   q('#mic').classList.toggle('call',callMode);
   q('#callHint').textContent=callMode
-    ?'Gorusme ACIK. Konusun; CYRAEN telefonda sesli yanit verir. Kapatmak icin tekrar dokunun.'
-    :'Telefon gorusmesini ac: mikrofon surekli dinler, CYRAEN telefonda sesli yanit verir.';
+    ?'Gorusme ACIK. Konusun; JARVIS telefonda sesli yanit verir. Kapatmak icin tekrar dokunun.'
+    :'Telefon gorusmesini ac: mikrofon surekli dinler, JARVIS telefonda sesli yanit verir.';
   keepAwake(callMode);
   if(callMode){ if('speechSynthesis' in window){speechSynthesis.resume();} startRec(); }
   else{ stopRec(); }
@@ -330,15 +330,15 @@ function libEditor(b){
   e.innerHTML='<div class="row"><select class="du">'+Object.keys(DUR).map(k=>'<option value="'+k+'"'+(b.durum===k?' selected':'')+'>'+DUR[k]+'</option>').join('')+
     '</select><input class="sa" type="number" min="0" placeholder="Sayfa" value="'+(b.sayfa||'')+'"><button class="sv">Kaydet</button></div>'+
     '<div class="row"><input class="nt" placeholder="Not ya da alinti..."><button class="an">+ Not</button><button class="aq">+ Alinti</button></div>'+
-    '<div class="row"><button class="jd">'+(dfl?'Cyraen yeniden yazsin':'Cyraen doldursun')+'</button><button class="cv">Kapak yukle</button><button class="rm">Sil</button></div>'+
-    '<div class="empty dz">'+(dfl?(dfl.bilinmiyor?'Cyraen bu kitabi tanimiyor.':esc(dfl.ozet||'')):'Henuz Cyraen ozeti yok.')+'</div>';
+    '<div class="row"><button class="jd">'+(dfl?'Jarvis yeniden yazsin':'Jarvis doldursun')+'</button><button class="cv">Kapak yukle</button><button class="rm">Sil</button></div>'+
+    '<div class="empty dz">'+(dfl?(dfl.bilinmiyor?'Jarvis bu kitabi tanimiyor.':esc(dfl.ozet||'')):'Henuz Jarvis ozeti yok.')+'</div>';
   const notes=[...(b.notlar||[]).map((n,i)=>['not',i,n.metin]),...(b.alintilar||[]).map((n,i)=>['alinti',i,'“'+n.metin+'”'])];
   for(const [tur,i,m] of notes){const n=document.createElement('div');n.className='note';n.innerHTML=esc(m)+'<b title="sil">&#10005;</b>';
     n.querySelector('b').onclick=()=>libOp({islem:'not_sil',id:b.id,tur,index:i});e.appendChild(n);}
   e.querySelector('.sv').onclick=()=>libOp({islem:'guncelle',id:b.id,durum:e.querySelector('.du').value,sayfa:e.querySelector('.sa').value});
   const addNote=tur=>{const v=e.querySelector('.nt').value.trim();if(v)libOp({islem:tur,id:b.id,metin:v});};
   e.querySelector('.an').onclick=()=>addNote('not');e.querySelector('.aq').onclick=()=>addNote('alinti');
-  e.querySelector('.jd').onclick=()=>{e.querySelector('.dz').textContent='Cyraen yaziyor...';
+  e.querySelector('.jd').onclick=()=>{e.querySelector('.dz').textContent='Jarvis yaziyor...';
     api('/api/kitaplik/defter',{id:b.id,force:!!dfl}).then(r=>{if(r.error)throw r.error;libLoad();}).catch(x=>{e.querySelector('.dz').textContent='Yazilamadi: '+x;});};
   e.querySelector('.cv').onclick=()=>{coverFor=b.id;q('#libCover').click();};
   e.querySelector('.rm').onclick=()=>{if(confirm(b.ad+' silinsin mi?'))libOp({islem:'sil',id:b.id});};
@@ -392,9 +392,9 @@ def render_manifest(token: str = "") -> str:
     start = f"/?key={token}&pwa=1" if token else "/?pwa=1"
     return _json.dumps(
         {
-            "name": "CYRAEN",
-            "short_name": "CYRAEN",
-            "description": "CYRAEN sesli asistan - telefon konsolu",
+            "name": "JARVIS",
+            "short_name": "JARVIS",
+            "description": "JARVIS sesli asistan - telefon konsolu",
             "lang": "tr",
             "start_url": start,
             "scope": "/",
@@ -415,7 +415,7 @@ def render_manifest(token: str = "") -> str:
 
 
 PWA_SERVICE_WORKER = r"""
-const C = 'cyraen-shell-v1';
+const C = 'jarvis-shell-v1';
 const SHELL = ['/', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

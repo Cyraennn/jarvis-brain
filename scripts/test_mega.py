@@ -105,8 +105,8 @@ async def main() -> int:
     try:
         from agents.gbrain.store import get_gbrain
         gb = get_gbrain()
-        await gb.write("Mega test notu", "CYRAEN'in favori rengi camgobegi (cyan).", ["test"])
-        hits = await gb.search("CYRAEN favori renk")
+        await gb.write("Mega test notu", "JARVIS'in favori rengi camgobegi (cyan).", ["test"])
+        hits = await gb.search("JARVIS favori renk")
         check(any("camgobegi" in h["content"] for h in hits), "GBrain write+search",
               f"{len(hits)} sonuc")
     except Exception as exc:  # noqa: BLE001
@@ -116,7 +116,7 @@ async def main() -> int:
     from tools.code_tools import run_python
     rp = run_python("print(2**10)")
     if rp.get("error", "").startswith("Kod calistirma kapali"):
-        skip("run_python", "kapali (.env CYRAEN_CODE_EXEC=true)")
+        skip("run_python", "kapali (.env JARVIS_CODE_EXEC=true)")
     else:
         check(rp.get("stdout", "").strip() == "1024", "run_python", rp.get("stdout"))
 

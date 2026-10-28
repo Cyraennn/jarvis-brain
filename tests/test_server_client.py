@@ -1,4 +1,4 @@
-"""Sunucu (FastAPI) + istemci cekirdegi: GERCEK uvicorn + GERCEK CyraenClient, tek dongude.
+"""Sunucu (FastAPI) + istemci cekirdegi: GERCEK uvicorn + GERCEK JarvisClient, tek dongude.
 
 Gemini'ye cikilmaz: motor sahte (FakeEngine), model testi kapali.
 """
@@ -16,11 +16,11 @@ from pathlib import Path
 import pytest
 import uvicorn
 
-from client.core import CyraenClient
+from client.core import JarvisClient
 from config.settings import Settings
 from server.app import create_app
 from server.config import ServerConfig, server_settings
-from server.runtime import CyraenRuntime
+from server.runtime import JarvisRuntime
 from server.telegram import TelegramNotifier
 from web.web_observer import WebEngineObserver
 
@@ -77,9 +77,9 @@ def _cfg(port: int = 0) -> ServerConfig:
                         probe_models=False)
 
 
-def _runtime() -> CyraenRuntime:
+def _runtime() -> JarvisRuntime:
     settings = server_settings(Settings(gemini_api_key="test"), _cfg())
-    rt = CyraenRuntime(settings, _cfg(), TelegramNotifier())
+    rt = JarvisRuntime(settings, _cfg(), TelegramNotifier())
     rt.broker.settle_s = 0.3
     engine = FakeEngine(rt.broker)
     rt.engine = engine
@@ -87,7 +87,7 @@ def _runtime() -> CyraenRuntime:
     return rt
 
 
-async def _start(rt: CyraenRuntime):
+async def _start(rt: JarvisRuntime):
     rt.hub.attach_loop(asyncio.get_running_loop())
     server = uvicorn.Server(uvicorn.Config(create_app(rt), host="127.0.0.1", port=0, log_config=None,
                                            lifespan="off"))
@@ -165,7 +165,7 @@ def test_ws_action_confirm_command_and_missing_client():
     async def scenario():
         rt = _runtime()
         server, serve, pump, port = await _start(rt)
-        client = CyraenClient(f"ws://127.0.0.1:{port}/ws", TOKEN, name="test-pc", kind="desktop")
+        client = JarvisClient(f"ws://127.0.0.1:{port}/ws", TOKEN, name="test-pc", kind="desktop")
         calls = []
 
         def list_processes(top_n: int = 12) -> dict:
@@ -216,7 +216,7 @@ def test_ws_rejects_bad_token_and_client_stops_retrying():
     async def scenario():
         rt = _runtime()
         server, serve, pump, port = await _start(rt)
-        client = CyraenClient(f"ws://127.0.0.1:{port}/ws", "yanlis-token-" + "x" * 30)
+        client = JarvisClient(f"ws://127.0.0.1:{port}/ws", "yanlis-token-" + "x" * 30)
         try:
             await asyncio.wait_for(client.run(), 10)      # AuthRejected -> run() doner, sonsuz deneme yok
             return client.connect_count, rt.hub.clients()
@@ -231,7 +231,7 @@ def test_client_reconnects_with_backoff_after_server_restart():
     async def scenario():
         rt = _runtime()
         server, serve, pump, port = await _start(rt)
-        client = CyraenClient(f"ws://127.0.0.1:{port}/ws", TOKEN, max_backoff=0.5)
+        client = JarvisClient(f"ws://127.0.0.1:{port}/ws", TOKEN, max_backoff=0.5)
         task = asyncio.create_task(client.run())
         await asyncio.wait_for(client.connected.wait(), 5)
         await _stop(rt, server, serve, pump)                       # sunucu gitti
@@ -276,17 +276,17 @@ def test_remote_tools_keep_server_side_confirmation():
         assert sent == [("tools.system_tools.kill_process", {"name": "chrome"})]
         # ajan yetenekleri de vekil kullanir, imza korunur (Gemini semasi degismez)
         files = {fn.__name__: fn for fn in agent_tools.CAPABILITIES["files"]}
-        assert getattr(files["read_text_file"], "__cyraen_remote__", "") == "tools.basic_tools.read_text_file"
+        assert getattr(files["read_text_file"], "__jarvis_remote__", "") == "tools.basic_tools.read_text_file"
         import inspect
 
         assert "path" in inspect.signature(files["read_text_file"]).parameters
         # sunucuda kalanlar vekil DEGIL
-        assert not hasattr(agent_tools.CAPABILITIES["okul"][0], "__cyraen_remote__")
+        assert not hasattr(agent_tools.CAPABILITIES["okul"][0], "__jarvis_remote__")
     finally:
         remote_tools.uninstall()
     import agents.agent_tools as agent_tools
 
-    assert not any(hasattr(fn, "__cyraen_remote__")
+    assert not any(hasattr(fn, "__jarvis_remote__")
                    for fns in agent_tools.CAPABILITIES.values() for fn in fns)
 
 
@@ -309,11 +309,11 @@ def test_bind_and_token_validation(monkeypatch):
         with pytest.raises(SystemExit):
             validate_bind(bad)
     assert validate_bind("100.101.102.103") == "100.101.102.103"
-    monkeypatch.setenv("CYRAEN_TOKEN", "kisa")
+    monkeypatch.setenv("JARVIS_TOKEN", "kisa")
     with pytest.raises(SystemExit):
         load_server_config()
-    monkeypatch.setenv("CYRAEN_TOKEN", TOKEN)
-    monkeypatch.setenv("CYRAEN_SERVER_BIND", "0.0.0.0")
+    monkeypatch.setenv("JARVIS_TOKEN", TOKEN)
+    monkeypatch.setenv("JARVIS_SERVER_BIND", "0.0.0.0")
     with pytest.raises(SystemExit):
         load_server_config()
 

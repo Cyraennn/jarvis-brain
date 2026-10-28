@@ -1,6 +1,6 @@
-"""Holografik beyin haritasi - CYRAEN cekirdegi + 6 departman + alt ajanlar.
+"""Holografik beyin haritasi - JARVIS cekirdegi + 6 departman + alt ajanlar.
 
-Merkezde CYRAEN arc-reactor. Cevresinde 6 departman dugumu (hex). Bir departmana
+Merkezde JARVIS arc-reactor. Cevresinde 6 departman dugumu (hex). Bir departmana
 tiklaninca alt ajanlari o dugumun etrafinda dairesel acilir. Gorev akisinca kenarlar
 parlar, parcaciklar akar.
 """

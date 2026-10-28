@@ -5,7 +5,7 @@ sessizce `None`/`False` doner ve cagiran taraf `.env` yedegine duser.
 """
 from __future__ import annotations
 
-_SERVICE = "cyraen-brain"
+_SERVICE = "jarvis-brain"
 # Ad degisikliginden once kaydedilen sirlar bu servis adinda durur (okuma yedegi)
 _LEGACY_SERVICE = "jarvis-brain"
 

@@ -1,8 +1,8 @@
-// Orb sayfasinin durumu + CYRAEN (QtWebEngine) koprusu.
-//  Qt -> sayfa : window.cyraen.setVoice({state, level, thinking, asleep})
-//                window.cyraen.setCaption(text) / setStatus(text) / setActive(bool) / intro()
-//                window.cyraen.setTheme({persona, accent, base, equator, pole})  (kisilik temasi)
-//  sayfa -> Qt : document.title = "cyraen:<ready|landed|mic>:<sayac>"  (ui/hud/orb_view.py dinler)
+// Orb sayfasinin durumu + JARVIS (QtWebEngine) koprusu.
+//  Qt -> sayfa : window.jarvis.setVoice({state, level, thinking, asleep})
+//                window.jarvis.setCaption(text) / setStatus(text) / setActive(bool) / intro()
+//                window.jarvis.setTheme({persona, accent, base, equator, pole})  (kisilik temasi)
+//  sayfa -> Qt : document.title = "jarvis:<ready|landed|mic>:<sayac>"  (ui/hud/orb_view.py dinler)
 // Tarayicida tek basina acilinca "konusma" benzetimi alt hapa tiklayinca oynar.
 import { useSyncExternalStore } from 'react'
 
@@ -18,7 +18,7 @@ export const live = {
   asleep: false,
   introAt: performance.now(),
   // kisilik temasi: sahne parcacik renklerini bunlara dogru yumusakca kaydirir
-  persona: 'cyraen',
+  persona: 'jarvis',
   equator: '#22e3ff',
   pole: '#1e8fff',
 }
@@ -71,7 +71,7 @@ export function useOrb<T>(pick: (v: View) => T): T {
 let counter = 0
 export function notify(event: 'ready' | 'landed' | 'mic' | 'error'): void {
   counter += 1
-  document.title = `cyraen:${event}:${counter}`
+  document.title = `jarvis:${event}:${counter}`
 }
 
 type VoicePatch = { state?: VoiceState; level?: number; thinking?: boolean; asleep?: boolean }
@@ -86,7 +86,7 @@ type OrbBridge = {
 }
 
 export function installOrbBridge(): () => void {
-  // zirh sayfasinin `window.cyraen` tipi baska; iki sayfa ayni anda yuklenmez
+  // zirh sayfasinin `window.jarvis` tipi baska; iki sayfa ayni anda yuklenmez
   const bridge: OrbBridge = {
     setVoice(v) {
       if (typeof v.level === 'number') live.amp = Math.min(1, Math.max(0, v.level) * 3.2)
@@ -103,7 +103,7 @@ export function installOrbBridge(): () => void {
     },
     setTheme: (t) => applyTheme(t ?? {}),
   }
-  ;(window as unknown as { cyraen: OrbBridge }).cyraen = bridge
+  ;(window as unknown as { jarvis: OrbBridge }).jarvis = bridge
   return () => undefined
 }
 

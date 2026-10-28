@@ -1,11 +1,11 @@
-"""Stark Ekibi - CYRAEN'in kullandigi her yapay zeka modeline/servisine bir Tony Stark adi.
+"""Stark Ekibi - JARVIS'in kullandigi her yapay zeka modeline/servisine bir Tony Stark adi.
 
 `/ekip` web sayfasi buradaki persona'larla dogrudan konusur. Her persona kendi modelini
 kullanir ve sessiz yedek yoktur: model yanit vermezse hata acikca dondurulur ki hangi yapay
 zekayla konusuldugu her zaman belli olsun. Tek istisna OpenRouter persona'lari: ucretsiz
 kota paylasimli oldugundan dusunce Gemini'ye gecerler, `model` alaninda "YEDEK" yazar.
 
-C.Y.R.A.E.N. (Gemini Live native-audio) metin API'siyle cagrilamaz; ona giden sorular
+J.A.R.V.I.S. (Gemini Live native-audio) metin API'siyle cagrilamaz; ona giden sorular
 canli beyne kopru (outbox) uzerinden iletilir - bu modulde degil, web sunucusunda.
 """
 
@@ -58,12 +58,12 @@ def _p(key: str, name: str, model: str, provider: Provider, role: str, character
 
 
 PERSONAS: dict[str, Persona] = {p.key: p for p in [
-    Persona(key="cyraen", name="C.Y.R.A.E.N.", model="gemini-2.5-flash-native-audio-latest",
+    Persona(key="jarvis", name="J.A.R.V.I.S.", model="gemini-2.5-flash-native-audio-latest",
             provider="live", color="#34e3f0",
             role="Seninle gerçek zamanlı sesli konuşan ve her şeyi yöneten ana beyin."),
     _p("friday", "F.R.I.D.A.Y.", "gemini-flash-lite-latest", "gemini",
        "Kendi modeli olmayan 25 departman ajanını arka planda yürüten ana model.",
-       "C.Y.R.A.E.N.'in halefisin; pratik, hızlı ve hafif esprili bir operasyon asistanısın.",
+       "J.A.R.V.I.S.'in halefisin; pratik, hızlı ve hafif esprili bir operasyon asistanısın.",
        "tr-TR-EmelNeural", "#ff8fd0"),
     _p("dume", "DUM-E", "gemini-3.5-flash-lite", "gemini",
        "Gemini zincirinde ilk yedek; F.R.I.D.A.Y. çalışmazsa yardıma koşan robot kol.",
@@ -83,13 +83,13 @@ PERSONAS: dict[str, Persona] = {p.key: p for p in [
        "tr-TR-EmelNeural", "#ffb84d", pitch="-8Hz", rate="+6%"),
     _p("vision", "Vision", "gemini-embedding-001 (GBrain)", "memory",
        "GBrain bilgi bankasındaki notları anlamına göre bulan hafıza katmanı.",
-       "C.Y.R.A.E.N.'in kodundan doğdun; sakin, bilge ve düşünceli konuşursun.",
+       "J.A.R.V.I.S.'in kodundan doğdun; sakin, bilge ve düşünceli konuşursun.",
        "tr-TR-AhmetNeural", "#ffd84d", pitch="-10Hz", rate="-8%"),
     _p("veronica", "V.E.R.O.N.I.C.A.", "claude-opus-5-5", "claude",
        "Yalnızca ağır işlerde (kod, sistem) çağrılan en güçlü ve ücretli model.",
        "Hulkbuster destek sistemisin; ağır problemleri çözen güçlü, net ve kararlı bir uzmansın.",
        "tr-TR-EmelNeural", "#ff5c72", pitch="-12Hz", rate="-6%", paid=True),
-    _p("pepper", "P.E.P.P.E.R.", "qwen/qwen3.8-27b:free", "openrouter",
+    _p("pepper", "P.E.P.P.E.R.", "nvidia/nemotron-3.5-super-vl:free", "openrouter",
        "Görevleri doğru ajana dağıtan yönlendirici.",
        "Stark Industries'i yöneten Pepper gibi düzenli, sıcak ve kararlısın; işleri doğru kişiye yönlendirirsin.",
        "tr-TR-EmelNeural", "#ff9a4d", pitch="-4Hz", rate="-3%"),
@@ -97,7 +97,7 @@ PERSONAS: dict[str, Persona] = {p.key: p for p in [
        "Uzun doküman ve web özetlerini yapan araştırma modeli.",
        "Stark'ın araştırma yapay zekâsısın; meraklı, analitik ve bilgilisin.",
        "tr-TR-AhmetNeural", "#4dff9a"),
-    _p("karen", "K.A.R.E.N.", "nvidia/nemotron-3-super-120b-a12b:free", "openrouter",
+    _p("karen", "K.A.R.E.N.", "poolside/laguna-s-2.1:free", "openrouter",
        "İşleri adım adım planlayan planlayıcı model.",
        "Örümcek Adam kostümündeki yardımcı yapay zekâsın; nazik, cesaretlendirici ve adım adım yol gösterirsin.",
        "tr-TR-EmelNeural", "#b47cff", pitch="+6Hz", rate="+4%"),
@@ -380,10 +380,10 @@ async def ask(key: str, text: str, history: Any = None, *, consult: bool = False
 
 # Turkce ses kisaltmalari harf harf okumasin: adlar Turkce okunusuyla seslendirilir
 SPOKEN_NAMES = {
-    "C.Y.R.A.E.N.": "Siren", "F.R.I.D.A.Y.": "Frayday", "E.D.I.T.H.": "Edit",
+    "J.A.R.V.I.S.": "Carvis", "F.R.I.D.A.Y.": "Frayday", "E.D.I.T.H.": "Edit",
     "V.E.R.O.N.I.C.A.": "Veronika", "P.E.P.P.E.R.": "Peppır", "H.O.M.E.R.": "Homır",
     "K.A.R.E.N.": "Karen", "DUM-E": "Dami", "Iron Legion": "Ayrın Licın",
-    "Butterfingers": "Batırfingırs", "CYRAEN": "Siren", "FRIDAY": "Frayday",
+    "Butterfingers": "Batırfingırs", "JARVIS": "Carvis", "FRIDAY": "Frayday",
 }
 _SPOKEN_RE = re.compile("|".join(re.escape(k) for k in sorted(SPOKEN_NAMES, key=len, reverse=True)))
 

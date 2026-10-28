@@ -1,6 +1,6 @@
 """Komuta grafi - donen 3B yorunge: parcacik kuresi + departman halkasi + ajan rozet halkasi.
 
-Merkezde sese tepki veren parcacik kuresi (CYRAEN). Departmanlar ic, TUM ajanlar dis
+Merkezde sese tepki veren parcacik kuresi (JARVIS). Departmanlar ic, TUM ajanlar dis
 yorungede durur; yorunge duzlemi izleyiciye dogru yatiktir ve yavasca doner. Ondeki
 dugumler buyuk/parlak, arkadakiler kucuk/soluk cizilir (perspektif + derinlik sirasi).
 Fareyle surukleyince graf elle doner. Durum/animasyon mantigi `BrainGraph`'tan gelir;

@@ -7,7 +7,7 @@ import * as THREE from 'three'
 import { orbFragment, orbVertex } from './shaders'
 import { live, notify, orb, useOrb } from './voice'
 
-// Baslangic renkleri CYRAEN temasi; Qt setTheme ile kisilige gore degisir (live.equator/pole)
+// Baslangic renkleri JARVIS temasi; Qt setTheme ile kisilige gore degisir (live.equator/pole)
 const EQUATOR = new THREE.Color(live.equator)
 const POLE = new THREE.Color(live.pole)
 const TARGET_EQ = new THREE.Color()

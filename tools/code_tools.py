@@ -36,7 +36,7 @@ def _run(cmd: list[str], cwd: Path, timeout: float) -> dict[str, Any]:
 def run_python(code: str) -> dict[str, Any]:
     """Bir Python kod parcasini ayri yorumlayicida calistirir (sandbox, timeout). ONAYA TABI."""
     if not _enabled():
-        return {"error": "Kod calistirma kapali. .env'e CYRAEN_CODE_EXEC=true ekleyin."}
+        return {"error": "Kod calistirma kapali. .env'e JARVIS_CODE_EXEC=true ekleyin."}
     if not (code or "").strip():
         return {"error": "kod bos"}
     _SANDBOX.mkdir(parents=True, exist_ok=True)
@@ -50,7 +50,7 @@ def run_python(code: str) -> dict[str, Any]:
 def run_shell(command: str) -> dict[str, Any]:
     """Bir kabuk komutu calistirir (PowerShell/Bash). ONAYA TABI."""
     if not _enabled():
-        return {"error": "Kod calistirma kapali. .env'e CYRAEN_CODE_EXEC=true ekleyin."}
+        return {"error": "Kod calistirma kapali. .env'e JARVIS_CODE_EXEC=true ekleyin."}
     cmd = (command or "").strip()
     if not cmd:
         return {"error": "komut bos"}

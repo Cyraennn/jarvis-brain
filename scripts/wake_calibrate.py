@@ -1,12 +1,12 @@
-"""Uyandirma kelimesi ("Hey CYRAEN") esik kalibrasyonu - gercek mikrofonla.
+"""Uyandirma kelimesi ("Hey JARVIS") esik kalibrasyonu - gercek mikrofonla.
 
     python scripts/wake_calibrate.py            # 10 sn arka plan + 5 deneme
     python scripts/wake_calibrate.py --tries 8
 
-CYRAEN KAPALIYKEN calistirin (mikrofonu ayni anda iki surec acamayabilir).
+JARVIS KAPALIYKEN calistirin (mikrofonu ayni anda iki surec acamayabilir).
 1. Adim: 10 sn boyunca normal ortam / normal konusma -> yanlis tetik skorlari.
-2. Adim: her denemede "Hey CYRAEN" deyin -> gercek tetik skorlari.
-Sonunda .env'e yazilacak `CYRAEN_WAKE_WORD_THRESHOLD=` satiri onerilir.
+2. Adim: her denemede "Hey JARVIS" deyin -> gercek tetik skorlari.
+Sonunda .env'e yazilacak `JARVIS_WAKE_WORD_THRESHOLD=` satiri onerilir.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ def suggest_threshold(background: list[float], triggers: list[float]) -> tuple[f
     """(onerilen esik, aciklama). Arka plan tepesi ile en zayif tetik arasinin ortasi."""
     bg_max = max(background, default=0.0)
     if not triggers or max(triggers) <= bg_max:
-        return 0.5, "UYARI: 'Hey CYRAEN' arka plandan ayristirilamadi; mikrofonu/ortami kontrol edin."
+        return 0.5, "UYARI: 'Hey JARVIS' arka plandan ayristirilamadi; mikrofonu/ortami kontrol edin."
     hits = [t for t in triggers if t > bg_max]
     weakest = min(hits)
     value = round(min(MAX_THRESHOLD, max(MIN_THRESHOLD, (bg_max + weakest) / 2)), 2)
@@ -58,7 +58,7 @@ def _record(stream, detector: WakeWordDetector, seconds: float, label: str) -> l
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--background", type=float, default=10.0, help="arka plan kaydi (sn)")
-    ap.add_argument("--tries", type=int, default=5, help="'Hey CYRAEN' deneme sayisi")
+    ap.add_argument("--tries", type=int, default=5, help="'Hey JARVIS' deneme sayisi")
     args = ap.parse_args()
 
     import pyaudio
@@ -74,12 +74,12 @@ def main() -> int:
                       frames_per_buffer=FRAME_SAMPLES)
     try:
         print(f"\n1) {args.background:.0f} sn ARKA PLAN: normal konusun / ortam sesi olsun, "
-              "'Hey CYRAEN' DEMEYIN.")
+              "'Hey JARVIS' DEMEYIN.")
         background = _record(stream, detector, args.background, "arka plan")
 
         triggers: list[float] = []
         for i in range(1, args.tries + 1):
-            input(f"\n2) Deneme {i}/{args.tries}: Enter'a basin, sonra 'Hey CYRAEN' deyin...")
+            input(f"\n2) Deneme {i}/{args.tries}: Enter'a basin, sonra 'Hey JARVIS' deyin...")
             detector.reset()
             peak = max(_record(stream, detector, 3.0, f"deneme {i}"), default=0.0)
             triggers.append(peak)
@@ -100,7 +100,7 @@ def main() -> int:
     print("Tetikler : " + ", ".join(f"{t:.2f}" for t in triggers))
     print(f"Simdiki esik: {settings.wake_word_threshold:.2f}")
     print(note)
-    print(f"\n.env'e yazin:\nCYRAEN_WAKE_WORD_THRESHOLD={value:.2f}")
+    print(f"\n.env'e yazin:\nJARVIS_WAKE_WORD_THRESHOLD={value:.2f}")
     return 0
 
 

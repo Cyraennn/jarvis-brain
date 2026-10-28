@@ -23,7 +23,7 @@ MAX_CONVERSATION_CHARS = 24_000
 _HEAD_CHARS = 8_000
 
 SYSTEM_PROMPT = (
-    "Sen CYRAEN'sin, Sezai'nin kisisel asistani. Sana bir gunun ham kayitlari JSON olarak "
+    "Sen JARVIS'sin, Sezai'nin kisisel asistani. Sana bir gunun ham kayitlari JSON olarak "
     "verilecek: 'konusma' (sesli/yazili konusma dokumu), 'notlar', 'gorevler' (ajan gorevleri), "
     "'hatirlaticilar'. Bunlardan Turkce, kisa bir GUN SONU OZETI yaz. Tam olarak su dort "
     "Markdown basligini, bu sirayla kullan:\n"
@@ -157,8 +157,8 @@ def write_summary(base: Path, day: date, body: str, *, model: str = "") -> Path:
     now = datetime.now().astimezone()
     path.write_text(
         "---\n"
-        "tags: [cyraen, gunluk, ozet]\n"
-        "source: CYRAEN gun sonu ozeti\n"
+        "tags: [jarvis, gunluk, ozet]\n"
+        "source: JARVIS gun sonu ozeti\n"
         f"tarih: {day:%Y-%m-%d}\n"
         f"olusturuldu: {now.isoformat(timespec='seconds')}\n"
         f"model: {model or 'sablon'}\n"

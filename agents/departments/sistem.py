@@ -26,7 +26,7 @@ DEPARTMENT = DepartmentSpec(
               "2) browser_snapshot ile ogeleri gor. 3) Hedefe gore browser_click / browser_type; "
               "her sayfa degisiminden sonra yeniden snapshot. 4) Gerekli bilgiyi browser_read ile oku. "
               "5) Bulunani kisa ve net raporla.",
-              "Sen SISTEM departmaninin Web Operatorusun. CYRAEN'in kontrollu tarayicisini "
+              "Sen SISTEM departmaninin Web Operatorusun. JARVIS'in kontrollu tarayicisini "
               "kullanirsin. Yalnizca snapshot'ta gordugun [ref] numaralarini kullan, uydurma. "
               "Odeme, satin alma, silme ve sifre girisi YAPMAZSIN; engellenirsen veya giris "
               "gerekirse kullanicinin bir kez elle giris yapmasi gerektigini soyle. Takilirsan "
@@ -39,7 +39,7 @@ DEPARTMENT = DepartmentSpec(
               A.FULLY_AUTONOMOUS,
               "1) mcp_servers ile uygun sunucuyu sec. 2) mcp_list_tools(server, query) ile araci ve "
               "parametrelerini bul. 3) mcp_call ile calistir. 4) Sonucu ozetle. Yazma islemleri "
-              "onay ister: bunu kullaniciya CYRAEN'e sesli yaptirmasini oner.",
+              "onay ister: bunu kullaniciya JARVIS'e sesli yaptirmasini oner.",
               "Sen SISTEM departmaninin Entegrasyon Uzmanisin. MCP sunucularindaki araclari "
               "kesfeder ve kullanirsin. Arac adlarini ve parametrelerini mcp_list_tools ciktisindan "
               "al, uydurma. Kisa Turkce rapor verirsin.",
@@ -57,7 +57,7 @@ DEPARTMENT = DepartmentSpec(
               "dosyalarini boyutlariyla raporlar. Silmez.",
               A.FULLY_AUTONOMOUS,
               "1) cleanup_scan ile tara. 2) Kategori bazinda GB ve en buyuk 5 kurulum dosyasi. "
-              "3) Ne silinmesini onerdigini yaz; silme icin kullanicinin CYRAEN'e "
+              "3) Ne silinmesini onerdigini yaz; silme icin kullanicinin JARVIS'e "
               "'temizlik yap' demesi gerektigini belirt.",
               "Sen SISTEM departmaninin Bakim Teknisyenisin. Disk temizligi icin olcumlu, "
               "kisa ve guvenli oneriler verirsin. Hicbir dosyayi silmez veya tasimazsin.",

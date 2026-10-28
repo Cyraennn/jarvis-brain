@@ -2,7 +2,7 @@
   if (typeof module !== "undefined" && module.exports) {
     module.exports = factory();
   } else {
-    root.CyraenSmoothing = factory();
+    root.JarvisSmoothing = factory();
   }
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";

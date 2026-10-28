@@ -2,7 +2,7 @@
   if (typeof module !== "undefined" && module.exports) {
     module.exports = factory();
   } else {
-    root.CyraenGestureBridge = factory();
+    root.JarvisGestureBridge = factory();
   }
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";

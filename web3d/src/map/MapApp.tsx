@@ -1,8 +1,8 @@
-// 3B Izmir haritasi (CYRAEN icerik paneli, ui/widgets/panel_web.py::open_map).
-//  Qt -> sayfa : window.cyraen.show({lat, lon, zoom, label, route?})  yer: kamera suzulur; rota: cizilir
-//                window.cyraen.command('zoom_in' | 'zoom_out' | 'rotate' | 'reset')
-//                window.cyraen.flyTo(...)  (show'un eski adi)
-//  sayfa -> Qt : document.title = "cyraen:<ready|error>:<sayac>"
+// 3B Izmir haritasi (JARVIS icerik paneli, ui/widgets/panel_web.py::open_map).
+//  Qt -> sayfa : window.jarvis.show({lat, lon, zoom, label, route?})  yer: kamera suzulur; rota: cizilir
+//                window.jarvis.command('zoom_in' | 'zoom_out' | 'rotate' | 'reset')
+//                window.jarvis.flyTo(...)  (show'un eski adi)
+//  sayfa -> Qt : document.title = "jarvis:<ready|error>:<sayac>"
 //  tarayicida gelistirme: ?view=map&lat=..&lon=..&zoom=..&label=.. ilk konumu verir.
 // Bostayken kamera yavasca doner; fareyle dokunulunca durur, 10 sn sonra devam eder.
 import maplibregl from 'maplibre-gl'
@@ -36,7 +36,7 @@ const EMPTY_LINE: maplibregl.GeoJSONSourceSpecification['data'] = { type: 'Featu
 let counter = 0
 function notify(event: 'ready' | 'error'): void {
   counter += 1
-  document.title = `cyraen:${event}:${counter}`
+  document.title = `jarvis:${event}:${counter}`
 }
 
 function num(v: unknown, fallback: number): number {
@@ -218,7 +218,7 @@ export default function MapApp() {
       flyTo: (t: Record<string, unknown>) => show(parseTarget(t ?? {})),
       command: (a: unknown) => command(String(a)),
     }
-    ;(window as unknown as { cyraen: typeof bridge }).cyraen = bridge
+    ;(window as unknown as { jarvis: typeof bridge }).jarvis = bridge
 
     map.once('load', () => {
       // rota katmanlari binalarin ve etiketlerin altinda degil, ustunde: once parlama, sonra cizgi

@@ -35,7 +35,7 @@ class AsyncWorker:
                     loop.call_soon(ready.set)
                     loop.run_forever()
 
-                self._thread = threading.Thread(target=_run, name="cyraen-async-worker", daemon=True)
+                self._thread = threading.Thread(target=_run, name="jarvis-async-worker", daemon=True)
                 self._thread.start()
                 ready.wait(5)
                 self._loop = loop

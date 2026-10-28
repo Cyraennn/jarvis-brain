@@ -2,13 +2,13 @@
   if (typeof module !== "undefined" && module.exports) {
     module.exports = factory(require("./gesture-engine.js"));
   } else {
-    root.CyraenCalibration = factory(root.CyraenGestureEngine);
+    root.JarvisCalibration = factory(root.JarvisGestureEngine);
   }
 })(typeof self !== "undefined" ? self : this, function (GestureEngineModule) {
   "use strict";
 
   const { dist, isFingerCurled, DEFAULT_CONFIG } = GestureEngineModule;
-  const STORAGE_KEY = "cyraen_gesture_calibration_v1";
+  const STORAGE_KEY = "jarvis_gesture_calibration_v1";
   const WRIST = 0, THUMB_TIP = 4, INDEX_TIP = 8;
   const FINGERS = [
     { mcp: 5, pip: 6, tip: 8 },

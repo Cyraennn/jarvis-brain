@@ -1,7 +1,7 @@
 """Kisisel hafiza aramasi - kullanicinin TUM Obsidian kasalarinda anlamsal arama.
 
 Kodu kopyalamaz: kullanicinin mevcut `obsidian-search/search.py` aracini (multilingual-e5-small,
-yerel ONNX) importlib ile yukler; boylece Claude Code ve CYRAEN AYNI indeksi paylasir.
+yerel ONNX) importlib ile yukler; boylece Claude Code ve JARVIS AYNI indeksi paylasir.
 
 - Indeks artimli guncellenir, en fazla `_UPDATE_EVERY_S` saniyede bir.
 - Ayni indeksi Claude Code da yazabildigi icin guncelleme `index/.lock` dosya kilidiyle yapilir;
@@ -31,7 +31,7 @@ _last_update = 0.0
 
 
 def search_dir() -> Path:
-    raw = os.getenv("CYRAEN_VAULT_SEARCH_DIR", "").strip()
+    raw = os.getenv("JARVIS_VAULT_SEARCH_DIR", "").strip()
     if raw:
         return Path(raw).expanduser()
     return Path(os.environ.get("USERPROFILE", str(Path.home()))) / ".claude" / "tools" / "obsidian-search"
@@ -43,7 +43,7 @@ def _load_module() -> ModuleType:
         path = search_dir() / "search.py"
         if not path.is_file():
             raise FileNotFoundError(f"Kasa arama araci bulunamadi: {path}")
-        spec = importlib.util.spec_from_file_location("cyraen_obsidian_search", path)
+        spec = importlib.util.spec_from_file_location("jarvis_obsidian_search", path)
         if spec is None or spec.loader is None:
             raise ImportError(f"Yuklenemedi: {path}")
         mod = importlib.util.module_from_spec(spec)
@@ -110,7 +110,7 @@ def _fresh_index(mod: ModuleType) -> tuple[dict[str, Any], Any]:
 
 
 def memory_search(query: str, vault: str = "", k: int = 6) -> dict[str, Any]:
-    """Kullanicinin Obsidian kasalarinda (notlar, okul, CYRAEN konusmalari/hafizasi) anlamsal arama."""
+    """Kullanicinin Obsidian kasalarinda (notlar, okul, JARVIS konusmalari/hafizasi) anlamsal arama."""
     query = (query or "").strip()
     if not query:
         return {"error": "'query' bos olamaz."}

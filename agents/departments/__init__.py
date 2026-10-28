@@ -1,6 +1,6 @@
 """Kisisel asistan departman kayit defteri - 6 departman (okul, iletisim, sistem, telefon, bilgi, gunluk).
 
-CYRAEN (Conductor) karmasik gorevleri departmana + alt ajana delege eder.
+JARVIS (Conductor) karmasik gorevleri departmana + alt ajana delege eder.
 """
 
 from __future__ import annotations

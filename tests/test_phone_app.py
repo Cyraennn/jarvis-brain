@@ -102,7 +102,7 @@ def test_set_alarm_payload(monkeypatch):
     calls = []
     monkeypatch.setattr(phone_tools.PHONE, "request", lambda name, args=None, timeout=0: calls.append(args) or {})
     phone_tools.set_alarm("06:45")
-    assert calls == [{"hour": 6, "minute": 45, "label": "CYRAEN"}]
+    assert calls == [{"hour": 6, "minute": 45, "label": "JARVIS"}]
 
 
 def test_current_location_parses_reply(monkeypatch):
@@ -353,7 +353,7 @@ def test_pair_page_is_local_only_and_contains_link(server, monkeypatch):
     with urllib.request.urlopen(f"http://127.0.0.1:{port}/pair", timeout=5) as r:
         page = r.read().decode("utf-8")
     assert "100.1.2.3" in page and "<svg" in page
-    assert console_server.pair_link("100.1.2.3", port, TOKEN) == f"cyraen://pair?host=100.1.2.3&port={port}&key={TOKEN}"
+    assert console_server.pair_link("100.1.2.3", port, TOKEN) == f"jarvis://pair?host=100.1.2.3&port={port}&key={TOKEN}"
 
 
 def test_pair_page_rejects_remote_clients(tmp_path):
@@ -422,12 +422,12 @@ def test_rotate_token_replaces_only_its_line(tmp_path, capsys):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     env = tmp_path / ".env"
-    env.write_bytes(b"A=1\r\nCYRAEN_WEB_TOKEN=eski\r\nB=2\r\n")
+    env.write_bytes(b"A=1\r\nJARVIS_WEB_TOKEN=eski\r\nB=2\r\n")
     assert mod.main(["--env", str(env)]) == 0
     text = env.read_bytes().decode()
-    new = text.split("CYRAEN_WEB_TOKEN=")[1].split("\r\n")[0]
+    new = text.split("JARVIS_WEB_TOKEN=")[1].split("\r\n")[0]
     assert text.startswith("A=1\r\n") and text.endswith("B=2\r\n") and new != "eski" and len(new) >= 20
     assert new not in capsys.readouterr().out  # yeni deger ekrana yazilmaz
     env2 = tmp_path / "bos.env"
     mod.rotate(env2)
-    assert env2.read_text().startswith("CYRAEN_WEB_TOKEN=")
+    assert env2.read_text().startswith("JARVIS_WEB_TOKEN=")

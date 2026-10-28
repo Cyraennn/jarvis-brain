@@ -226,7 +226,7 @@ def _confirm_launched(
 ) -> str | None:
     """Arama + Enter sonrasi bir uygulama penceresi GERCEKTEN acildi/one geldi mi?
 
-    Yeni bir ust-duzey pencere belirmesi ya da on planin (arama paneli / CYRAEN disinda)
+    Yeni bir ust-duzey pencere belirmesi ya da on planin (arama paneli / JARVIS disinda)
     baska bir pencereye gecmesi basari sayilir. Basliklari dondurur, yoksa None.
     """
     own = os.getpid()

@@ -1,7 +1,7 @@
-"""Cyraen'in kitap defteri (LLM) + Open Library kapaklari + Obsidian aynasi.
+"""Jarvis'in kitap defteri (LLM) + Open Library kapaklari + Obsidian aynasi.
 
 Defter bir kez yazilir ve saklanir (`book["defter"]`). Kurallar:
-- Model kitabi tanimiyorsa sayfa UYDURMAZ: {"bilinmiyor": true} -> "Cyraen bu kitabi tanimiyor".
+- Model kitabi tanimiyorsa sayfa UYDURMAZ: {"bilinmiyor": true} -> "Jarvis bu kitabi tanimiyor".
 - Kitaptan birebir alinti URETMEZ (alintilar yalnizca kullanicinin ekledikleridir).
 - "Benzer kitaplar" yalnizca kullanicinin kendi kitapligindan secilir.
 """
@@ -21,7 +21,7 @@ from core.bookshelf_store import BookshelfStore, get_store, title_similarity
 
 TextCall = Callable[[str, str], Awaitable[str]]  # (system, prompt) -> json metni
 
-NOTEBOOK_SYSTEM = """Sen CYRAEN'sin; kullanicinin kitapligi icin kisa, dogru bir kitap defteri yazarsin.
+NOTEBOOK_SYSTEM = """Sen JARVIS'sin; kullanicinin kitapligi icin kisa, dogru bir kitap defteri yazarsin.
 Turkce yaz. Yalnizca JSON dondur.
 KESIN KURALLAR:
 1. Kitabi (ad + yazar) gercekten tanimiyorsan ya da emin degilsen SADECE {"bilinmiyor": true} dondur.
@@ -136,7 +136,7 @@ async def write_notebook(book_id: str, *, store: BookshelfStore | None = None,
 
 
 # =================================================================== kapak
-_UA = {"User-Agent": "CYRAEN-Kitaplik/1.0 (kisisel asistan; kapak arama)"}
+_UA = {"User-Agent": "JARVIS-Kitaplik/1.0 (kisisel asistan; kapak arama)"}
 _OL_SEARCH = "https://openlibrary.org/search.json"
 _OL_COVER = "https://covers.openlibrary.org/b/id/{id}-M.jpg?default=false"
 
@@ -223,7 +223,7 @@ def mirror_to_obsidian(book: dict[str, Any]) -> None:
                  + (f" · **Sayfa:** {book['sayfa']}" if book.get("sayfa") else "")]
         d = book.get("defter") or {}
         if d and not d.get("bilinmiyor"):
-            lines += ["", "## Cyraen'in özeti", d.get("ozet", "")]
+            lines += ["", "## Jarvis'in özeti", d.get("ozet", "")]
             if d.get("ana_fikirler"):
                 lines += ["", "## Ana fikirler", *[f"- {x}" for x in d["ana_fikirler"]]]
             if d.get("yazar_hakkinda"):
@@ -242,7 +242,7 @@ def mirror_to_obsidian(book: dict[str, Any]) -> None:
             lines += ["", "## Alıntılar",
                       *[f"> {a['metin']}" + (f" (s.{a['sayfa']})" if a.get("sayfa") else "") + "\n"
                         for a in book["alintilar"]]]
-        write_managed_doc(book["ad"], "\n".join(lines), "Kitaplik", tags=["kitap"], source="CYRAEN Kitaplik")
+        write_managed_doc(book["ad"], "\n".join(lines), "Kitaplik", tags=["kitap"], source="JARVIS Kitaplik")
     except Exception as exc:  # noqa: BLE001
         logger.debug(f"Obsidian kitap aynasi yazilamadi: {exc!r}")
 

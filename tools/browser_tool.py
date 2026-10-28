@@ -38,10 +38,10 @@ _DANGER_TEXT = re.compile(
     re.IGNORECASE,
 )
 
-# Gorunur etkilesimli ogelere data-cyraen-ref atar ve ozet dondurur.
+# Gorunur etkilesimli ogelere data-jarvis-ref atar ve ozet dondurur.
 _SNAPSHOT_JS = r"""
 (maxItems) => {
-  document.querySelectorAll('[data-cyraen-ref]').forEach(e => e.removeAttribute('data-cyraen-ref'));
+  document.querySelectorAll('[data-jarvis-ref]').forEach(e => e.removeAttribute('data-jarvis-ref'));
   const sel = 'a[href], button, input:not([type=hidden]), select, textarea, summary, ' +
               '[role=button], [role=link], [role=tab], [role=menuitem], [role=checkbox], ' +
               '[role=option], [contenteditable=true], [onclick]';
@@ -53,7 +53,7 @@ _SNAPSHOT_JS = r"""
     if (r.width < 2 || r.height < 2 || st.visibility === 'hidden' || st.display === 'none') continue;
     if (el.disabled) continue;
     n += 1;
-    el.setAttribute('data-cyraen-ref', String(n));
+    el.setAttribute('data-jarvis-ref', String(n));
     const tag = el.tagName.toLowerCase();
     const field = tag === 'input' || tag === 'select' || tag === 'textarea';
     const forLabel = field && el.labels && el.labels.length ? el.labels[0].innerText : '';
@@ -153,7 +153,7 @@ class BrowserSession:
 
     async def _element(self, ref: int) -> Any:
         page = await self._ensure_page()
-        loc = page.locator(f'[data-cyraen-ref="{int(ref)}"]')
+        loc = page.locator(f'[data-jarvis-ref="{int(ref)}"]')
         if await loc.count() == 0:
             raise LookupError(f"ref {ref} bulunamadi; once browser_snapshot cagir (sayfa degismis olabilir).")
         return loc.first

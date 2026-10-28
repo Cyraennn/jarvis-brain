@@ -107,8 +107,8 @@ class OpenRouterClient:
                     model=current_model,
                     messages=messages,
                     extra_headers={
-                        "HTTP-Referer": "https://github.com/cyraen-brain",
-                        "X-Title": "CYRAEN Brain Engine",
+                        "HTTP-Referer": "https://github.com/jarvis-brain",
+                        "X-Title": "JARVIS Brain Engine",
                     },
                     **kwargs,
                 )
@@ -158,8 +158,11 @@ class OpenRouterClient:
 
 # Telegram / Gmail taslakcisi gibi yan kollarin paylastigi varsayilan zincir
 DEFAULT_CHAIN: list[str] = [  # yalnizca ucretsiz modeller (hesapta bakiye olmasa da calisir)
-    "qwen/qwen3.8-27b:free",
-    "nvidia/nemotron-3-super-120b-a12b:free",
+    "nvidia/nemotron-3.5-super-vl:free",
+    "poolside/laguna-s-2.1:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "dots-studio/dots-3-note-preview:free",
+    "cohere/north-mini-code:free",
     "openrouter/free",  # rastgele ucretsiz model -> yalnizca son care
 ]
 

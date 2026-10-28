@@ -38,7 +38,7 @@ async def main() -> int:
     settings = get_settings()
     local = get_local_llm()
     if local is None or not await local.is_up():
-        print(f"{FAIL} Yerel model kapali/erisilemiyor (CYRAEN_LOCAL_LLM / Ollama)")
+        print(f"{FAIL} Yerel model kapali/erisilemiyor (JARVIS_LOCAL_LLM / Ollama)")
         return 1
 
     client = genai.Client(api_key=settings.gemini_api_key or "yok")

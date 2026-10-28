@@ -68,7 +68,7 @@ def build_broadcaster(
 ) -> NotificationBroadcaster:
     """Ayarlara ve verilen handler'lara gore kanallari kaydeder.
 
-    - ``voice``   : bridge/outbox.txt -> CYRAEN canli oturumda sesli soyler (her zaman)
+    - ``voice``   : bridge/outbox.txt -> JARVIS canli oturumda sesli soyler (her zaman)
     - ``telegram``: TELEGRAM_BOT_TOKEN + varsayilan sohbet varsa (handler calismasa da;
                     Bot API durumsuzdur)
     - ``whatsapp``: calisan bir WhatsAppHandler verilmisse, yonetici numaralarina
@@ -112,7 +112,7 @@ def build_broadcaster(
         notifier = Notifier(settings.ntfy_topic, settings.ntfy_server)
 
         async def _ntfy(text: str) -> bool:
-            await notifier.notify("CYRAEN", text[:1000], priority=3, tags=["robot"])
+            await notifier.notify("JARVIS", text[:1000], priority=3, tags=["robot"])
             return True
 
         b.register("ntfy", _ntfy)

@@ -16,7 +16,7 @@ from typing import Any, Callable
 from loguru import logger
 
 from client.config import ClientConfig
-from client.core import CyraenClient
+from client.core import JarvisClient
 from remote.protocol import CLIENT_FUNCTIONS
 
 
@@ -34,7 +34,7 @@ def resolve(action: str) -> Callable[..., Any] | None:
     return fn if callable(fn) else None
 
 
-def register_desktop_handlers(client: CyraenClient, cfg: ClientConfig) -> list[str]:
+def register_desktop_handlers(client: JarvisClient, cfg: ClientConfig) -> list[str]:
     registered: list[str] = []
     for action in CLIENT_FUNCTIONS:
         fn = resolve(action)
@@ -78,7 +78,7 @@ def make_confirm_handler(mode: str) -> Callable[..., bool] | None:
         return lambda prompt, source, cancel=None: False
     if mode == "console":
         def ask_console(prompt: str, source: str, cancel: Any = None) -> bool:
-            answer = input(f"\n[CYRAEN ONAY - {source}] {prompt}\nOnayliyor musun? (e/h): ")
+            answer = input(f"\n[JARVIS ONAY - {source}] {prompt}\nOnayliyor musun? (e/h): ")
             return answer.strip().lower() in ("e", "evet", "y", "yes")
         return ask_console
 
@@ -94,7 +94,7 @@ def make_confirm_handler(mode: str) -> Callable[..., bool] | None:
         IDYES, IDNO, WM_COMMAND = 6, 7, 0x0111
         user32 = ctypes.windll.user32
         # benzersiz baslik: uzaktan kapatirken dogru pencereyi bulmak icin
-        title = f"CYRAEN - Onay ({source}) #{uuid.uuid4().hex[:4]}"
+        title = f"JARVIS - Onay ({source}) #{uuid.uuid4().hex[:4]}"
 
         done = threading.Event()  # pencere yerelde cevaplandi -> kapatici thread biter
 
@@ -111,7 +111,7 @@ def make_confirm_handler(mode: str) -> Callable[..., bool] | None:
                     done.wait(0.2)
 
             threading.Thread(target=close_when_resolved_elsewhere, daemon=True,
-                             name="cyraen-confirm-closer").start()
+                             name="jarvis-confirm-closer").start()
 
         try:
             result = user32.MessageBoxW(
@@ -123,7 +123,7 @@ def make_confirm_handler(mode: str) -> Callable[..., bool] | None:
         return result == IDYES
 
     def ask_console_fallback(prompt: str, source: str) -> bool:
-        answer = input(f"\n[CYRAEN ONAY - {source}] {prompt}\n(e/h): ")
+        answer = input(f"\n[JARVIS ONAY - {source}] {prompt}\n(e/h): ")
         return answer.strip().lower() in ("e", "evet")
 
     return ask_dialog

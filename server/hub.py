@@ -142,7 +142,7 @@ class ClientHub:
         conn = self.pick(action)
         if conn is None:
             raise ClientUnavailable(
-                f"'{short_name(action)}' icin bagli istemci yok (PC kapali veya CYRAEN istemcisi "
+                f"'{short_name(action)}' icin bagli istemci yok (PC kapali veya JARVIS istemcisi "
                 "calismiyor). Bu islem sunucuda YAPILMAZ."
             )
         timeout = timeout or action_timeout(action)

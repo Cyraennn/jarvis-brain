@@ -124,7 +124,7 @@ test("hold: duruş bozulunca halka sifirlanir", () => {
   eq(fired, 0, "yeniden 1 sn dolmadan tetiklenmemeli");
 });
 
-test("hold: ✊ sustur yalniz Cyraen konusurken", () => {
+test("hold: ✊ sustur yalniz Jarvis konusurken", () => {
   const hc = new C.HoldController();
   let fired = 0;
   for (let t = 0; t < 2500; t += 33) fired += hc.update([{ id: 1, pose: "fist", x: 0, y: 0 }], { speaking: false }, t).fired.length;

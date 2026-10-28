@@ -2,7 +2,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-// Cikti CYRAEN'in gomulu kaynak klasorune yazilir (assets/ hem git'te hem cyraen.spec'te):
+// Cikti JARVIS'in gomulu kaynak klasorune yazilir (assets/ hem git'te hem jarvis.spec'te):
 // ui/hud/boot3d.py bu klasoru yerel sunucudan QtWebEngine'e verir.
 export default defineConfig({
   base: './',

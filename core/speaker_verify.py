@@ -2,7 +2,7 @@
 
 `scripts/voice_enroll.py` kullanicinin sesinden bir profil (gomme vektoru) cikarir. Calisirken
 uyandirma kapisi (`BrainEngine._gate_audio`) bu profili iki yerde kullanir:
-  - "Hey CYRAEN" duyuldugunda son ~1.5 sn ses profille eslesmiyorsa kapi ACILMAZ;
+  - "Hey JARVIS" duyuldugunda son ~1.5 sn ses profille eslesmiyorsa kapi ACILMAZ;
   - kapi acikken pencereyi yalniz eslesen konusma uzatir, art arda eslesmeyen dilimler kapiyi
     kapatir (`SpeakerGate`).
 Ses buluta gitmeden once, yerelde (sherpa-onnx + WeSpeaker ONNX modeli) degerlendirilir.

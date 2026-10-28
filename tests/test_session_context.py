@@ -17,7 +17,7 @@ NOW = datetime(2026, 10, 11, 15, 20)
 def _vault(tmp_path, turns: list[str]):
     conv = tmp_path / "Konusmalar"
     conv.mkdir()
-    body = "---\ntags: [cyraen]\n---\n\n# Konusma - 11.10.2026\n\n" + "\n\n".join(turns) + "\n"
+    body = "---\ntags: [jarvis]\n---\n\n# Konusma - 11.10.2026\n\n" + "\n\n".join(turns) + "\n"
     (conv / "2026-10-11.md").write_text(body, encoding="utf-8")
     return tmp_path
 
@@ -34,7 +34,7 @@ def test_context_without_vault_is_just_the_date():
 
 def test_context_includes_todays_tail_and_yesterdays_summary(tmp_path):
     base = _vault(tmp_path, ["**14:01 · Sen:** Yarinki sinav kacta?",
-                             "**14:02 · CYRAEN:** Saat 10:00'da, efendim."])
+                             "**14:02 · JARVIS:** Saat 10:00'da, efendim."])
     write_summary(base, date(2026, 10, 10),
                   "## Özet\nOdev bitirildi.\n\n## Yapılanlar\n- odev\n\n"
                   "## Açık kalanlar\n- Rapor gonderilecek\n\n## Notlar\n- yok")
@@ -64,7 +64,7 @@ def _engine(tmp_path=None) -> BrainEngine:
     eng = BrainEngine.__new__(BrainEngine)
     eng.settings = SimpleNamespace(
         session_context_enabled=True, obsidian_dir=None, voice_name="Puck",
-        load_system_prompt=lambda persona="cyraen": "TEMEL ISTEM",
+        load_system_prompt=lambda persona="jarvis": "TEMEL ISTEM",
     )
     eng._resume_handle = None
     eng._resume_saved_at = 0.0

@@ -1,11 +1,11 @@
-CYRAEN'İ LAB BİLGİSAYARINA KURMA - ADIM ADIM (BASİT ANLATIM)
+JARVIS'İ LAB BİLGİSAYARINA KURMA - ADIM ADIM (BASİT ANLATIM)
 ================================================================
 
 Bu dosyayı LAB BİLGİSAYARINDA okuyorsun (USB'yi oraya taktıktan sonra).
 Aşağıdaki adımları SIRAYLA yap, hiçbirini atlama. Toplam süre: ~20-30 dakika.
 
 Neye ihtiyacın var:
-  - Bu USB (içinde bir zip dosyası var: cyraen-lab-package-....zip)
+  - Bu USB (içinde bir zip dosyası var: jarvis-lab-package-....zip)
   - İnternet bağlantısı
   - Yönetici (admin) yetkisi (zaten var, kendine söylemiştin)
 
@@ -14,19 +14,19 @@ ADIM 1: Dosyaları bilgisayara kopyala
 ================================================================
 1. "Bu Bilgisayar" penceresini aç.
 2. C: diskine git.
-3. Bos bir yerde sag tikla > Yeni > Klasor, adini "CYRAEN" koy.
-   Simdi elinde "C:\CYRAEN" diye bos bir klasor var.
-4. USB'deki zip dosyasini (cyraen-lab-package-....zip) bu C:\CYRAEN
+3. Bos bir yerde sag tikla > Yeni > Klasor, adini "JARVIS" koy.
+   Simdi elinde "C:\JARVIS" diye bos bir klasor var.
+4. USB'deki zip dosyasini (jarvis-lab-package-....zip) bu C:\JARVIS
    klasorunun ICINE kopyala (surukle-birak yeterli).
 5. Kopyaladigin zip dosyasina sag tikla, "Tumunu Ayikla..." (Extract All) de.
-6. Cikan pencerede yolun "C:\CYRAEN" oldugundan emin ol, "Ayikla" (Extract) de.
-7. Bittiginde C:\CYRAEN klasorunun icinde "cyraen-brain" ve
-   "CYRAEN-Hafiza-Vault" adinda IKI klasor OLMALI. Yoksa zip'i yanlis yere
+6. Cikan pencerede yolun "C:\JARVIS" oldugundan emin ol, "Ayikla" (Extract) de.
+7. Bittiginde C:\JARVIS klasorunun icinde "jarvis-brain" ve
+   "JARVIS-Hafiza-Vault" adinda IKI klasor OLMALI. Yoksa zip'i yanlis yere
    acmissindir, sil ve tekrar dene.
 8. (Artik zip dosyasinin kendisini silebilirsin, isin bitti onunla.)
 
 ================================================================
-ADIM 2: Python programini kur (CYRAEN'in calismasi icin sart)
+ADIM 2: Python programini kur (JARVIS'in calismasi icin sart)
 ================================================================
 1. Tarayiciyi ac (Chrome/Edge fark etmez).
 2. Adres cubuguna yaz: python.org/downloads
@@ -53,13 +53,13 @@ ADIM 3: Tailscale programini kur (iki bilgisayari birbirine baglar)
    lazim olacak (ADIM 7'de).
 
 ================================================================
-ADIM 4: CYRAEN'in ihtiyac duydugu ek programlari kur
+ADIM 4: JARVIS'in ihtiyac duydugu ek programlari kur
 ================================================================
 1. Baslat menusune tikla, "cmd" yaz, cikan "Komut Istemi" (Command Prompt)
    programina tikla. Siyah bir pencere acilir, korkma, normal.
 2. Bu pencereye su satiri yaz (veya kopyala-yapistir) ve Enter'a bas:
 
-     cd C:\CYRAEN\cyraen-brain
+     cd C:\JARVIS\jarvis-brain
 
 3. Sonra su satiri yaz, Enter'a bas (biraz surebilir, bekle):
 
@@ -78,7 +78,7 @@ ADIM 4: CYRAEN'in ihtiyac duydugu ek programlari kur
 ================================================================
 ADIM 5: Ayar dosyasinin adini degistir
 ================================================================
-1. Dosya gezgininde C:\CYRAEN\cyraen-brain klasorune git.
+1. Dosya gezgininde C:\JARVIS\jarvis-brain klasorune git.
 2. ".env.for-lab" adinda bir dosya goreceksin.
    (Gorunmuyorsa: yukarida "Gorunum" (View) > "Gizli Ogeler"
    (Hidden items) kutucugunu isaretle.)
@@ -88,7 +88,7 @@ ADIM 5: Ayar dosyasinin adini degistir
    (Windows "uzanti degisecek, emin misin" diye sorabilir - "Evet" de.)
 
 ================================================================
-ADIM 6: CYRAEN'i calistir
+ADIM 6: JARVIS'i calistir
 ================================================================
 1. ADIM 4'teki siyah pencereye (Komut Istemi) geri don.
    (Kapattiysan: ADIM 4.1'den 4.4'e kadar tekrar yap.)
@@ -99,8 +99,8 @@ ADIM 6: CYRAEN'i calistir
 3. Ekranda bir suru renkli yazi akacak. Sunlari GORMELISIN:
      - "Web konsolu: http://..." yazan bir satir
      - "Uzak ses sunucusu dinliyor" yazan bir satir
-   Bunlari goruyorsan CYRAEN CALISIYOR demektir. TEBRIKLER.
-4. BU PENCEREYI KAPATMA. Kapatirsan CYRAEN durur. Bilgisayari kapatmadan,
+   Bunlari goruyorsan JARVIS CALISIYOR demektir. TEBRIKLER.
+4. BU PENCEREYI KAPATMA. Kapatirsan JARVIS durur. Bilgisayari kapatmadan,
    pencereyi de kapatmadan oyle birak (uyku moduna gecmesin diye Windows
    ayarlarindan "Uyku"yu da kapatman iyi olur).
 
@@ -108,9 +108,9 @@ ADIM 6: CYRAEN'i calistir
 SIMDI EV BILGISAYARINA DON
 ================================================================
 Ev bilgisayarinda "remote_client" klasorundeki ".env" dosyasini ac (Not
-Defteri ile), "CYRAEN_SERVER_HOST=" yazan satirin sonuna, ADIM 3.6'da
+Defteri ile), "JARVIS_SERVER_HOST=" yazan satirin sonuna, ADIM 3.6'da
 kagida yazdigin ismi ekle, kaydet. Sonra "python run_remote_client.py"
-ile baslat. Artik CYRAEN'le konusabilirsin.
+ile baslat. Artik JARVIS'le konusabilirsin.
 
 ================================================================
 BIR SEY TERS Mi GITTI? (sik karsilasilan sorunlar)
