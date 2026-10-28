@@ -125,3 +125,37 @@ def test_setup_rejection_blames_the_handle_before_proactive_audio():
     eng._resume_handle = None
     eng._check_setup_rejection(RuntimeError("1007 invalid argument"))
     assert not eng._proactive_audio
+
+
+def test_midsession_1007_drops_the_poisoned_handle():
+    eng = _engine()
+    eng._on_resumption_update(SimpleNamespace(resumable=True, new_handle="h-1"))
+    eng._attempt_active = True
+    eng._connect_started = time.monotonic() - 5
+    attempt = eng._settle_after_failure(RuntimeError("1007 None. Request contains an invalid argument."), 3)
+    assert eng._resume_handle is None  # ayni bozuk oturuma donulmez
+    assert attempt == 3  # kisa omurlu oturum: geri cekilme surer
+
+
+def test_other_midsession_errors_keep_the_handle():
+    eng = _engine()
+    eng._on_resumption_update(SimpleNamespace(resumable=True, new_handle="h-1"))
+    eng._attempt_active = True
+    eng._connect_started = time.monotonic() - 5
+    eng._settle_after_failure(RuntimeError("1011 internal"), 2)
+    assert eng._resume_handle == "h-1"
+
+
+def test_failure_before_session_is_left_to_resume_outcome():
+    eng = _engine()
+    eng._on_resumption_update(SimpleNamespace(resumable=True, new_handle="h-1"))
+    eng._attempt_active = False
+    assert eng._settle_after_failure(RuntimeError("1007 invalid"), 4) == 4
+    assert eng._resume_handle == "h-1"
+
+
+def test_long_healthy_session_resets_backoff():
+    eng = _engine()
+    eng._attempt_active = True
+    eng._connect_started = time.monotonic() - brain_engine._STABLE_SESSION_S - 1
+    assert eng._settle_after_failure(RuntimeError("abnormal closure"), 6) == 1

@@ -85,6 +85,8 @@ _GESTURE_SOURCE = "[EL]"
 _SETUP_REJECT_S = 10.0
 # Devam tutamagi, oturum kapandiktan sonra sunucuda sinirli sure gecerlidir.
 _RESUME_TTL_S = 100 * 60.0
+# Oturum en az bu kadar ayakta kaldiysa kopus yeni bir sorun sayilir: geri cekilme bastan baslar.
+_STABLE_SESSION_S = 60.0
 _OFFLINE_TTS_STEP_S = 0.1
 # Konusmaci dogrulama: uyanista bakilan ses, pencere acikken degerlendirilen dilim uzunlugu
 _SPEAKER_WAKE_S = 1.5
@@ -580,6 +582,7 @@ class BrainEngine:
                     failed = True
                     self._log_exception_group(non_cancel or group)
                     self._check_setup_rejection(non_cancel or group)
+                    attempt = self._settle_after_failure(non_cancel or group, attempt)
                     if non_cancel is not None and non_cancel.subgroup(_is_audio_error):
                         # Ses akisi oldu: oturumu yenilemek yetmez, akislar da yeniden
                         # acilmazsa her yanitta yine 'Stream closed' ile duser.
@@ -590,6 +593,7 @@ class BrainEngine:
                     failed = True
                     logger.error(f"Oturum hatasi: {exc!r}")
                     self._check_setup_rejection(exc)
+                    attempt = self._settle_after_failure(exc, attempt)
 
                 if self._shutdown.is_set():
                     break
@@ -1186,6 +1190,21 @@ class BrainEngine:
         self._resume_failures += 1
         if self._resume_failures >= 2:
             self._drop_resume_handle("sunucu tutamagi kabul etmedi")
+
+    def _settle_after_failure(self, exc: BaseException, attempt: int) -> int:
+        """Oturum KURULDUKTAN sonra gelen hata icin deneme sayacini ve tutamagi ayarlar.
+
+        - 1007 (gecersiz istek): sunucudaki oturum durumu bozulmustur; ayni devam tutamagiyla
+          donmek her turda yine 1007 verir. Tutamak birakilir, temiz oturum acilir.
+        - Oturum bir sure saglikli calistiysa geri cekilme bastan baslar (bekleme uzamaz).
+        """
+        if not self._attempt_active:
+            return attempt
+        if "1007" in repr(exc) and self._resume_handle:
+            self._drop_resume_handle("oturum ortasinda 1007 (gecersiz istek)")
+        if time.monotonic() - self._connect_started >= _STABLE_SESSION_S:
+            return 1
+        return attempt
 
     def _check_setup_rejection(self, exc: BaseException) -> None:
         """Sunucu oturum ayarini (1007 invalid argument) baglanir baglanmaz reddettiyse
