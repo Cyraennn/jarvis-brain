@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JARVIS · Decision Pipeline</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%226%22 fill=%22%2300e5ff%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="viewport">
+  <div id="stage">
+    <!-- 1. UST BAR -->
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark"></span>JARVIS <span class="slash">/</span> DECISION PIPELINE</div>
+      <div class="flow" id="flow">
+        <span data-flow="request">REQUEST</span><i>→</i><span data-flow="rules">RULES</span><i>→</i>
+        <span data-flow="classifier">CLASSIFIER</span><i>→</i><span data-flow="gate">GATE</span><i>→</i>
+        <span data-flow="model">MODEL</span>
+      </div>
+      <div class="right">
+        <div class="modes" role="tablist">
+          <button data-mode="live" title="Canlı (1)">LIVE</button>
+          <button data-mode="replay" title="Tekrar oynat (2)">REPLAY</button>
+          <button data-mode="demo" title="Demo (3)">DEMO</button>
+        </div>
+        <div class="speed" id="speed" title="Hız (+ / -)">
+          <button data-speed="0.5">0.5×</button><button data-speed="1">1×</button>
+          <button data-speed="2">2×</button><button data-speed="4">4×</button>
+        </div>
+        <span class="status" id="status"><i></i><b>—</b></span>
+        <span class="version" id="version">router</span>
+        <span class="clock" id="clock">--:--:--</span>
+      </div>
+    </header>
+
+    <!-- 2. METRIK KARTLARI -->
+    <section class="metrics">
+      <div class="card" id="m-decisions">
+        <div class="label">DECISIONS <span>· THIS RUN</span></div>
+        <div class="value"><span class="num">0</span></div>
+        <div class="foot" id="m-decisions-foot">local 0 · llm 0 · rule 0</div>
+      </div>
+      <div class="card" id="m-latency">
+        <div class="label">MEDIAN LATENCY <span>· LAST 50</span></div>
+        <div class="value"><span class="num">—</span><small>ms</small></div>
+        <canvas class="spark" id="spark" width="380" height="44"></canvas>
+      </div>
+      <div class="card" id="m-cost">
+        <div class="label">COST <span>· ESTIMATED</span></div>
+        <div class="value"><small>$</small><span class="num">0.0000</span></div>
+        <div class="foot" id="m-cost-foot">paid calls 0 · free 0</div>
+      </div>
+      <div class="card" id="m-conf">
+        <div class="label">CONFIDENCE <span>· LIVE</span></div>
+        <div class="value"><span class="num">—</span></div>
+        <div class="confbar"><div class="fill"></div><div class="thr"><b>0.75</b></div></div>
+      </div>
+    </section>
+
+    <!-- 3. VAKA BASLIGI -->
+    <section class="case">
+      <div class="case-left">
+        <span class="badge" id="case-badge">CASE 00 / 00</span>
+        <div>
+          <h1 id="case-title">AWAITING DECISIONS</h1>
+          <div class="case-sub" id="case-sub">router idle · bir istek bekleniyor</div>
+        </div>
+      </div>
+      <div class="pills" id="pills">
+        <span data-stage="rules">RULES</span><span data-stage="classifier">CLASSIFIER</span>
+        <span data-stage="gate">GATE</span><span data-stage="llm">LLM</span><span data-stage="model">MODEL</span>
+      </div>
+    </section>
+
+    <!-- 4. ANA SAHNE -->
+    <section class="scene">
+      <canvas id="scene"></canvas>
+      <div class="request-card" id="request-card"><div class="rq-label">INCOMING REQUEST</div><div class="rq-text" id="rq-text">—</div><div class="rq-meta" id="rq-meta"></div></div>
+      <div class="paused" id="paused">PAUSED</div>
+    </section>
+
+    <!-- 5. ANALIZ PANELLERI -->
+    <section class="panels">
+      <div class="panel"><div class="ptitle">TASK MIX</div><div class="bars" id="p-tasks"></div></div>
+      <div class="panel"><div class="ptitle">MODEL SHARE <span id="p-fallbacks">· fallbacks 0</span></div><div class="bars" id="p-models"></div></div>
+      <div class="panel"><div class="ptitle">SIGNAL <span>· top scores, current case</span></div><div class="signal" id="p-signal"></div></div>
+      <div class="panel log"><div class="ptitle">EVENT LOG</div><div class="lines" id="p-log"></div></div>
+    </section>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

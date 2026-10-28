@@ -12,14 +12,19 @@ from loguru import logger
 
 
 class RoutingLog:
-    def __init__(self, path: Path | str | None) -> None:
+    def __init__(self, path: Path | str | None, *, publish: bool = True) -> None:
         self.path = Path(path) if path else None
+        self.publish = publish   # canli panoya (/ws/decisions) yayinla
         self._lock = threading.Lock()
 
     def write(self, kind: str, record: dict[str, Any]) -> None:
+        row = {"ts": datetime.now().astimezone().isoformat(timespec="milliseconds"), "kind": kind, **record}
+        if self.publish:
+            from router.events import BUS
+
+            BUS.publish(json.loads(json.dumps(row, ensure_ascii=False, default=str)))
         if self.path is None:
             return
-        row = {"ts": datetime.now().astimezone().isoformat(timespec="milliseconds"), "kind": kind, **record}
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             line = json.dumps(row, ensure_ascii=False, default=str)

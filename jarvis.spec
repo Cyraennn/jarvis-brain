@@ -19,6 +19,10 @@ datas = [
     # model router ayarlari + siniflandirici ornekleri (router/)
     (str(ROOT / "config" / "models.yaml"), "config"),
     (str(ROOT / "router" / "examples.yaml"), "router"),
+    # Decision Pipeline panosu (tek sayfa)
+    (str(ROOT / "ui" / "dashboard" / "index.html"), "ui/dashboard"),
+    (str(ROOT / "ui" / "dashboard" / "app.js"), "ui/dashboard"),
+    (str(ROOT / "ui" / "dashboard" / "style.css"), "ui/dashboard"),
 ]
 binaries = []
 hiddenimports = ["winsound", "mss", "mss.windows"]

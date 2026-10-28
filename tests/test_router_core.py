@@ -382,3 +382,12 @@ def test_probe_rejected_anthropic_key_is_inactive_with_reason(monkeypatch):
     asyncio.run(reg.probe(gemini_key="g", openrouter_key="o", anthropic_key="a", anthropic_workspace="ws-1"))
     claude = reg.get("claude-opus-5-5")
     assert not claude.active and "reddedildi" in claude.reason and "workspace" in claude.reason
+
+
+def test_explicit_model_rule_uses_known_agents_task_type(tmp_path):
+    reg = _registry()
+    clf = TaskClassifier(HashingEmbedder(4096), EXAMPLES, temperature=reg.temperature)
+    clf.fit()
+    router = Router(reg, clf, None, RoutingLog(tmp_path / "r.jsonl"), {"kodcu": "gelistirme"})
+    d = run(router.route(RouteRequest(text="nemotron ile nasılsın bugün", agent_name="kodcu")))
+    assert d.rule == "explicit_model" and d.task_type == "kod"   # siniflandirici 'sohbet' derdi

@@ -78,7 +78,24 @@ class ModelRegistry:
         self.agent_task_types: dict[str, str] = {
             str(k): str(v) for k, v in (self.raw.get("agent_task_types") or {}).items()}
         self.keep_classifier_task_types: set[str] = set(self.raw.get("keep_classifier_task_types") or [])
+        self.pricing: dict[str, dict[str, float]] = {
+            str(k): {"input": float(v.get("input", 0)), "output": float(v.get("output", 0))}
+            for k, v in (self.raw.get("pricing") or {}).items()}
+        est = self.raw.get("cost_estimate") or {}
+        self.est_base_input = int(est.get("base_input_tokens", 1500))
+        self.est_output = int(est.get("output_tokens", 600))
         self._validate()
+
+    def estimate_cost(self, model: str | None, *, request_chars: int, calls: int = 1) -> float:
+        """Bir model kullaniminin TAHMINI dolar maliyeti (token sayisi bilinmez; panoda
+        'ESTIMATED' olarak gosterilir). Ucretsiz/bilinmeyen model -> 0."""
+        price = self.pricing.get(model or "")
+        if not price:
+            return 0.0
+        calls = max(1, int(calls))
+        tokens_in = (request_chars / 4 + self.est_base_input) * calls
+        tokens_out = self.est_output * calls
+        return round((tokens_in * price["input"] + tokens_out * price["output"]) / 1_000_000, 6)
 
     def task_type_for_agent(self, agent: str | None, department: str | None) -> str | None:
         """Ajanin gorev tipi: once agent_task_types, yoksa departman eslemesi."""

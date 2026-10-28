@@ -301,6 +301,10 @@ class MainWindow(QMainWindow):
         self._hud_btn.clicked.connect(self._open_gesture_hud)
         lay.addWidget(self._hud_btn)
 
+        self._pipe_btn = self._ribbon_btn("\U0001f4c8", "Decision Pipeline (router kararları)")
+        self._pipe_btn.clicked.connect(self._open_decision_pipeline)
+        lay.addWidget(self._pipe_btn)
+
         self._team_btn = self._ribbon_btn("\U0001f9be", "Stark Ekibi (aç/kapa)", checkable=True)
         self._team_btn.toggled.connect(self._toggle_stark_team)
         lay.addWidget(self._team_btn)
@@ -814,6 +818,18 @@ class MainWindow(QMainWindow):
             f"Jest HUD açıldı ({result.get('mode', '')}): {result.get('url', '')}",
             theme.ACCENT,
         )
+
+    def _open_decision_pipeline(self) -> None:
+        """Router kararlarini canli gosteren Decision Pipeline panosu (Qt WebEngine penceresi)."""
+        from ui.dashboard.window import DashboardWindow
+
+        if getattr(self, "_pipe_win", None) is None:
+            self._pipe_win = DashboardWindow()
+        result = self._pipe_win.open(self._settings)
+        if result.get("error"):
+            self._log.add_event("\U0001f4c8", f"Decision Pipeline açılamadı: {result['error']}", theme.BAD)
+            return
+        self._log.add_event("\U0001f4c8", f"Decision Pipeline açıldı: {result.get('url', '')}", theme.ACCENT)
 
     def _toggle_stark_team(self, on: bool) -> None:
         """Stark Ekibi penceresini ac/kapat; pencere elle kapatilirsa dugme de soner."""

@@ -215,6 +215,10 @@ class Settings(BaseModel):
     router_examples_path: Path = RESOURCE_DIR / "router" / "examples.yaml"
     router_model_path: Path = APP_DIR / "data" / "router_model.npz"
     routing_log_path: Path = APP_DIR / "data" / "logs" / "routing.jsonl"
+    # Decision Pipeline panosu (ui/dashboard): http://127.0.0.1:8772/dashboard
+    dashboard_enabled: bool = True
+    dashboard_host: str = "127.0.0.1"   # yalnizca bu bilgisayar (kimlik dogrulamasi yok)
+    dashboard_port: int = 8772
 
     # Entegrasyonlar (anahtar yoksa yerel dosyaya yazar)
     supabase_url: str = ""
@@ -504,6 +508,9 @@ def get_settings() -> Settings:
         ntfy_server=os.getenv("NTFY_SERVER", "https://ntfy.sh"),
         agents_auto_approve_assisted=_env_bool("JARVIS_AGENTS_AUTO_APPROVE", True),
         router_enabled=_env_bool("JARVIS_ROUTER_ENABLED", _env_bool("ROUTER_ENABLED", True)),
+        dashboard_enabled=_env_bool("JARVIS_DASHBOARD", True),
+        dashboard_host=os.getenv("JARVIS_DASHBOARD_HOST", "127.0.0.1").strip() or "127.0.0.1",
+        dashboard_port=int(os.getenv("JARVIS_DASHBOARD_PORT", "8772") or 8772),
         email_address=os.getenv("EMAIL_ADDRESS", ""),
         email_app_password=os.getenv("EMAIL_APP_PASSWORD", os.getenv("EMAIL_PASSWORD", "")),
         email_imap_host=os.getenv("EMAIL_IMAP_HOST", ""),

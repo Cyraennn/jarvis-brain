@@ -362,3 +362,29 @@ def test_agent_without_chain_keeps_old_provider_order():
     spec = load_agents(get_settings().agent_config_path)["kodcu"]
     agent = Agent(spec, None, default_models=["gemini-flash-lite-latest"], default_max_steps=2)
     assert agent.provider_order == ["claude", "openrouter", "gemini"]
+
+
+def test_unrun_tasks_are_logged_as_done_with_status(make_orch, tmp_path, monkeypatch):
+    orch = make_orch(agent_cls=RecordingAgent)
+    _handle(orch, task="gelen kutusunu temizle, silinecek toplu mailleri bul")
+    done = [r for r in _log(tmp_path) if r["kind"] == "done"]
+    assert done and done[0]["status"] == "blocked" and done[0]["ok"] is False
+
+
+def test_done_line_carries_estimated_cost(make_orch, tmp_path, monkeypatch):
+    orch = make_orch(agent_cls=RecordingAgent)
+    monkeypatch.setattr(orch, "_qa_due", lambda route: False)
+    _handle(orch, agent="kodcu", task=HARD)                        # zincir basi claude (ucretli)
+    done = [r for r in _log(tmp_path) if r["kind"] == "done"][0]
+    assert done["model_used"] == "claude-opus-5-5" and done["est_cost_usd"] > 0
+    _handle(orch, task="yarın hangi derslerim var")                 # ucretsiz model
+    done = [r for r in _log(tmp_path) if r["kind"] == "done"][-1]
+    assert done["est_cost_usd"] == 0.0
+
+
+def test_explicit_model_rule_still_takes_task_type_from_agent(make_orch, tmp_path, monkeypatch):
+    orch = make_orch(agent_cls=RecordingAgent)
+    _handle(orch, agent="mesaj_yazari", task="nemotron ile sınıf grubuna duyuru metni hazırla")
+    decision = _log(tmp_path)[0]
+    assert decision["rule"] == "explicit_model" and decision["task_type"] == "yazi"
+    assert decision["model_id"] == "nvidia/nemotron-3-ultra-550b-a55b:free"

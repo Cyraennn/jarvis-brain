@@ -128,7 +128,8 @@ class Router:
             deferred = True
 
         if hit is not None:
-            task_type = hit.task_type or (task_pred.label if task_pred else "sohbet")
+            # kural zinciri belirler; tipi kural vermiyorsa (acik model / uzun baglam) ajandan gelir
+            task_type = hit.task_type or (override[0] if override else task_pred.label if task_pred else "sohbet")
             difficulty = "zor" if hit.task_type == "qa" else (diff_pred.label if diff_pred else "orta")
             confidence, source, reason = 1.0, "rule", hit.reason
             chain_name, chain = hit.extra.get("chain_name", hit.rule), list(hit.chain)
@@ -250,7 +251,8 @@ class Router:
         top = (decision.scores.get("task_types") or [{}])[0]
         classifier_wins = (top.get("label") in self.registry.keep_classifier_task_types
                            and (decision.scores.get("task_confidence") or 0) >= self.registry.task_threshold)
-        if decision.rule is None and mapped and mapped != decision.task_type and not classifier_wins:
+        mappable = decision.rule in (None, "explicit_model", "long_context")  # zinciri kural belirler, tipi ajan
+        if mappable and mapped and mapped != decision.task_type and not classifier_wins:
             decision.reason = f"{decision.reason}; gorev tipi ajandan ({agent}): {mapped}"
             decision.task_type = mapped
         if decision.rule is None:

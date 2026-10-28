@@ -68,6 +68,17 @@ class AgentOrchestrator:
         self.qa = VeronicaQA(claude=self.claude, openrouter=self.openrouter, genai_client=self.client,
                              max_result_chars=int(qa_cfg.get("max_result_chars", 6000)))
 
+    def _start_dashboard(self) -> None:
+        """Decision Pipeline panosu (ui/dashboard, FastAPI). Hata orkestratoru durdurmaz."""
+        if not getattr(self.settings, "dashboard_enabled", False):
+            return
+        try:
+            from ui.dashboard.server import start_dashboard
+
+            start_dashboard(self.settings)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"[pano] Decision Pipeline baslatilamadi: {exc!r}")
+
     def _make_router(self) -> Any | None:
         """Model router (router/). Kapaliysa ya da kurulamazsa None -> eski davranis
         (Conductor LLM + agents.json modelleri). Kurulamamasi ACIKCA loglanir."""
@@ -139,6 +150,7 @@ class AgentOrchestrator:
         if claude_agents:
             state = "aktif" if getattr(self.claude, "available", False) else "ANAHTAR YOK -> OpenRouter"
             logger.info(f"Claude ({state}): {', '.join(claude_agents)}")
+        self._start_dashboard()
         if self.router is not None:
             from router import warm_up
 
@@ -208,6 +220,7 @@ class AgentOrchestrator:
                     f"[{spec.title}] Bu ajan Insan Odakli. Gorevi manuel baslatman gerekiyor: "
                     f"{request.task[:120]}"
                 )
+                self._record_unrun(request, route, spec, "blocked", started)
                 return
 
             # Zamanli gorevler (source "zamanli...") kullanici tarafindan kurulurken onaylandi;
@@ -227,6 +240,7 @@ class AgentOrchestrator:
                     self._emit(request, "cancelled", "onay verilmedi",
                                agent=spec.name, department=dept, autonomy=spec.autonomy.value)
                     self._write_outbox(f"[{spec.title}] Gorev onaylanmadi, calistirilmadi.")
+                    self._record_unrun(request, route, spec, "cancelled", started)
                     return
 
             # --- calistir ---
@@ -260,8 +274,11 @@ class AgentOrchestrator:
                 self.router.record_done(
                     request.id, ok=result.ok, error=result.error, agent=spec.name,
                     model_used=result.model, primary_model=result.primary_model or route.model_id,
-                    fallback=result.fallback, chain=route.chain,
+                    fallback=result.fallback, chain=route.chain, status="done" if result.ok else "failed",
                     total_ms=round((time.perf_counter() - started) * 1000, 1), qa=qa_note or None,
+                    est_cost_usd=self.router.registry.estimate_cost(
+                        result.model, request_chars=len(request.task) + len(request.context or ""),
+                        calls=result.steps + 1),
                 )
             mark = mark + qa_note
             if result.ok:
@@ -335,6 +352,17 @@ class AgentOrchestrator:
         self.router.record(decision, request.task)
         return decision
 
+    def _record_unrun(self, request: TaskRequest, route: Any, spec: Any, status: str, started: float) -> None:
+        """Calistirilmayan gorev (onay yok / insan odakli) de kayda ve canli panoya yazilir."""
+        if route is None or self.router is None:
+            return
+        self.router.record_done(
+            request.id, ok=False, status=status, agent=spec.name, model_used=None,
+            primary_model=route.model_id, fallback=False, chain=route.chain, est_cost_usd=0.0,
+            total_ms=round((time.perf_counter() - started) * 1000, 1),
+            error="onay verilmedi" if status == "cancelled" else "insan odakli ajan",
+        )
+
     def _qa_due(self, route: Any) -> bool:
         cfg = self.router.registry.qa if self.router is not None else {}
         if not cfg.get("enabled", False):
@@ -377,6 +405,9 @@ class AgentOrchestrator:
             "request_id": request.id, "approved": verdict.approved, "issues": verdict.issues,
             "model": verdict.model, "fallback": verdict.fallback, "retries": retries,
             "errors": verdict.errors,
+            "est_cost_usd": self.router.registry.estimate_cost(
+                verdict.model, request_chars=len(request.task) + min(len(result.text), 6000),
+                calls=retries + 1),
         })
         backup = f" (yedek model {verdict.model})" if verdict.fallback else ""
         if verdict.approved is True:

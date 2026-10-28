@@ -38,6 +38,15 @@ models:
   - {id: "qwen2.5:7b",              provider: ollama, speed: medium, cost: free, capabilities: [text, tool_use, turkish], routable: false}
   - {id: "qwen2.5:1.5b",            provider: ollama, speed: fast,   cost: free, capabilities: [text, turkish], routable: false}
 
+# Tahmini maliyet (Decision Pipeline panosu): $ / 1M token. Listede olmayan model = 0 (ucretsiz).
+# Kaynak: Anthropic fiyat tablosu (2026-10). Token sayisi bilinmedigi icin TAHMINDIR:
+# girdi ~ (istek karakteri / 4) + sabit_girdi, cikti ~ sabit_cikti; arac adimi basina tekrar.
+pricing:
+  claude-opus-5-5: {input: 4.00, output: 20.00}
+cost_estimate:
+  base_input_tokens: 1500     # sistem istemi + arac tanimlari
+  output_tokens: 600          # model cagrisi basina ortalama cevap
+
 # Adlandirilmis yedek zincirleri (soldan saga denenir)
 chains:
   hizli:       [gemini-flash-lite-latest, gemini-3.5-flash-lite, nvidia/nemotron-3.5-super-vl:free]
