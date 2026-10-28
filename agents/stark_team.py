@@ -267,8 +267,43 @@ _HANDLERS = {
 }
 
 
+def _routed_persona(p: Persona) -> tuple[Persona, str | None]:
+    """Kisilik kendi modelini korur (kimligi o model). YALNIZCA router o modeli erisilemez
+    (pasif) isaretlediyse yedek model secilir; bu ACIKCA bildirilir (sessiz yedek yok)."""
+    if p.provider not in ("gemini", "openrouter", "claude"):
+        return p, None
+    try:
+        from router import get_active
+
+        router = get_active()
+    except Exception:  # noqa: BLE001
+        return p, None
+    backup = router.fallback_for(p.model) if router is not None else None
+    if not backup:
+        return p, None
+    info = router.registry.get(backup)
+    provider = info.provider if info is not None else "gemini"
+    if provider not in ("gemini", "openrouter", "claude"):
+        return p, None
+    reason = router.registry.get(p.model).reason if router.registry.get(p.model) else "pasif"
+    logger.bind(event="persona_fallback").warning(
+        f"[ekip] {p.name} modeli {p.model} erisilemez ({reason}) -> YEDEK {backup}")
+    return p.model_copy(update={"model": backup, "provider": provider}), f"{p.model} erisilemez, {backup} yanitliyor"
+
+
 async def _ask_once(p: Persona, text: str, history: list[dict[str, str]]) -> dict[str, Any]:
     """Tek model cagrisi; hata firlatmaz. Donus: {text, model, error, sources?}."""
+    p, backup_note = _routed_persona(p)
+    if backup_note:
+        out = await _ask_once_raw(p, text, history)
+        out["fallback"] = backup_note
+        if out.get("text"):
+            out["text"] = f"[YEDEK: {p.model}] {out['text']}"
+        return out
+    return await _ask_once_raw(p, text, history)
+
+
+async def _ask_once_raw(p: Persona, text: str, history: list[dict[str, str]]) -> dict[str, Any]:
     handler = _HANDLERS.get(p.provider)
     if handler is None:
         return {"text": "", "model": p.model, "error": f"{p.name} metinle cagrilamaz"}

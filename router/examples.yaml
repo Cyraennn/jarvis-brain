@@ -1,0 +1,282 @@
+# Router prototip ornekleri (egitimsiz baslangic). Turkce + Ingilizce.
+# Siniflandirici her istegi bu cumlelere kosinus benzerligiyle karsilastirir.
+# Yanlis kararlari duzeltmek icin: data/router_labels.csv -> python scripts/router_retrain.py
+
+task_types:
+  sohbet:
+    - nasılsın bugün
+    - bana bir fıkra anlat
+    - canım sıkılıyor biraz konuşalım mı
+    - teşekkürler çok yardımcı oldun
+    - sence hangisi daha güzel, kedi mi köpek mi
+    - günaydın jarvis
+    - bugün kendimi yorgun hissediyorum
+    - ne düşünüyorsun bu konuda
+    - hey, what's up
+    - tell me something interesting
+    - just chatting, how was your day
+    - motivasyon için bir şey söyle
+  kod:
+    - bu python fonksiyonundaki hatayı bul ve düzelt
+    - requirements.txt dosyasındaki eski bağımlılıkları incele
+    - core klasöründeki kodu kalite ve güvenlik açısından incele
+    - bu modül için birim testleri yaz
+    - React bileşenine form doğrulaması ekle
+    - şu traceback ne anlama geliyor, nasıl çözerim
+    - projeyi yeniden düzenle, tekrar eden kodu kaldır
+    - flutter uygulamasında state yönetimini düzelt
+    - write a function that parses this CSV and returns totals
+    - refactor the backend API into separate modules with type hints
+    - review this pull request for bugs
+    - fix the failing pytest tests in the agents package
+    - kodun test kapsamını değerlendir ve eksik testleri öner
+  arastirma:
+    - Dart programlama dili hakkında kapsamlı bir araştırma yap
+    - yapay zekadaki son gelişmeleri araştır ve kaynaklarıyla özetle
+    - bu hafta çıkan teknoloji haberlerini topla
+    - kuantum bilgisayarların eğitimde kullanımını araştır
+    - iki kütüphaneyi karşılaştır, hangisi daha iyi
+    - dolar kuru bugün ne kadar
+    - research the latest developments in renewable energy with sources
+    - compare these three laptops by price and performance
+    - find recent papers about retrieval augmented generation
+    - bu konuyla ilgili güncel istatistikleri bul
+    - eğitim teknolojilerinde son trendler neler
+  yazi:
+    - bana bir dilekçe yaz
+    - sınıf grubuna bir duyuru metni hazırla
+    - bu paragrafı daha akıcı hale getir
+    - doğum günü için güzel bir mesaj yaz
+    - bir blog yazısı taslağı oluştur
+    - Instagram için kısa bir açıklama yaz
+    - bu metni İngilizceye çevir
+    - write a cover letter for a teaching internship
+    - draft a polite reply declining the meeting
+    - summarize this text in three sentences
+    - YouTube videom için senaryo yaz
+    - bir şiir yaz
+  planlama:
+    - bugün yapmamız gerekenleri analiz et
+    - günümü planla
+    - bu projeyi alt görevlere böl ve sırala
+    - sınav haftası için bir çalışma takvimi çıkar
+    - haftalık hedeflerimi organize et
+    - karmaşık bu isteği adım adım planla
+    - multi-ajanlı iş akışı başlat
+    - plan my week around my exams and gym
+    - break this goal into milestones
+    - önce ne yapmalıyım, öncelik sırası ver
+    - günü analiz et ve bana anlat
+  gorsel:
+    - ekrandaki sınav programını oku
+    - bu fotoğrafta ne var
+    - ekranda görünen ders programını OCR ile oku
+    - rafımdaki kitapları tara
+    - bu resimdeki yazıyı çıkar
+    - ekran görüntüsündeki hatayı açıkla
+    - what is in this image
+    - read the text on this screenshot
+    - kameraya bak ve ne gördüğünü söyle
+    - bu grafiği yorumla
+  sistem_komutu:
+    - Spotify'ı aç
+    - Danza Kuduro çal
+    - bilgisayarın disk ve RAM durumunu raporla
+    - sistem belleği çok yüksek, arka plan uygulamalarını kontrol et
+    - masaüstündeki gereksiz dosyaları temizle
+    - chrome'u kapat
+    - sesi kıs
+    - telefonda YouTube aç
+    - eshot sitesinde en son duyuruyu bul
+    - GitHub hesabımdaki depoları listele
+    - open the downloads folder
+    - disk doluluk uyarısı sonrası temizlik başlat
+    - bu terminal komutunu çalıştır
+  okul:
+    - Türk dili sınavı 13 Kasım saat 13 ile 13.45 arası
+    - yarın hangi derslerim var
+    - geciken ödevlerimi listele
+    - GANO'mu hesapla
+    - sınavlara göre çalışma planı çıkar
+    - ders notlarımı özetle
+    - 9 Eylül BÖTE sınav programını bul
+    - okul uygulamasına yeni ödev ekle
+    - vize sınavlarım ne zaman
+    - what classes do I have tomorrow
+    - hedef ortalama için hangi harf notları gerekiyor
+  iletisim:
+    - okunmamış maillerimi özetle
+    - gelen kutumdaki önemli mailleri göster
+    - hocama bir e-posta yanıtı taslağı hazırla
+    - telegram mesajlarımı kontrol et
+    - WhatsApp'ta annemle ilgili ne yazılmış
+    - bu maile uygun tonda cevap yaz
+    - check my unread emails
+    - draft a reply to the professor's email
+    - gelen kutusunu temizle, reklam maillerini ayır
+    - Sezai'ye telegramdan bildirim gönder
+
+difficulty:
+  basit:
+    - Spotify'ı aç
+    - hava nasıl
+    - saat kaç
+    - yarın hangi derslerim var
+    - sesi kıs
+    - okunmamış maillerimi say
+    - bir fıkra anlat
+    - GANO'mu söyle
+    - hatırlatıcı kur yarın 9'da
+    - what time is it
+    - open youtube
+    - Danza Kuduro çal
+    - nasılsın
+    - bugün hava yağmurlu mu
+    - dolar kaç lira
+  orta:
+    - okunmamış maillerimi önem sırasına göre özetle
+    - bu paragrafı düzelt ve daha akıcı yaz
+    - bilgisayarın disk ve RAM durumunu raporla, en çok yer kaplayanları listele
+    - sınav haftası için çalışma takvimi çıkar
+    - bu python fonksiyonundaki hatayı bul ve düzelt
+    - eshot sitesinde en son duyuruyu bul ve özetle
+    - hocama bir e-posta yanıtı taslağı hazırla
+    - ders notlarımı özetle ve soru çıkar
+    - summarize these meeting notes and list action items
+    - write a short cover letter
+    - GitHub depolarımı listele ve son değişiklikleri özetle
+    - ekrandaki sınav programını oku ve takvime ekle
+    - günümü planla
+  zor:
+    - Dart programlama dili hakkında kapsamlı bir araştırma yap ve Türkçe ders notu hazırla
+    - core ve agents klasörlerindeki kodu kalite, güvenlik ve stil açısından incele, bulguları dosya satır ile ver
+    - projeyi mimari olarak yeniden tasarla ve modüllere ayır
+    - bu backend için uçtan uca test stratejisi ve eksik testleri çıkar
+    - yapay zekadaki son gelişmeleri birden çok kaynaktan araştır, karşılaştır ve rapor yaz
+    - sınavlara göre gün gün detaylı çalışma planı çıkar, konu takibini ve tekrar günlerini ekle
+    - karmaşık bu isteği alt görevlere böl, ajanlara dağıt ve sonuçları birleştir
+    - design a scalable architecture for a multi-agent assistant with failure recovery
+    - research and compare three databases for our use case with benchmarks and sources
+    - refactor the whole backend into typed modules and write tests
+    - Obsidian kasasını denetle, kırık linkleri, eksik frontmatter'ı ve yapı sorunlarını raporla
+    - bu Excel dosyasındaki tüm sınav programını analiz et, okul sistemine kaydet ve çalışma planı oluştur
+
+# Ajan secimi icin ek ornekler (ajan basligi + aciklamasi otomatik eklenir)
+agents:
+  ders_programi:
+    - yarın hangi derslerim var
+    - bugün derslik neresi
+    - pazartesi ders programım
+  sinav_kocu:
+    - sınavlara göre çalışma planı çıkar
+    - ekranda görünen sınav programını oku ve sınavları kaydet
+    - vize haftası için gün gün çalışma planı hazırla
+  odev_takipcisi:
+    - geciken ödevlerimi listele
+    - okul uygulamasına yeni ödev ekle
+    - bu hafta teslim edilecek ödevler neler
+  not_ozetleyici:
+    - ders notlarımı özetle
+    - bu dersin notlarından soru çıkar
+  gano_danismani:
+    - GANO'mu hesapla
+    - hedef ortalama için hangi notlar gerekiyor
+  eposta_triyaj:
+    - okunmamış maillerimi önem sırasına göre özetle
+    - gelen kutumdaki önemli mailleri göster
+  yanit_taslakcisi:
+    - hocama bir e-posta yanıtı taslağı hazırla
+    - bu maile uygun tonda cevap yaz
+  gelen_kutusu:
+    - gelen kutusunu temizle, silinecek toplu mailleri bul
+    - reklam maillerini arşivle
+  mesaj_yazari:
+    - sınıf grubuna bir duyuru metni hazırla
+    - bana bir dilekçe yaz
+    - WhatsApp mesajı taslağı yaz
+  pc_operatoru:
+    - Spotify'ı aç
+    - indirilenler klasörünü aç
+    - bilgisayarda bu siteyi aç
+  web_operatoru:
+    - eshot sitesinde en son duyuruyu bul
+    - İzmir Büyükşehir Belediyesi sitesindeki en son haberi bul
+    - 9 Eylül BÖTE sınav programını sitede bul ve özetle
+    - sitedeki ders notu PDF dosyalarını bul ve indir
+  entegrasyon_uzmani:
+    - GitHub hesabımdaki depoları listele
+    - Notion sayfama not ekle
+  sistem_sagligi:
+    - bilgisayarın disk ve RAM durumunu raporla
+    - sistem belleği çok yüksek, arka plan uygulamalarını kontrol et
+    - işlemciyi en çok kullanan süreçler neler
+  bakim_teknisyeni:
+    - diski tara ve geçici dosyaları temizle
+    - disk doluluk uyarısı sonrası temizlik başlat
+  kod_denetcisi:
+    - core klasöründeki kodu kalite ve güvenlik açısından incele
+    - bu projede kod incelemesi yap, bulguları dosya satır ile ver
+  markdown_denetcisi:
+    - Obsidian kasasını denetle, kırık linkleri bul
+    - markdown dosyalarındaki başlık hiyerarşisini kontrol et
+  bagimlilik_gozcusu:
+    - requirements.txt dosyasındaki eski bağımlılıkları incele
+    - package.json sürümlerini ve güvenlik açıklarını kontrol et
+  test_kocu:
+    - kodun test kapsamını değerlendir ve eksik testleri öner
+    - bu modül için hangi test senaryoları eksik
+  dosya_duzenleyici:
+    - masaüstü klasörünü düzenle, dağınıklık raporu çıkar
+    - dosyaları klasörle ve yeniden adlandır
+  telefon_operatoru:
+    - telefonda WhatsApp'ı aç
+    - telefonun kilidini aç ve bu linki aç
+  medya_kumandasi:
+    - telefonda YouTube'da şarkı aç
+    - telefonda Spotify'da çalma listemi oynat
+  arastirmaci:
+    - Dart programlama dili hakkında kapsamlı bir araştırma yap
+    - yapay zekadaki son gelişmeleri araştır ve kaynaklarıyla özetle
+    - bu konuda güncel haberleri ara
+  bilgi_bankasi:
+    - bilgi bankasına bu notu kaydet
+    - GBrain'de projeyle ilgili ne yazmıştık
+  not_katibi:
+    - söylediklerimi günlük nota kaydet
+    - dün ne not almıştım
+  belge_ozetleyici:
+    - bu PDF dosyasını özetle
+    - bu metin dosyasının ana fikirlerini çıkar
+  hatirlatici:
+    - yarın saat 9'da beni uyandır
+    - her pazartesi spor hatırlatıcısı kur
+  gunluk_brifing:
+    - günlük brifing ver
+    - sabah özeti, hava, dersler ve mailler
+  hava_durumu:
+    - İzmir'de hava nasıl
+    - yarın yağmur yağacak mı, ne giyeyim
+  harcama_defteri:
+    - bugün 150 lira market harcaması yaptım
+    - bu ayki harcamalarımı topla
+  muzik_dj:
+    - Danza Kuduro çal
+    - bilgisayarda sakin bir müzik aç
+  kodcu:
+    - React bileşenine form doğrulaması ekle
+    - bu python fonksiyonunu yeniden yaz ve dosyaya kaydet
+    - backend API'sini modüllere ayır
+  bilgisayar_op:
+    - yazdığın kodu çalıştır ve test et
+    - bu terminal komutunu çalıştır ve sonucu doğrula
+  planlayici:
+    - bugün yapmamız gerekenleri analiz et
+    - karmaşık bu isteği alt görevlere böl ve sırala
+    - multi-ajanlı iş akışı başlat
+  sekreter:
+    - telegram mesajlarımı kontrol et
+    - Gmail ve Telegram'daki önemlileri bana özetle
+  ulasim:
+    - en yakın ESHOT durağı nerede
+    - 202 numaralı otobüs ne zaman gelir
+    - Bornova'dan Konak'a nasıl giderim

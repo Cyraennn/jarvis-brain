@@ -57,3 +57,7 @@ openwakeword>=0.6
 onnxruntime>=1.17
 tokenizers>=0.15
 huggingface_hub>=0.20
+# Model router (router/): yerel siniflandirici yukaridaki onnxruntime + tokenizers +
+# huggingface_hub ile calisir (multilingual-e5-small; torch GEREKMEZ). Ayarlar YAML'da.
+PyYAML>=6.0
+scikit-learn>=1.3     # yalnizca scripts/router_retrain.py (calisma aninda gerekmez)

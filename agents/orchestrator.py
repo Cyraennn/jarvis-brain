@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 from typing import Any
 
 from google import genai
@@ -23,7 +24,7 @@ from agents.events import OrchestratorObserver
 from agents.integrations import SupabaseSync
 from agents.integrations.notifier import Notifier
 from agents.registry import load_agents, load_orchestrator_config
-from agents.schemas import AUTONOMY_BADGE, Autonomy, TaskRequest, TaskUpdate
+from agents.schemas import AUTONOMY_BADGE, Autonomy, TaskRequest, TaskUpdate, parse_department
 from config.settings import Settings
 from core.bridge_listener import BridgeListener
 
@@ -60,6 +61,41 @@ class AgentOrchestrator:
         self._sem = asyncio.Semaphore(max(1, settings.agents_max_concurrent))
         self._shutdown = asyncio.Event()
         self._running: set[asyncio.Task[Any]] = set()
+        self.router = self._make_router()
+        from agents.qa import VeronicaQA
+
+        qa_cfg = self.router.registry.qa if self.router is not None else {}
+        self.qa = VeronicaQA(claude=self.claude, openrouter=self.openrouter, genai_client=self.client,
+                             max_result_chars=int(qa_cfg.get("max_result_chars", 6000)))
+
+    def _make_router(self) -> Any | None:
+        """Model router (router/). Kapaliysa ya da kurulamazsa None -> eski davranis
+        (Conductor LLM + agents.json modelleri). Kurulamamasi ACIKCA loglanir."""
+        if not self.settings.router_enabled:
+            logger.info("[router] KAPALI (JARVIS_ROUTER_ENABLED=false) - eski yonlendirme kullaniliyor.")
+            return None
+        try:
+            import router as router_pkg
+
+            built = router_pkg.build_router(self.settings, agents=self.agents, llm_ask=self._llm_ask)
+            router_pkg.set_active(built)
+            return built
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"[router] KURULAMADI, eski yonlendirmeye donuluyor: {exc!r}")
+            return None
+
+    async def _llm_ask(self, prompt: str) -> str:
+        """Router'in dusuk guvende sordugu tek JSON sorusu: en hizli Gemini modelleri."""
+        from agents.genai_util import generate_with_retry
+
+        registry = self.router.registry if self.router is not None else None
+        models = [m for m in registry.llm_models if registry.is_active(m)] if registry else []
+        resp = await generate_with_retry(
+            self.client, model=models or self.settings.agent_model_chain[:1], contents=prompt,
+            config=types.GenerateContentConfig(temperature=0.0, response_mime_type="application/json"),
+            attempts=1,
+        )
+        return getattr(resp, "text", "") or ""
 
     @staticmethod
     def _make_openrouter(api_key: str) -> Any | None:
@@ -103,6 +139,13 @@ class AgentOrchestrator:
         if claude_agents:
             state = "aktif" if getattr(self.claude, "available", False) else "ANAHTAR YOK -> OpenRouter"
             logger.info(f"Claude ({state}): {', '.join(claude_agents)}")
+        if self.router is not None:
+            from router import warm_up
+
+            logger.info("[router] AKTIF - yerel siniflandirici ve model denetimi arka planda hazirlaniyor.")
+            warm = asyncio.create_task(warm_up(self.router, self.settings))
+            self._running.add(warm)
+            warm.add_done_callback(self._running.discard)
         try:
             self.observer.on_agents_loaded(list(self.agents.values()))
         except Exception:  # noqa: BLE001
@@ -133,9 +176,14 @@ class AgentOrchestrator:
 
     async def _handle(self, request: TaskRequest) -> None:
         async with self._sem:
+            started = time.perf_counter()
             name = (request.agent or "auto").strip().lower()
             reason = ""
-            if name in ("", "auto") or name not in self.agents:
+            route = None
+            if self.router is not None:
+                route = await self._route(request, name)
+                name, reason = route.agent or name, route.reason
+            elif name in ("", "auto") or name not in self.agents:
                 self._emit(request, "routing", "JARVIS departman seciyor")
                 decision = await self.conductor.route(request.task, request.context)
                 name = decision.agent
@@ -192,8 +240,12 @@ class AgentOrchestrator:
                 inbox_path=self.settings.agent_inbox_path,
                 openrouter=self.openrouter,
                 claude=self.claude,
+                model_chain=route.chain if route is not None else None,
             )
             result = await agent.run(request.task, request.context)
+            qa_note = ""
+            if route is not None and result.ok and self._qa_due(route):
+                result, qa_note = await self._run_qa(request, spec, agent, result)
 
             # Yedek modele dusulduyse cevaba ACIK isaret koy (sessiz fallback yok)
             mark = ""
@@ -204,6 +256,14 @@ class AgentOrchestrator:
                     f"[gorev {request.id}] {spec.name} YEDEK modelle calisti: {result.model}"
                 )
 
+            if route is not None:
+                self.router.record_done(
+                    request.id, ok=result.ok, error=result.error, agent=spec.name,
+                    model_used=result.model, primary_model=result.primary_model or route.model_id,
+                    fallback=result.fallback, chain=route.chain,
+                    total_ms=round((time.perf_counter() - started) * 1000, 1), qa=qa_note or None,
+                )
+            mark = mark + qa_note
             if result.ok:
                 self._emit(request, "done",
                            f"{result.steps} arac cagrisi · model {result.model or '?'}"
@@ -226,6 +286,106 @@ class AgentOrchestrator:
                     f"JARVIS · {spec.title} basarisiz", result.error or "hata",
                     priority=4, tags=["x"],
                 )
+
+    # ------------------------------------------------------------------ router
+    async def _route(self, request: TaskRequest, name: str) -> Any:
+        """Ajan + model karari (router). Ajan adi verildiyse yalnizca model secilir;
+        departman adi verildiyse ("okul", "SISTEM") ajan o departmandan secilir. Yerel ajan
+        guveni esigin altindaysa Conductor LLM'ine sorulur. Router yalnizca KIMLIK dondurur:
+        otonomi/onay kapisi bu karardan sonra aynen uygulanir."""
+        from router import RouteRequest
+
+        explicit = name in self.agents
+        dept = None if explicit or name in ("", "auto") else parse_department(name)
+        candidates = {n for n, s in self.agents.items() if s.department == dept} if dept else None
+        candidates = candidates or None
+        if not explicit:
+            self._emit(request, "routing", "JARVIS ajan ve model seciyor")
+        hint = self.agents[name].model if explicit else None
+        decision = await self.router.route(RouteRequest(
+            text=request.task, context=request.context, request_id=request.id, hint_model=hint,
+            pick_agent=not explicit, agent_name=name if explicit else None,
+            agent_candidates=candidates, needs_tools=True,
+        ))
+        if explicit:
+            decision.agent, decision.agent_source, decision.agent_confidence = name, "explicit", 1.0
+        else:
+            agent, source, confidence = decision.agent, "classifier", decision.agent_confidence
+            if agent is None or (confidence or 0.0) < self.router.registry.agent_threshold:
+                llm = await self.conductor.route(request.task, request.context)
+                failed = llm.reason.startswith("[YEDEK YONLENDIRME")
+                if failed and agent is not None:
+                    decision.warnings.append(
+                        f"Conductor LLM yanit vermedi; dusuk guvenli yerel ajan karari kullanildi ({agent})")
+                    logger.bind(event="routing_warning").warning(
+                        f"[router {request.id}] {decision.warnings[-1]}")
+                elif llm.agent in self.agents and (candidates is None or llm.agent in candidates):
+                    agent, source, confidence = llm.agent, "conductor_llm", llm.confidence
+                    decision.reason = f"{decision.reason}; ajan: Conductor LLM ({llm.reason})"
+                elif agent is None:
+                    agent, source, confidence = llm.agent, "conductor_llm", llm.confidence
+            if agent not in self.agents:
+                agent = next(iter(sorted(candidates))) if candidates else next(iter(self.agents))
+                decision.warnings.append(f"ajan secilemedi -> {agent}")
+                logger.bind(event="routing_warning").warning(f"[router {request.id}] {decision.warnings[-1]}")
+            decision = self.router.reroute_for_agent(
+                decision, agent=agent, hint=self.agents[agent].model, needs_tools=True,
+                source=source, confidence=confidence,
+            )
+        self.router.record(decision, request.task)
+        return decision
+
+    def _qa_due(self, route: Any) -> bool:
+        cfg = self.router.registry.qa if self.router is not None else {}
+        if not cfg.get("enabled", False):
+            return False
+        order = ("basit", "orta", "zor")
+        need = str(cfg.get("min_difficulty", "zor"))
+        if route.difficulty not in order or need not in order:
+            return False
+        return order.index(route.difficulty) >= order.index(need)
+
+    async def _run_qa(self, request: TaskRequest, spec: Any, agent: Any, result: Any) -> tuple[Any, str]:
+        """V.E.R.O.N.I.C.A. QA: onay yoksa ajan geri bildirimle en fazla max_retries kez
+        yeniden calisir. Donus: (son sonuc, cevaba eklenecek QA notu)."""
+        from router import RouteRequest
+
+        cfg = self.router.registry.qa
+        qa_route = await self.router.route(RouteRequest(
+            text=request.task, request_id=f"{request.id}-qa", forced_task_type="qa"))
+        self.router.record(qa_route, request.task)
+        dept = spec.department.value if spec.department else ""
+        self._emit(request, "running", "V.E.R.O.N.I.C.A. kalite kontrolu yapiyor",
+                   agent=spec.name, department=dept, autonomy=spec.autonomy.value)
+        verdict = await self.qa.review(request.task, result.text, qa_route.chain, request_id=request.id)
+        retries = 0
+        while verdict.approved is False and retries < int(cfg.get("max_retries", 1)):
+            retries += 1
+            feedback = "\n".join(f"- {i}" for i in verdict.issues) or verdict.summary or "kaliteyi artir"
+            context = ((request.context + "\n\n") if request.context else "") + (
+                "[V.E.R.O.N.I.C.A. QA GERI BILDIRIMI - bu sorunlari duzelterek gorevi yeniden yap]\n"
+                f"{feedback}\n\n[ONCEKI SONUC]\n{result.text[:3000]}")
+            self._emit(request, "running", f"QA geri bildirimiyle yeniden calisiyor ({retries})",
+                       agent=spec.name, department=dept, autonomy=spec.autonomy.value)
+            retry = await agent.run(request.task, context)
+            if not retry.ok:
+                break
+            result = retry
+            verdict = await self.qa.review(request.task, result.text, qa_route.chain, request_id=request.id)
+
+        self.router.log.write("qa", {
+            "request_id": request.id, "approved": verdict.approved, "issues": verdict.issues,
+            "model": verdict.model, "fallback": verdict.fallback, "retries": retries,
+            "errors": verdict.errors,
+        })
+        backup = f" (yedek model {verdict.model})" if verdict.fallback else ""
+        if verdict.approved is True:
+            return result, f"[QA onayli{backup}] "
+        if verdict.approved is False:
+            issues = "; ".join(verdict.issues[:3]) or verdict.summary
+            return result, f"[QA ONAYLANMADI{backup}: {issues}] "
+        logger.bind(event="qa_fallback").warning(f"[QA {request.id}] YAPILAMADI: {verdict.errors}")
+        return result, "[QA YAPILAMADI: denetim modelleri yanit vermedi] "
 
     async def _save_result_note(self, request: TaskRequest, title: str, text: str) -> None:
         """Zamanli gorev sonucunu kalici notlara (data/notes.md + Obsidian Notlar/) yazar."""

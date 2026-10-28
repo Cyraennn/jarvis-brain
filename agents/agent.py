@@ -114,12 +114,15 @@ class Agent:
         inbox_path: Path | None = None,
         openrouter: Any | None = None,
         claude: Any | None = None,
+        model_chain: list[str] | None = None,
     ) -> None:
         self.spec = spec
         self.client = client
         self.openrouter = openrouter
         self.claude = claude
-        declared = list(dict.fromkeys(
+        # model_chain (router karari) verilirse agents.json'daki modellerin yerine gecer ve
+        # SIRASI korunur; verilmezse eski davranis: Claude -> OpenRouter -> Gemini.
+        declared = list(dict.fromkeys(m for m in (model_chain or []) if m)) or list(dict.fromkeys(
             m for m in (spec.model, spec.fallback_model, *spec.fallback_models) if m
         ))
         # Claude zinciri (agents.json'daki "claude-*" tanimlari) - varsa ilk denenir
@@ -130,6 +133,7 @@ class Agent:
         self.models: list[str] = [
             m for m in declared if not (is_openrouter_model(m) or is_claude_model(m))
         ] or list(default_models)
+        self.provider_order: list[str] = self._provider_order(declared if model_chain else None)
         self.max_steps = spec.max_steps or default_max_steps
         self._callables = build_callables(spec.capabilities, inbox_path=inbox_path)
         self._by_name = {fn.__name__: fn for fn in self._callables}
@@ -147,7 +151,7 @@ class Agent:
         user_text = task if not context else f"[BAGLAM]\n{context}\n\n[GOREV]\n{task}"
         user_text += skill_note
 
-        primary = (self.claude_models or self.openrouter_models or self.models)[0]
+        primary = self._first_model(self.provider_order)
         # hangi modelin kullanildigi + yedege dusulup dusulmedigi (adimlar boyunca birikir)
         meta: dict[str, Any] = {"model": None, "fallback": False, "primary": primary}
 
@@ -155,32 +159,65 @@ class Agent:
         from agents.genai_util import _get_local, _is_online
 
         offline = _get_local() is not None and not await _is_online()
+        order = ["gemini"] if offline else list(self.provider_order)
 
-        if self.claude_models and not offline:
-            result = await self._run_claude(user_text, artifact)
-            if result is not None:
-                return result
-            # Claude basarisiz -> OpenRouter (yoksa Gemini) zincirine ACIK gecis
-            _announce_fallback(
-                self.claude_models[-1], (self.openrouter_models or self.models)[0],
-                "Claude basarisiz / anahtar yok", None,
-            )
-            meta["fallback"] = True
+        for index, provider in enumerate(order):
+            remaining = order[index + 1:]
+            if provider == "claude":
+                result = await self._run_claude(user_text, artifact)
+                if result is not None:
+                    if meta["fallback"]:
+                        result.fallback = True
+                        result.primary_model = primary
+                    return result
+                # Claude basarisiz -> siradaki zincire ACIK gecis
+                _announce_fallback(self.claude_models[-1], self._first_model(remaining),
+                                   "Claude basarisiz / anahtar yok", None)
+                meta["fallback"] = True
+            elif provider == "openrouter":
+                result = await self._run_openrouter(user_text, artifact)
+                if result is not None:
+                    if meta["fallback"]:
+                        result.fallback = True
+                        result.primary_model = primary
+                    return result
+                # OpenRouter zinciri tamamen basarisiz -> siradaki zincire ACIK gecis
+                _announce_fallback(self.openrouter_models[-1], self._first_model(remaining),
+                                   "OpenRouter zinciri basarisiz / anahtar yok", None)
+                meta["fallback"] = True
+            else:
+                result = await self._run_gemini(user_text, artifact, meta)
+                if result.ok or not remaining:
+                    return result
+                # Gemini zinciri basarisiz ama sirada baska saglayici var -> ACIK gecis
+                _announce_fallback(self.models[-1], self._first_model(remaining),
+                                   f"Gemini zinciri basarisiz: {result.error}", None)
+                meta["fallback"] = True
+        return await self._run_gemini(user_text, artifact, meta)  # sira bos kalamaz; guvenlik
 
-        if self.openrouter_models and not offline:
-            result = await self._run_openrouter(user_text, artifact)
-            if result is not None:
-                if meta["fallback"]:
-                    result.fallback = True
-                    result.primary_model = primary
-                return result
-            # OpenRouter zinciri tamamen basarisiz -> Gemini zincirine ACIK gecis
-            _announce_fallback(
-                self.openrouter_models[-1], self.models[0],
-                "OpenRouter zinciri basarisiz / anahtar yok", None,
-            )
-            meta["fallback"] = True
+    def _provider_order(self, chain: list[str] | None) -> list[str]:
+        """Saglayici deneme sirasi. Router zinciri verildiyse ilk gorunus sirasi; Gemini
+        her zaman zincirde (en son yedek)."""
+        def provider(model: str) -> str:
+            if is_claude_model(model):
+                return "claude"
+            return "openrouter" if is_openrouter_model(model) else "gemini"
 
+        if chain:
+            order = list(dict.fromkeys(provider(m) for m in chain))
+        else:
+            order = ["claude", "openrouter", "gemini"]
+        order = [p for p in order if p == "gemini" or (self.claude_models if p == "claude" else self.openrouter_models)]
+        return order if "gemini" in order else [*order, "gemini"]
+
+    def _first_model(self, providers: list[str]) -> str:
+        for p in providers:
+            pool = {"claude": self.claude_models, "openrouter": self.openrouter_models}.get(p, self.models)
+            if pool:
+                return pool[0]
+        return self.models[0]
+
+    async def _run_gemini(self, user_text: str, artifact: dict | None, meta: dict[str, Any]) -> AgentResult:
         contents: list[Any] = [
             types.Content(role="user", parts=[types.Part(text=user_text)])
         ]

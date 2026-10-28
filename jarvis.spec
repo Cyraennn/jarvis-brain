@@ -16,6 +16,9 @@ datas = [
     (str(ROOT / "assets"), "assets"),
     # web konsolunun statik dosyalari (jest modulleri, yerel MediaPipe modelleri)
     (str(ROOT / "web" / "static"), "web/static"),
+    # model router ayarlari + siniflandirici ornekleri (router/)
+    (str(ROOT / "config" / "models.yaml"), "config"),
+    (str(ROOT / "router" / "examples.yaml"), "router"),
 ]
 binaries = []
 hiddenimports = ["winsound", "mss", "mss.windows"]

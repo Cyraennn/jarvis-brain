@@ -208,6 +208,14 @@ class Settings(BaseModel):
     # human_assisted onayi otomatik gec (UI onayi baglanana kadar pratik varsayilan)
     agents_auto_approve_assisted: bool = True
 
+    # Model router (router/): ajan + model kararini yerel siniflandiriciyla verir.
+    # False -> eski davranis (Conductor LLM + agents.json'daki sabit modeller).
+    router_enabled: bool = True
+    router_config_path: Path = RESOURCE_DIR / "config" / "models.yaml"
+    router_examples_path: Path = RESOURCE_DIR / "router" / "examples.yaml"
+    router_model_path: Path = APP_DIR / "data" / "router_model.npz"
+    routing_log_path: Path = APP_DIR / "data" / "logs" / "routing.jsonl"
+
     # Entegrasyonlar (anahtar yoksa yerel dosyaya yazar)
     supabase_url: str = ""
     supabase_key: str = ""
@@ -495,6 +503,7 @@ def get_settings() -> Settings:
         ntfy_topic=os.getenv("NTFY_TOPIC", ""),
         ntfy_server=os.getenv("NTFY_SERVER", "https://ntfy.sh"),
         agents_auto_approve_assisted=_env_bool("JARVIS_AGENTS_AUTO_APPROVE", True),
+        router_enabled=_env_bool("JARVIS_ROUTER_ENABLED", _env_bool("ROUTER_ENABLED", True)),
         email_address=os.getenv("EMAIL_ADDRESS", ""),
         email_app_password=os.getenv("EMAIL_APP_PASSWORD", os.getenv("EMAIL_PASSWORD", "")),
         email_imap_host=os.getenv("EMAIL_IMAP_HOST", ""),
